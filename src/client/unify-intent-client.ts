@@ -7,6 +7,7 @@ import UnifyIntentAgent from './unify-intent-agent';
 import { validateEmail } from './utils/helpers';
 
 export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
+  autoPage: true,
   autoIdentify: false,
 };
 
@@ -42,6 +43,11 @@ class UnifyIntentClient {
       sessionManager,
       identityManager,
     };
+
+    // Log a page event if specified by config
+    if (config.autoPage) {
+      this.page();
+    }
 
     // Initialize intent agent if specifed by config
     if (config.autoIdentify) {

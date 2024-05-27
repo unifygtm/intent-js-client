@@ -6,8 +6,16 @@ import { components } from './spec';
 export interface UnifyIntentClientConfig {
   /**
    * This option can be specified to indicate that the Unify client
+   * should automatically log page events when the current page changes.
+   * @default true
+   */
+  autoPage?: boolean;
+
+  /**
+   * This option can be specified to indicate that the Unify client
    * should instantiate an agent which automatically collects user
    * email inputs, contact form submissions, etc.
+   * @default false
    */
   autoIdentify?: boolean;
 }
