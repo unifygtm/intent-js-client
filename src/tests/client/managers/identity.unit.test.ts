@@ -3,8 +3,8 @@ import { anyString, mock, mockReset } from 'jest-mock-extended';
 import {
   ANONYMOUS_USER_ID_STORAGE_KEY,
   IdentityManager,
-} from '../../../intent/managers';
-import { CookieStorageService } from '../../../storage';
+} from '../../../client/managers';
+import { CookieStorageService } from '../../../client/storage';
 import { TEST_ANONYMOUS_USER_ID, TEST_WRITE_KEY } from '../../mocks/data';
 
 const cookieStorageMock = mock(CookieStorageService.prototype);
@@ -24,11 +24,11 @@ describe('IdentityManager', () => {
       const result = identityManager.getOrCreateAnonymousUserId();
 
       expect(cookieStorageMock.get).toHaveBeenCalledWith(
-        ANONYMOUS_USER_ID_STORAGE_KEY,
+        ANONYMOUS_USER_ID_STORAGE_KEY
       );
       expect(cookieStorageMock.set).toHaveBeenCalledWith(
         ANONYMOUS_USER_ID_STORAGE_KEY,
-        anyString(),
+        anyString()
       );
       expect(result).toEqual(anyString());
 

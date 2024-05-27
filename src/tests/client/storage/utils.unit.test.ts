@@ -1,10 +1,10 @@
-import { isLocalStorageAvailable } from '../../storage/utils';
+import { isLocalStorageAvailable } from '../../../client/storage/utils';
 
 const mockedSetItem = jest.mocked<typeof localStorage.setItem>(
-  localStorage.setItem,
+  localStorage.setItem
 );
 const mockedRemoveItem = jest.mocked<typeof localStorage.removeItem>(
-  localStorage.removeItem,
+  localStorage.removeItem
 );
 
 describe('isLocalStorageAvailable', () => {

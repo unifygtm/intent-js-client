@@ -1,9 +1,9 @@
 import { mock, mockReset } from 'jest-mock-extended';
 
-import UnifyIntentClient from '../../intent';
-import { IdentifyActivity, PageActivity } from '../../intent/activities';
-import { IdentityManager, SessionManager } from '../../intent/managers';
-import UnifyIntentAgent from '../../unify-intent-agent';
+import UnifyIntentClient from '../../client/unify-intent-client';
+import { IdentifyActivity, PageActivity } from '../../client/activities';
+import { IdentityManager, SessionManager } from '../../client/managers';
+import UnifyIntentAgent from '../../client/unify-intent-agent';
 import { TEST_WRITE_KEY } from '../mocks/data';
 
 const mockedIdentityManager = mock(IdentityManager.prototype);

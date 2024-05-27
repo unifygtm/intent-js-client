@@ -3,9 +3,9 @@ import { anyNumber, mock, mockReset } from 'jest-mock-extended';
 import {
   CLIENT_SESSION_STORAGE_KEY,
   SessionManager,
-} from '../../../intent/managers';
-import { LocalStorageService } from '../../../storage';
-import { ClientSession } from '../../../types';
+} from '../../../client/managers';
+import { LocalStorageService } from '../../../client/storage';
+import { ClientSession } from '../../../client/types';
 import { MockClientSession, TEST_WRITE_KEY } from '../../mocks/data';
 
 const localStorageMock = mock(LocalStorageService.prototype);
@@ -25,11 +25,11 @@ describe('SessionManager', () => {
       const result = sessionManager.getOrCreateSession();
 
       expect(localStorageMock.get).toHaveBeenCalledWith(
-        CLIENT_SESSION_STORAGE_KEY,
+        CLIENT_SESSION_STORAGE_KEY
       );
       expect(localStorageMock.set).toHaveBeenCalledWith(
         CLIENT_SESSION_STORAGE_KEY,
-        result,
+        result
       );
     });
 
@@ -58,7 +58,7 @@ describe('SessionManager', () => {
           expect(localStorageMock.set).toHaveBeenCalledTimes(1);
           expect(localStorageMock.set).toHaveBeenCalledWith(
             CLIENT_SESSION_STORAGE_KEY,
-            expectedSession,
+            expectedSession
           );
           expect(session.expiration).toBeGreaterThan(mockSession.expiration);
         });
@@ -84,7 +84,7 @@ describe('SessionManager', () => {
           expect(localStorageMock.set).toHaveBeenCalledTimes(1);
           expect(localStorageMock.set).toHaveBeenCalledWith(
             CLIENT_SESSION_STORAGE_KEY,
-            session,
+            session
           );
         });
       });
@@ -107,7 +107,7 @@ describe('SessionManager', () => {
           expect(localStorageMock.set).toHaveBeenCalledTimes(1);
           expect(localStorageMock.set).toHaveBeenCalledWith(
             CLIENT_SESSION_STORAGE_KEY,
-            result,
+            result
           );
         });
       });

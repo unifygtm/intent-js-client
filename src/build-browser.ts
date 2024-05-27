@@ -7,7 +7,7 @@ const devDependencies = Object.keys(packageJson.devDependencies || {});
 
 esbuild
   .build({
-    entryPoints: ['./src/run.ts'],
+    entryPoints: ['./src/browser/index.ts'],
     bundle: true,
     minify: true,
     platform: 'browser',

@@ -1,8 +1,8 @@
 import { mock, mockReset } from 'jest-mock-extended';
 
-import { IdentifyActivity } from '../../intent/activities';
-import { UnifyIntentContext } from '../../intent/types';
-import UnifyIntentAgent from '../../unify-intent-agent';
+import { IdentifyActivity } from '../../client/activities';
+import { UnifyIntentContext } from '../../client/types';
+import UnifyIntentAgent from '../../client/unify-intent-agent';
 import { MockUnifyIntentContext } from '../mocks/intent-context-mock';
 
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
