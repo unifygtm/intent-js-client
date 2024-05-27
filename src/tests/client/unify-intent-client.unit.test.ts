@@ -1,6 +1,6 @@
 import { mock, mockReset } from 'jest-mock-extended';
 
-import UnifyIntentClient from '../../client/unify-intent-client';
+import UnifyIntentClient from '../../client';
 import { IdentifyActivity, PageActivity } from '../../client/activities';
 import { IdentityManager, SessionManager } from '../../client/managers';
 import UnifyIntentAgent from '../../client/unify-intent-agent';
