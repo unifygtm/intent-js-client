@@ -4,15 +4,31 @@
     <meta charset="utf-8" />
     <script>
       !(function () {
-        var e = document.createElement('script');
-        (e.async = !0),
-          e.setAttribute('src', 'dist/minjs/unify-tag-script.js'),
-          e.setAttribute(
-            'data-write-key',
-            'wk_5fTtsDLJ_7vx9DsjPcr79yk4FweES727w59pxS8EJ',
-          ),
-          e.setAttribute('id', 'unifytag'),
-          (document.body || document.head).appendChild(e);
+        window.unify ||
+          (window.unify = Object.assign(
+            [],
+            [
+              'identify',
+              'page',
+              'startAutoIdentify',
+              'stopAutoIdentify',
+            ].reduce(function (acc, m) {
+              acc[m] = function () {
+                unify.push([m, [].slice.call(arguments)]);
+                return unify;
+              };
+              return acc;
+            }, {}),
+          ));
+        var s = document.createElement('script');
+        s.async = !0;
+        s.setAttribute('src', 'dist/minjs/unify-tag-script.js');
+        s.setAttribute(
+          'data-api-key',
+          'wk_5fTtsDLJ_7vx9DsjPcr79yk4FweES727w59pxS8EJ',
+        );
+        s.setAttribute('id', 'unifytag');
+        (document.body || document.head).appendChild(s);
       })();
     </script>
   </head>
