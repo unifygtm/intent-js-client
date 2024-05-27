@@ -104,3 +104,12 @@ const currentUser = getCurrentUser();
 // Identify the current user
 unify.identify(currentUser.emailAddress);
 ```
+
+## Configuration
+
+The following configuration options can be passed when initializing the client:
+
+- `autoPage` - Tells the client to automatically log `page` events whenever the current page changes. Works for static websites and Single Page Apps.
+  - **Default**: `true`
+- `autoIdentify` - Tells the client to automatically monitor text and email input elements on the page for changes. When the current user enters a valid email address into an input, the client will log an `identify` event for that email address.
+  - **Default**: `true` if the client is installed via the Unify JavaScript tag, `false` if installed via a package manager
