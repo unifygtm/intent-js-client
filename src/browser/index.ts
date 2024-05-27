@@ -1,6 +1,6 @@
-import UnifyIntentClient from './unify-intent-client';
+import UnifyIntentClient from '../client';
 
-export const unifyInit = function () {
+export const initBrowser = function () {
   const scriptTag = document.getElementById('unifytag');
   const writeKey =
     scriptTag?.getAttribute('data-write-key') ??
@@ -12,4 +12,4 @@ export const unifyInit = function () {
   unify.page();
 };
 
-unifyInit();
+initBrowser();

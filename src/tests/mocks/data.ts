@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { ActivityContext, PageProperties } from '@unifygtm/analytics-types';
 
-import { ClientSession, UserAgentDataType } from '../../types';
+import { ClientSession, UserAgentDataType } from '../../client/types';
 
 export const TEST_WRITE_KEY = '1234';
 export const TEST_ANONYMOUS_USER_ID = '5678';
@@ -38,7 +38,7 @@ export const MockUserAgentData: UserAgentDataType = {
 };
 
 export const MockClientSession = (
-  overrides?: Partial<ClientSession>,
+  overrides?: Partial<ClientSession>
 ): ClientSession => ({
   sessionId: faker.string.uuid(),
   expiration: faker.number.int(),

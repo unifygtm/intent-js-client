@@ -4,7 +4,7 @@ import { anyObject, mockReset } from 'jest-mock-extended';
 import {
   IdentifyActivity,
   UNIFY_INTENT_IDENTIFY_URL,
-} from '../../../intent/activities';
+} from '../../../client/activities';
 import { MockClientSession, TEST_ANONYMOUS_USER_ID } from '../../mocks/data';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 
@@ -20,10 +20,10 @@ describe('IdentifyActivity', () => {
   describe('track', () => {
     beforeEach(() => {
       mockContext.sessionManager.getOrCreateSession.mockReturnValue(
-        MockClientSession(),
+        MockClientSession()
       );
       mockContext.identityManager.getOrCreateAnonymousUserId.mockReturnValue(
-        TEST_ANONYMOUS_USER_ID,
+        TEST_ANONYMOUS_USER_ID
       );
     });
 
@@ -34,7 +34,7 @@ describe('IdentifyActivity', () => {
       identify.track();
       expect(mockContext.apiClient.post).toHaveBeenCalledWith(
         UNIFY_INTENT_IDENTIFY_URL,
-        anyObject(),
+        anyObject()
       );
       const data = mockContext.apiClient.post.mock
         .calls[0][1] as IdentifyRequestData;

@@ -25,10 +25,10 @@
     "testEnvironment": "jest-environment-jsdom"
   },
   "scripts": {
-    "build": "ts-node src/build.ts",
-    "build:s3:prod": "pnpm build && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script.js",
-    "build:s3:staging": "pnpm build && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script-staging.js",
-    "build:s3:testing": "pnpm build && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script-testing.js",
+    "build:browser": "ts-node src/build-browser.ts",
+    "build:browser:s3:prod": "pnpm build && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script.js",
+    "build:browser:s3:staging": "pnpm build && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script-staging.js",
+    "build:browser:s3:testing": "pnpm build && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script-testing.js",
     "start": "http-server -o -p 0",
     "test": "pnpm jest"
   },
