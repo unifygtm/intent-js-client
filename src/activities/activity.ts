@@ -1,0 +1,60 @@
+import { ActivityType, AnalyticsRequest } from '@unifygtm/analytics-types';
+
+import { UnifyIntentContext } from '../types';
+import { getActivityContext } from './utils';
+
+/**
+ * Abstract class which other activites should extend. Exposes an interface
+ * to track the activity with base activity data and any additional data needed.
+ */
+abstract class Activity<TActivityData extends object> {
+  protected readonly _intentContext: UnifyIntentContext;
+
+  constructor(intentContext: UnifyIntentContext) {
+    this._intentContext = intentContext;
+  }
+
+  /**
+   * Tracks this activity by sending a POST request with the activity data
+   * to the relevant Unify Intent activity URL.
+   */
+  public track(): void {
+    this._intentContext.apiClient.post(this.getActivityURL(), {
+      ...this.getBaseActivityPayload(),
+      ...this.getActivityData(),
+    });
+  }
+
+  /**
+   * Gets the type of the activity.
+   */
+  protected abstract getActivityType(): ActivityType;
+
+  /**
+   * Gets the Unify Intent URL to send the activity data to.
+   */
+  protected abstract getActivityURL(): string;
+
+  /**
+   * Gets the activity data to send along with the base activity data.
+   */
+  protected abstract getActivityData(): TActivityData;
+
+  /**
+   * Generates the "base" activity data which is included by default in the
+   * payload for all intent activities which get logged.
+   *
+   * @returns the base activity data to log
+   */
+  private getBaseActivityPayload = (): AnalyticsRequest => ({
+    type: this.getActivityType(),
+    anonymousUserId:
+      this._intentContext.identityManager.getOrCreateAnonymousUserId(),
+    sessionId:
+      this._intentContext.sessionManager.getOrCreateSession().sessionId,
+    context: getActivityContext(),
+    timestamp: new Date().toISOString(),
+  });
+}
+
+export default Activity;
