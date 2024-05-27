@@ -1,10 +1,9 @@
-import { IdentifyRequestData } from '@unifygtm/analytics-types';
 import { anyObject, mockReset } from 'jest-mock-extended';
 
-import {
-  IdentifyActivity,
-  UNIFY_INTENT_IDENTIFY_URL,
-} from '../../../client/activities';
+import { IdentifyActivity, UNIFY_INTENT_IDENTIFY_URL } from 'client/activities';
+
+import { IdentifyEventData } from 'types';
+
 import { MockClientSession, TEST_ANONYMOUS_USER_ID } from '../../mocks/data';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 
@@ -20,10 +19,10 @@ describe('IdentifyActivity', () => {
   describe('track', () => {
     beforeEach(() => {
       mockContext.sessionManager.getOrCreateSession.mockReturnValue(
-        MockClientSession()
+        MockClientSession(),
       );
       mockContext.identityManager.getOrCreateAnonymousUserId.mockReturnValue(
-        TEST_ANONYMOUS_USER_ID
+        TEST_ANONYMOUS_USER_ID,
       );
     });
 
@@ -34,10 +33,10 @@ describe('IdentifyActivity', () => {
       identify.track();
       expect(mockContext.apiClient.post).toHaveBeenCalledWith(
         UNIFY_INTENT_IDENTIFY_URL,
-        anyObject()
+        anyObject(),
       );
       const data = mockContext.apiClient.post.mock
-        .calls[0][1] as IdentifyRequestData;
+        .calls[0][1] as IdentifyEventData;
       expect(data.type).toEqual('identify');
       expect(data.traits.email).toEqual('solomon@unifygtm.com');
     });

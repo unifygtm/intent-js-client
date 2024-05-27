@@ -1,4 +1,4 @@
-import UnifyIntentClient from '../client';
+import UnifyIntentClient from 'client';
 
 export const initBrowser = function () {
   const scriptTag = document.getElementById('unifytag');
@@ -8,8 +8,10 @@ export const initBrowser = function () {
 
   if (!writeKey) return;
 
-  const unify = new UnifyIntentClient(writeKey, { autoIdentify: true });
-  unify.page();
+  const unify = new UnifyIntentClient(writeKey, {
+    autoPage: true,
+    autoIdentify: true,
+  });
 };
 
 initBrowser();

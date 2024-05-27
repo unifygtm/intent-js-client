@@ -1,6 +1,9 @@
-import { ActivityType, AnalyticsRequest } from '@unifygtm/analytics-types';
+import {
+  AnalyticsEventBase,
+  AnalyticsEventType,
+  UnifyIntentContext,
+} from 'types';
 
-import { UnifyIntentContext } from '../types';
 import { getActivityContext } from './utils';
 
 /**
@@ -28,7 +31,7 @@ abstract class Activity<TActivityData extends object> {
   /**
    * Gets the type of the activity.
    */
-  protected abstract getActivityType(): ActivityType;
+  protected abstract getActivityType(): AnalyticsEventType;
 
   /**
    * Gets the Unify Intent URL to send the activity data to.
@@ -46,7 +49,7 @@ abstract class Activity<TActivityData extends object> {
    *
    * @returns the base activity data to log
    */
-  private getBaseActivityPayload = (): AnalyticsRequest => ({
+  private getBaseActivityPayload = (): AnalyticsEventBase => ({
     type: this.getActivityType(),
     anonymousUserId:
       this._intentContext.identityManager.getOrCreateAnonymousUserId(),

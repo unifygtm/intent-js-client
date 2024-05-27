@@ -1,3 +1,6 @@
 node_modules/
 
 .DS_Store
+
+# Ignore types generated from the OpenAPI spec
+src/spec.d.ts

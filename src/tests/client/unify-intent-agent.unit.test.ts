@@ -1,13 +1,15 @@
 import { mock, mockReset } from 'jest-mock-extended';
 
-import { IdentifyActivity } from '../../client/activities';
-import { UnifyIntentContext } from '../../client/types';
-import UnifyIntentAgent from '../../client/unify-intent-agent';
+import { IdentifyActivity } from 'client/activities';
+import UnifyIntentAgent from 'client/unify-intent-agent';
+
+import { UnifyIntentContext } from 'types';
+
 import { MockUnifyIntentContext } from '../mocks/intent-context-mock';
 
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
-jest.mock('../../intent/activities', () => ({
-  ...jest.requireActual('../../intent/managers'),
+jest.mock('client/activities', () => ({
+  ...jest.requireActual('client/activities'),
   IdentifyActivity: jest.fn().mockImplementation(() => mockedIdentifyActivity),
 }));
 
@@ -23,7 +25,7 @@ function mockDocumentWithInputs(inputs: InputElementData[]) {
             ${inputs.map(
               ({ id, type, value }) => `
                 <input id="${id}" type="${type}" value="${value ?? ''}" />
-            `
+            `,
             )}
         </div>
     `;
@@ -110,11 +112,13 @@ describe('UnifyIntentAgent', () => {
         expect(monitoredInputs.length).toEqual(2);
         expect(
           monitoredInputs.find(
-            (input) => input.id === MOCK_EMAIL_INPUT_EMPTY.id
-          )
+            (input) => input.id === MOCK_EMAIL_INPUT_EMPTY.id,
+          ),
         ).toBeTruthy();
         expect(
-          monitoredInputs.find((input) => input.id === MOCK_TEXT_INPUT_EMPTY.id)
+          monitoredInputs.find(
+            (input) => input.id === MOCK_TEXT_INPUT_EMPTY.id,
+          ),
         ).toBeTruthy();
       });
 
@@ -141,13 +145,13 @@ describe('UnifyIntentAgent', () => {
         expect(submittedEmails.length).toEqual(2);
         expect(
           submittedEmails.find(
-            (email) => email === MOCK_EMAIL_INPUT_WITH_EMAIL.value
-          )
+            (email) => email === MOCK_EMAIL_INPUT_WITH_EMAIL.value,
+          ),
         ).toBeTruthy();
         expect(
           submittedEmails.find(
-            (email) => email === MOCK_TEXT_INPUT_WITH_EMAIL.value
-          )
+            (email) => email === MOCK_TEXT_INPUT_WITH_EMAIL.value,
+          ),
         ).toBeTruthy();
         expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(2);
       });
@@ -168,7 +172,7 @@ describe('UnifyIntentAgent', () => {
         // Trigger keydown events
         agent.__getMonitoredInputs().forEach((input) => {
           input.dispatchEvent(
-            new window.KeyboardEvent('keydown', { key: 'Enter' })
+            new window.KeyboardEvent('keydown', { key: 'Enter' }),
           );
         });
 
@@ -177,13 +181,13 @@ describe('UnifyIntentAgent', () => {
         expect(submittedEmails.length).toEqual(2);
         expect(
           submittedEmails.find(
-            (email) => email === MOCK_EMAIL_INPUT_WITH_EMAIL.value
-          )
+            (email) => email === MOCK_EMAIL_INPUT_WITH_EMAIL.value,
+          ),
         ).toBeTruthy();
         expect(
           submittedEmails.find(
-            (email) => email === MOCK_TEXT_INPUT_WITH_EMAIL.value
-          )
+            (email) => email === MOCK_TEXT_INPUT_WITH_EMAIL.value,
+          ),
         ).toBeTruthy();
         expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(2);
       });
@@ -204,7 +208,7 @@ describe('UnifyIntentAgent', () => {
         // Trigger keydown events
         agent.__getMonitoredInputs().forEach((input) => {
           input.dispatchEvent(
-            new window.KeyboardEvent('keydown', { key: 'Space' })
+            new window.KeyboardEvent('keydown', { key: 'Space' }),
           );
         });
 
@@ -229,7 +233,7 @@ describe('UnifyIntentAgent', () => {
         // Trigger keydown events
         agent.__getMonitoredInputs().forEach((input) => {
           input.dispatchEvent(
-            new window.KeyboardEvent('keydown', { key: 'Enter' })
+            new window.KeyboardEvent('keydown', { key: 'Enter' }),
           );
         });
 
@@ -243,7 +247,7 @@ describe('UnifyIntentAgent', () => {
         // Trigger keydown events for inputs again
         agent.__getMonitoredInputs().forEach((input) => {
           input.dispatchEvent(
-            new window.KeyboardEvent('keydown', { key: 'Enter' })
+            new window.KeyboardEvent('keydown', { key: 'Enter' }),
           );
         });
 

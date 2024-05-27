@@ -1,5 +1,6 @@
-import { PageRequestData } from '@unifygtm/analytics-types';
 import { anyObject, mockReset } from 'jest-mock-extended';
+
+import { PageEventData } from 'types';
 
 import {
   PageActivity,
@@ -20,10 +21,10 @@ describe('PageActivity', () => {
   describe('track', () => {
     beforeEach(() => {
       mockContext.sessionManager.getOrCreateSession.mockReturnValue(
-        MockClientSession()
+        MockClientSession(),
       );
       mockContext.identityManager.getOrCreateAnonymousUserId.mockReturnValue(
-        TEST_ANONYMOUS_USER_ID
+        TEST_ANONYMOUS_USER_ID,
       );
     });
 
@@ -32,10 +33,9 @@ describe('PageActivity', () => {
       page.track();
       expect(mockContext.apiClient.post).toHaveBeenCalledWith(
         UNIFY_INTENT_PAGE_URL,
-        anyObject()
+        anyObject(),
       );
-      const data = mockContext.apiClient.post.mock
-        .calls[0][1] as PageRequestData;
+      const data = mockContext.apiClient.post.mock.calls[0][1] as PageEventData;
       expect(data.type).toEqual('page');
       expect(data.properties).toEqual(anyObject());
     });
