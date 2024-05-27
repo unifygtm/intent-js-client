@@ -8,22 +8,6 @@
     ],
     "ext": "ts,json"
   },
-  "jest": {
-    "verbose": true,
-    "resetMocks": false,
-    "preset": "ts-jest",
-    "roots": [
-      "src"
-    ],
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
-    "setupFiles": [
-      "jest-localstorage-mock"
-    ],
-    "testEnvironment": "jest-environment-jsdom"
-  },
   "scripts": {
     "build:browser": "pnpm generate && ts-node src/build-browser.ts",
     "build:browser:s3:prod": "pnpm build:browser && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script.js",

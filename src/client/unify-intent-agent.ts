@@ -1,6 +1,7 @@
-import { validateEmail } from './utils/helpers';
+import { UnifyIntentContext } from 'types';
+
 import { IdentifyActivity } from './activities';
-import { UnifyIntentContext } from '../types';
+import { validateEmail } from './utils/helpers';
 
 /**
  * This class acts as an agent to automatically monitor user
@@ -64,7 +65,7 @@ class UnifyIntentAgent {
     const inputs = Array.from(document.getElementsByTagName('input')).filter(
       (input) =>
         !this._monitoredInputs.has(input) &&
-        this.isCandidateIdentityInput(input)
+        this.isCandidateIdentityInput(input),
     );
 
     // Setup event listeners to monitor the input elements

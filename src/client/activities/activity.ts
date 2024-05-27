@@ -1,6 +1,9 @@
-import { AnalyticsEventType, AnalyticsEventBase } from '../../types';
+import {
+  AnalyticsEventBase,
+  AnalyticsEventType,
+  UnifyIntentContext,
+} from 'types';
 
-import { UnifyIntentContext } from '../../types';
 import { getActivityContext } from './utils';
 
 /**

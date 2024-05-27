@@ -1,9 +1,10 @@
-import { validateEmail } from './utils/helpers';
+import { UnifyIntentClientConfig, UnifyIntentContext } from 'types';
+
 import { IdentifyActivity, PageActivity } from './activities';
 import { IdentityManager, SessionManager } from './managers';
-import { UnifyIntentClientConfig, UnifyIntentContext } from '../types';
 import UnifyApiClient from './unify-api-client';
 import UnifyIntentAgent from './unify-intent-agent';
+import { validateEmail } from './utils/helpers';
 
 export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
   autoIdentify: false,
@@ -20,7 +21,7 @@ class UnifyIntentClient {
 
   constructor(
     writeKey: string,
-    config: UnifyIntentClientConfig = DEFAULT_UNIFY_INTENT_CLIENT_CONFIG
+    config: UnifyIntentClientConfig = DEFAULT_UNIFY_INTENT_CLIENT_CONFIG,
   ) {
     // Initialize API client
     const apiClient = new UnifyApiClient(writeKey);

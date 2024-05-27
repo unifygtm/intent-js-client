@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import { ClientSession } from 'types';
+
 import { LocalStorageService } from '../storage';
-import { ClientSession } from '../../types';
 import {
   getCurrentPageProperties,
   getCurrentUserAgentData,
@@ -63,7 +64,7 @@ export class SessionManager {
    * @returns the newly created session
    */
   private createSession = (
-    minutesToExpire = SESSION_MINUTES_TO_EXPIRE
+    minutesToExpire = SESSION_MINUTES_TO_EXPIRE,
   ): ClientSession => {
     const session: ClientSession = {
       sessionId: uuidv4(),
@@ -90,7 +91,7 @@ export class SessionManager {
    */
   private updateSessionExpiration = (
     existingSession: ClientSession,
-    minutesToExpire = SESSION_MINUTES_TO_EXPIRE
+    minutesToExpire = SESSION_MINUTES_TO_EXPIRE,
   ): ClientSession => {
     const updatedSession: ClientSession = {
       ...existingSession,

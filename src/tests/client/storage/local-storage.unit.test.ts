@@ -1,12 +1,13 @@
-import { LocalStorageService } from '../../../client/storage';
+import { LocalStorageService } from 'client/storage';
 import {
   encodeForStorage,
   isLocalStorageAvailable,
-} from '../../../client/storage/utils';
+} from 'client/storage/utils';
+
 import { MockClientSession, TEST_WRITE_KEY } from '../../mocks/data';
 
-jest.mock('../../../client/storage/utils', () => ({
-  ...jest.requireActual('../../../client/storage/utils'),
+jest.mock('client/storage/utils', () => ({
+  ...jest.requireActual('client/storage/utils'),
   isLocalStorageAvailable: jest.fn(),
 }));
 
@@ -14,10 +15,10 @@ const mockedIsLocalStorageAvailable = jest.mocked<
   typeof isLocalStorageAvailable
 >(isLocalStorageAvailable);
 const mockedGetItem = jest.mocked<typeof localStorage.getItem>(
-  localStorage.getItem
+  localStorage.getItem,
 );
 const mockedSetItem = jest.mocked<typeof localStorage.setItem>(
-  localStorage.setItem
+  localStorage.setItem,
 );
 
 describe('LocalStorageService', () => {
@@ -37,7 +38,7 @@ describe('LocalStorageService', () => {
         const storageService = new LocalStorageService(TEST_WRITE_KEY);
         storageService.get('clientSession');
         expect(localStorage.getItem).toHaveBeenLastCalledWith(
-          encodeForStorage(`${TEST_WRITE_KEY}_clientSession`)
+          encodeForStorage(`${TEST_WRITE_KEY}_clientSession`),
         );
       });
 
@@ -45,7 +46,7 @@ describe('LocalStorageService', () => {
         const storageService = new LocalStorageService('ő');
         storageService.get('clientSession');
         expect(localStorage.getItem).toHaveBeenLastCalledWith(
-          encodeForStorage(`ő_clientSession`)
+          encodeForStorage(`ő_clientSession`),
         );
       });
     });
@@ -75,7 +76,7 @@ describe('LocalStorageService', () => {
         storageService.set('key', '1234');
         expect(localStorage.setItem).toHaveBeenLastCalledWith(
           encodeForStorage(`${TEST_WRITE_KEY}_key`),
-          encodeForStorage('1234')
+          encodeForStorage('1234'),
         );
       });
 
@@ -84,7 +85,7 @@ describe('LocalStorageService', () => {
         storageService.set('key', '1234');
         expect(localStorage.setItem).toHaveBeenLastCalledWith(
           encodeForStorage(`ő_key`),
-          encodeForStorage('1234')
+          encodeForStorage('1234'),
         );
       });
 
@@ -94,7 +95,7 @@ describe('LocalStorageService', () => {
         storageService.set('key', mockClientSession);
         expect(localStorage.setItem).toHaveBeenLastCalledWith(
           encodeForStorage(`${TEST_WRITE_KEY}_key`),
-          encodeForStorage(mockClientSession)
+          encodeForStorage(mockClientSession),
         );
       });
     });

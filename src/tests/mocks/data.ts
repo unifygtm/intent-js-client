@@ -1,10 +1,11 @@
 import { faker } from '@faker-js/faker';
+
 import {
   ActivityContext,
   ClientSession,
   PageProperties,
   UserAgentDataType,
-} from '../../types';
+} from 'types';
 
 export const TEST_WRITE_KEY = '1234';
 export const TEST_ANONYMOUS_USER_ID = '5678';
@@ -41,7 +42,7 @@ export const MockUserAgentData: UserAgentDataType = {
 };
 
 export const MockClientSession = (
-  overrides?: Partial<ClientSession>
+  overrides?: Partial<ClientSession>,
 ): ClientSession => ({
   sessionId: faker.string.uuid(),
   expiration: faker.number.int(),

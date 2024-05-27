@@ -1,5 +1,6 @@
-import { IdentityManager, SessionManager } from './client/managers';
-import UnifyApiClient from './client/unify-api-client';
+import { IdentityManager, SessionManager } from 'client/managers';
+import UnifyApiClient from 'client/unify-api-client';
+
 import { components } from './spec';
 
 export interface UnifyIntentClientConfig {

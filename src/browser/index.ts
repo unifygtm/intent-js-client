@@ -1,4 +1,4 @@
-import UnifyIntentClient from '../client';
+import UnifyIntentClient from 'client';
 
 export const initBrowser = function () {
   const scriptTag = document.getElementById('unifytag');

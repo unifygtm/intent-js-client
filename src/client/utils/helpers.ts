@@ -1,6 +1,4 @@
-import { PageProperties } from '../../types';
-
-import { UserAgentDataType } from '../../types';
+import { PageProperties, UserAgentDataType } from 'types';
 
 const EMAIL_REGEX = /^[A-Za-z0-9._+%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$/;
 
@@ -13,7 +11,7 @@ const EMAIL_REGEX = /^[A-Za-z0-9._+%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$/;
  */
 export function getTimeForMinutesInFuture(
   minutes: number,
-  fromTime?: Date
+  fromTime?: Date,
 ): number {
   return (fromTime?.getTime() ?? new Date().getTime()) + minutes * 60 * 1000;
 }
