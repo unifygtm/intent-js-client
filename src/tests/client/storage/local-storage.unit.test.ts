@@ -5,8 +5,8 @@ import {
 } from '../../../client/storage/utils';
 import { MockClientSession, TEST_WRITE_KEY } from '../../mocks/data';
 
-jest.mock('../../storage/utils', () => ({
-  ...jest.requireActual('../../storage/utils'),
+jest.mock('../../../client/storage/utils', () => ({
+  ...jest.requireActual('../../../client/storage/utils'),
   isLocalStorageAvailable: jest.fn(),
 }));
 

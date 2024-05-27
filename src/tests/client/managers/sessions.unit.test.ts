@@ -5,12 +5,12 @@ import {
   SessionManager,
 } from '../../../client/managers';
 import { LocalStorageService } from '../../../client/storage';
-import { ClientSession } from '../../../client/types';
+import { ClientSession } from '../../../types';
 import { MockClientSession, TEST_WRITE_KEY } from '../../mocks/data';
 
 const localStorageMock = mock(LocalStorageService.prototype);
-jest.mock('../../../storage', () => ({
-  ...jest.requireActual('../../../storage'),
+jest.mock('../../../client/storage', () => ({
+  ...jest.requireActual('../../../client/storage'),
   LocalStorageService: jest.fn().mockImplementation(() => localStorageMock),
 }));
 

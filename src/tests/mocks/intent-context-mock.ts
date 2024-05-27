@@ -1,7 +1,7 @@
 import { DeepMockProxy, mockDeep } from 'jest-mock-extended';
 
 import { IdentityManager, SessionManager } from '../../client/managers';
-import { UnifyIntentClientConfig } from '../../client/types';
+import { UnifyIntentClientConfig } from '../../types';
 import UnifyApiClient from '../../client/unify-api-client';
 import { DEFAULT_UNIFY_INTENT_CLIENT_CONFIG } from '../../client/unify-intent-client';
 import { TEST_WRITE_KEY } from './data';

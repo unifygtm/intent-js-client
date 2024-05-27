@@ -25,10 +25,11 @@
     "testEnvironment": "jest-environment-jsdom"
   },
   "scripts": {
-    "build:browser": "ts-node src/build-browser.ts",
-    "build:browser:s3:prod": "pnpm build && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script.js",
-    "build:browser:s3:staging": "pnpm build && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script-staging.js",
-    "build:browser:s3:testing": "pnpm build && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script-testing.js",
+    "build:browser": "pnpm generate && ts-node src/build-browser.ts",
+    "build:browser:s3:prod": "pnpm build:browser && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script.js",
+    "build:browser:s3:staging": "pnpm build:browser && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script-staging.js",
+    "build:browser:s3:testing": "pnpm build:browser && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script-testing.js",
+    "generate": "pnpm openapi-typescript '../unify/api/tsp-output/@typespec/openapi3/openapi.UnifyAnalyticsApi.yaml' -o './src/spec.d.ts'",
     "start": "http-server -o -p 0",
     "test": "pnpm jest"
   },
@@ -52,6 +53,7 @@
     "jest-localstorage-mock": "^2.4.26",
     "jest-mock": "^29.7.0",
     "jest-mock-extended": "^3.0.7",
+    "openapi-typescript": "^6.7.6",
     "prettier": "^2.8.8",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",

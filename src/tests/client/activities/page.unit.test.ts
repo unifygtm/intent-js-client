@@ -1,4 +1,4 @@
-import { PageRequestData } from '@unifygtm/analytics-types';
+import { PageEventData } from '../../../types';
 import { anyObject, mockReset } from 'jest-mock-extended';
 
 import {
@@ -34,8 +34,7 @@ describe('PageActivity', () => {
         UNIFY_INTENT_PAGE_URL,
         anyObject()
       );
-      const data = mockContext.apiClient.post.mock
-        .calls[0][1] as PageRequestData;
+      const data = mockContext.apiClient.post.mock.calls[0][1] as PageEventData;
       expect(data.type).toEqual('page');
       expect(data.properties).toEqual(anyObject());
     });

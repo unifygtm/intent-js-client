@@ -1,6 +1,6 @@
 import { validateEmail } from './utils/helpers';
 import { IdentifyActivity } from './activities';
-import { UnifyIntentContext } from './types';
+import { UnifyIntentContext } from '../types';
 
 /**
  * This class acts as an agent to automatically monitor user

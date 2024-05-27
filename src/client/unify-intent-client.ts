@@ -1,7 +1,7 @@
 import { validateEmail } from './utils/helpers';
 import { IdentifyActivity, PageActivity } from './activities';
 import { IdentityManager, SessionManager } from './managers';
-import { UnifyIntentClientConfig, UnifyIntentContext } from './types';
+import { UnifyIntentClientConfig, UnifyIntentContext } from '../types';
 import UnifyApiClient from './unify-api-client';
 import UnifyIntentAgent from './unify-intent-agent';
 

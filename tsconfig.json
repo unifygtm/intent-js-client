@@ -10,6 +10,5 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "**/node_modules", ".vscode", "**/.*/"],
-  "references": [{ "path": "../services/analytics/types/tsconfig.json" }]
+  "exclude": ["node_modules", "**/node_modules", ".vscode", "**/.*/"]
 }

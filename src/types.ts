@@ -1,0 +1,51 @@
+import { IdentityManager, SessionManager } from './client/managers';
+import UnifyApiClient from './client/unify-api-client';
+import { components } from './spec';
+
+export interface UnifyIntentClientConfig {
+  /**
+   * This option can be specified to indicate that the Unify client
+   * should instantiate an agent which automatically collects user
+   * email inputs, contact form submissions, etc.
+   */
+  autoIdentify?: boolean;
+}
+
+export interface UnifyIntentContext {
+  writeKey: string;
+  clientConfig: UnifyIntentClientConfig;
+  apiClient: UnifyApiClient;
+  sessionManager: SessionManager;
+  identityManager: IdentityManager;
+}
+
+export type ClientSession = {
+  sessionId: string;
+  expiration: number;
+  startTime: Date;
+  initial: PageProperties;
+} & UserAgentDataType;
+
+export interface UserAgentDataType {
+  userAgent: NavigatorID['userAgent'];
+  userAgentData?: NavigatorUAData;
+}
+
+// Export types from the OpenAPI spec
+export type ActivityContext = components['schemas']['ActivityContext'];
+export type AnalyticsEventType = components['schemas']['AnalyticsEventType'];
+export type AnalyticsEventBase = components['schemas']['AnalyticsEventBase'];
+export type CampaignParams = components['schemas']['CampaignParams'];
+export type IdentifyEvent = components['schemas']['IdentifyEvent'];
+export type IdentifyEventData = Omit<
+  components['schemas']['IdentifyEvent'],
+  keyof Omit<AnalyticsEventBase, 'type'>
+>;
+export type PageEvent = components['schemas']['PageEvent'];
+export type PageEventData = Omit<
+  components['schemas']['PageEvent'],
+  keyof Omit<AnalyticsEventBase, 'type'>
+>;
+export type PageProperties = components['schemas']['PageProperties'];
+export type Traits = components['schemas']['Traits'];
+export type UCountryCode = components['schemas']['UCountryCode'];

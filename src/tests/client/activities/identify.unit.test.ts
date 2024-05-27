@@ -1,4 +1,4 @@
-import { IdentifyRequestData } from '@unifygtm/analytics-types';
+import { IdentifyEventData } from '../../../types';
 import { anyObject, mockReset } from 'jest-mock-extended';
 
 import {
@@ -37,7 +37,7 @@ describe('IdentifyActivity', () => {
         anyObject()
       );
       const data = mockContext.apiClient.post.mock
-        .calls[0][1] as IdentifyRequestData;
+        .calls[0][1] as IdentifyEventData;
       expect(data.type).toEqual('identify');
       expect(data.traits.email).toEqual('solomon@unifygtm.com');
     });

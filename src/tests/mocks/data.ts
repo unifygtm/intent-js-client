@@ -1,7 +1,10 @@
 import { faker } from '@faker-js/faker';
-import { ActivityContext, PageProperties } from '@unifygtm/analytics-types';
-
-import { ClientSession, UserAgentDataType } from '../../client/types';
+import {
+  ActivityContext,
+  ClientSession,
+  PageProperties,
+  UserAgentDataType,
+} from '../../types';
 
 export const TEST_WRITE_KEY = '1234';
 export const TEST_ANONYMOUS_USER_ID = '5678';

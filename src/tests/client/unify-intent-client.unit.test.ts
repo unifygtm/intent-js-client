@@ -8,23 +8,23 @@ import { TEST_WRITE_KEY } from '../mocks/data';
 
 const mockedIdentityManager = mock(IdentityManager.prototype);
 const mockedSessionManager = mock(SessionManager.prototype);
-jest.mock('../../intent/managers', () => ({
-  ...jest.requireActual('../../intent/managers'),
+jest.mock('../../client/managers', () => ({
+  ...jest.requireActual('../../client/managers'),
   IdentityManager: jest.fn().mockImplementation(() => mockedIdentityManager),
   SessionManager: jest.fn().mockImplementation(() => mockedSessionManager),
 }));
 
 const mockedIntentAgent = mock(UnifyIntentAgent.prototype);
-jest.mock('../../intent/unify-intent-agent', () => ({
-  ...jest.requireActual('../../intent/unify-intent-agent'),
+jest.mock('../../client/unify-intent-agent', () => ({
+  ...jest.requireActual('../../client/unify-intent-agent'),
   __esModule: true,
   default: jest.fn().mockImplementation(() => mockedIntentAgent),
 }));
 
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
 const mockedPageActivity = mock(PageActivity.prototype);
-jest.mock('../../intent/activities', () => ({
-  ...jest.requireActual('../../intent/managers'),
+jest.mock('../../client/activities', () => ({
+  ...jest.requireActual('../../client/activities'),
   IdentifyActivity: jest.fn().mockImplementation(() => mockedIdentifyActivity),
   PageActivity: jest.fn().mockImplementation(() => mockedPageActivity),
 }));
