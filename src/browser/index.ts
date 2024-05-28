@@ -36,9 +36,6 @@ export const initBrowser = function () {
   // Re-assign the global Unify client object so future method calls
   // will go straight to the newly instantiated client
   window.unify = unify;
-
-  // Ensure the Unify client instance cannot be accidentally modified
-  Object.freeze(window.unify);
 };
 
 /**
