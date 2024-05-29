@@ -24,6 +24,13 @@ class UnifyIntentClient {
     writeKey: string,
     config: UnifyIntentClientConfig = DEFAULT_UNIFY_INTENT_CLIENT_CONFIG,
   ) {
+    // The client should never be instantiated more than once
+    if (window.unify !== undefined && !Array.isArray(window.unify)) {
+      console.warn(
+        'Global UnifyIntentClient already exists, a new one will not be created.',
+      );
+    }
+
     // Initialize API client
     const apiClient = new UnifyApiClient(writeKey);
 

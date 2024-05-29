@@ -91,31 +91,33 @@ class UnifyIntentAgent {
    * be instantiated a single time.
    */
   private monitorHistory = () => {
-    // `popstate` is triggered when the user clicks the back button
-    window.addEventListener('popstate', () => {
-      this.maybeTrackPage();
-    });
-
     // `pushState` is usually triggered to navigate to a new page
+    const pushState = history.pushState;
     history.pushState = (...args) => {
-      history.pushState.apply(history, args);
+      pushState.apply(history, args);
       this.maybeTrackPage();
     };
 
     // Sometimes `replaceState` is used to navigate to a new page, but
     // sometimes it is used to e.g. update query params
+    const replaceState = history.replaceState;
     history.replaceState = (...args) => {
-      // Get current location before updating state
-      const currentLocation = { ...location };
+      // Get location before history changes
+      const oldLocation = { ...window.location };
 
-      // Update history state
-      history.replaceState.apply(history, args);
+      // Update history
+      replaceState.apply(history, args);
 
-      // Track a page event if page has changed
-      if (arePagesDifferent(currentLocation, location)) {
+      // Compare old location to new location and maybe track page event
+      if (isNewPage(oldLocation, window.location)) {
         this.maybeTrackPage();
       }
     };
+
+    // `popstate` is triggered when the user clicks the back button
+    window.addEventListener('popstate', () => {
+      this.maybeTrackPage();
+    });
 
     this._historyMonitored = true;
   };
@@ -233,10 +235,10 @@ class UnifyIntentAgent {
  * This function compares two URLs to determine whether the second URL
  * constitutes a "new page" to auto-trigger a page event.
  */
-function arePagesDifferent(locationA: Location, locationB: Location) {
+function isNewPage(oldLocation: Location, newLocation: Location): boolean {
   return (
-    locationA.hostname !== locationB.hostname ||
-    locationA.pathname !== locationB.pathname
+    oldLocation.hostname !== newLocation.hostname ||
+    oldLocation.pathname !== newLocation.pathname
   );
 }
 
