@@ -48,17 +48,43 @@ Once the client is initialized it will be immediately ready for use. See [Usage]
 
 Website page views are an indicator of buyer intent. You can log this information to the Unify platform for usage with the `page` method.
 
-By default, the client will automatically begin logging unique page views when it is installed. This works for static websites and Single Page Apps. Although it is recommended that you leave this enabled, if you wish to disable this behavior you can do so via the client configuration. See [Configuration](#configuration) below for more details.
+There are two ways to collect page data with the Unify intent client:
 
-You can also manually trigger a page view event as follows:
+1. Automatic monitoring of the current page
+2. Manually via the client `page` method
+
+Utilizing both of these methods when appropriate is recommended to take full advantage of intent data within Unify.
+
+#### Automatic Page Monitoring
+
+The Unify intent client is capable of automatically monitoring the user's current page to trigger page events. This will happen by default when the client is installed via the Unify JavaScript tag. If the client is installed via a package manager, you must pass the `autoPage` configuration option when instantiating the client. See [Configuration](#configuration) below for more details.
+
+In either case, this behavior can be enabled or disabled programmatically via the `startAutoPage` and `stopAutoPage` methods on the client:
+
+```
+// Initialize the client and tell it to automatically monitor pages
+const unify = new UnifyIntentClient(
+  'YOUR_PUBLIC_UNIFY_API_KEY',
+  { autoPage: true },
+);
+
+// Tell the client to stop monitoring pages
+unify.stopAutoPage();
+
+// Tell the client to start monitoring pages again
+unify.startAutoPage();
+```
+
+#### Manual Identification
+
+You can also manually trigger a page event with the `page` method on the client. This is useful when you do not want to trigger page events for _every_ page.
 
 ```
 const unify = new UnifyIntentClient('YOUR_PUBLIC_UNIFY_API_KEY');
 
+// Trigger a page event for whatever page the user is currently on
 unify.page();
 ```
-
-This will log a page view event for whatever page the user is currently on.
 
 ### Identify Events
 
@@ -110,6 +136,6 @@ unify.identify(currentUser.emailAddress);
 The following configuration options can be passed when initializing the client:
 
 - `autoPage` - Tells the client to automatically log `page` events whenever the current page changes. Works for static websites and Single Page Apps.
-  - **Default**: `true`
+  - **Default**: `true` if the client is installed via the Unify JavaScript tag, `false` if installed via a package manager
 - `autoIdentify` - Tells the client to automatically monitor text and email input elements on the page for changes. When the current user enters a valid email address into an input, the client will log an `identify` event for that email address.
   - **Default**: `true` if the client is installed via the Unify JavaScript tag, `false` if installed via a package manager

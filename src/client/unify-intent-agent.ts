@@ -1,6 +1,6 @@
 import { UnifyIntentContext } from 'types';
 
-import { IdentifyActivity } from './activities';
+import { IdentifyActivity, PageActivity } from './activities';
 import { validateEmail } from './utils/helpers';
 
 /**
@@ -12,14 +12,50 @@ class UnifyIntentAgent {
   private readonly _monitoredInputs: Set<HTMLInputElement>;
   private readonly _submittedEmails: Set<string>;
 
+  private _autoPage: boolean;
   private _autoIdentify: boolean;
+  private _historyMonitored: boolean;
 
   constructor(intentContext: UnifyIntentContext) {
     this._intentContext = intentContext;
     this._monitoredInputs = new Set<HTMLInputElement>();
     this._submittedEmails = new Set<string>();
-    this._autoIdentify = false;
+    this._autoPage = intentContext.clientConfig.autoPage ?? false;
+    this._autoIdentify = intentContext.clientConfig.autoIdentify ?? false;
+    this._historyMonitored = false;
+
+    // If auto-page is configured, make sure to track the initial page
+    if (this._autoPage) {
+      this.startAutoPage();
+      this.maybeTrackPage();
+    }
+
+    if (this._autoIdentify) {
+      this.startAutoIdentify();
+    }
   }
+
+  /**
+   * Tells the Unify Intent Agent to trigger page events when the
+   * user's current page changes. Note that this will NOT trigger
+   */
+  public startAutoPage = () => {
+    // We don't start monitoring history until auto-page is turned on
+    // for the first time.
+    if (!this._historyMonitored) {
+      this.monitorHistory();
+    }
+
+    this._autoPage = true;
+  };
+
+  /**
+   * Tells the Unify Intent Agent to NOT trigger page events when the
+   * user's current page changes.
+   */
+  public stopAutoPage = () => {
+    this._autoPage = false;
+  };
 
   /**
    * Tells the Unify Intent Agent to continuously monitor identity-related
@@ -48,6 +84,53 @@ class UnifyIntentAgent {
   };
 
   /**
+   * This function adds event listeners and overrides to various
+   * history-related browser functions to automatically track when the
+   * current page changes. This is important for tracking page changes
+   * in single page apps because the Unify Intent Client will only
+   * be instantiated a single time.
+   */
+  private monitorHistory = () => {
+    // `popstate` is triggered when the user clicks the back button
+    window.addEventListener('popstate', () => {
+      this.maybeTrackPage();
+    });
+
+    // `pushState` is usually triggered to navigate to a new page
+    history.pushState = (...args) => {
+      history.pushState.apply(history, args);
+      this.maybeTrackPage();
+    };
+
+    // Sometimes `replaceState` is used to navigate to a new page, but
+    // sometimes it is used to e.g. update query params
+    history.replaceState = (...args) => {
+      // Get current location before updating state
+      const currentLocation = { ...location };
+
+      // Update history state
+      history.replaceState.apply(history, args);
+
+      // Track a page event if page has changed
+      if (arePagesDifferent(currentLocation, location)) {
+        this.maybeTrackPage();
+      }
+    };
+
+    this._historyMonitored = true;
+  };
+
+  /**
+   * Triggers a page event for the current page and context if auto-page
+   * is currently set to `true`.
+   */
+  private maybeTrackPage = () => {
+    if (this._autoPage) {
+      new PageActivity(this._intentContext).track();
+    }
+  };
+
+  /**
    * Discards inputs no longer in the DOM and adds new inputs in the DOM
    * to the set of monitored inputs if they qualify for auto-identity.
    */
@@ -64,8 +147,7 @@ class UnifyIntentAgent {
     // Get all candidate input elements
     const inputs = Array.from(document.getElementsByTagName('input')).filter(
       (input) =>
-        !this._monitoredInputs.has(input) &&
-        this.isCandidateIdentityInput(input),
+        !this._monitoredInputs.has(input) && isCandidateIdentityInput(input),
     );
 
     // Setup event listeners to monitor the input elements
@@ -133,18 +215,6 @@ class UnifyIntentAgent {
   };
 
   /**
-   * Helper function to filter input elements to those which qualify for
-   * auto-identity.
-   *
-   * @param element - the element to check
-   * @returns `true` if this is an input we can get identity from,
-   *          otherwise `false`
-   */
-  private isCandidateIdentityInput(element: HTMLInputElement) {
-    return element.type === 'email' || element.type === 'text';
-  }
-
-  /**
    * DO NOT USE: These methods are exposed only for testing purposes.
    */
   __getMonitoredInputs = () => this._monitoredInputs;
@@ -152,6 +222,34 @@ class UnifyIntentAgent {
    * DO NOT USE: These methods are exposed only for testing purposes.
    */
   __getSubmittedEmails = () => this._submittedEmails;
+}
+
+/**
+ * Sometimes `history.replaceState` is called to manipulate the current URL,
+ * but not in a way which qualifies the new URL as a "new page". For example,
+ * `history.replaceState` is often used to update query params. When this
+ * happens, we do not want to auto-trigger a page event.
+ *
+ * This function compares two URLs to determine whether the second URL
+ * constitutes a "new page" to auto-trigger a page event.
+ */
+function arePagesDifferent(locationA: Location, locationB: Location) {
+  return (
+    locationA.hostname !== locationB.hostname ||
+    locationA.pathname !== locationB.pathname
+  );
+}
+
+/**
+ * Helper function to filter input elements to those which qualify for
+ * auto-identity.
+ *
+ * @param element - the element to check
+ * @returns `true` if this is an input we can get identity from,
+ *          otherwise `false`
+ */
+function isCandidateIdentityInput(element: HTMLInputElement) {
+  return element.type === 'email' || element.type === 'text';
 }
 
 export default UnifyIntentAgent;
