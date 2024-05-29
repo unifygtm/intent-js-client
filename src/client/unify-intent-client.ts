@@ -7,7 +7,7 @@ import UnifyIntentAgent from './unify-intent-agent';
 import { validateEmail } from './utils/helpers';
 
 export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
-  autoPage: true,
+  autoPage: false,
   autoIdentify: false,
 };
 
@@ -24,6 +24,13 @@ class UnifyIntentClient {
     writeKey: string,
     config: UnifyIntentClientConfig = DEFAULT_UNIFY_INTENT_CLIENT_CONFIG,
   ) {
+    // The client should never be instantiated more than once
+    if (window.unify !== undefined && !Array.isArray(window.unify)) {
+      console.warn(
+        'Global UnifyIntentClient already exists, a new one will not be created.',
+      );
+    }
+
     // Initialize API client
     const apiClient = new UnifyApiClient(writeKey);
 
@@ -37,22 +44,16 @@ class UnifyIntentClient {
 
     // Initialize context
     this._context = {
-      writeKey: writeKey,
+      writeKey,
       clientConfig: config,
       apiClient,
       sessionManager,
       identityManager,
     };
 
-    // Log a page event if specified by config
-    if (config.autoPage) {
-      this.page();
-    }
-
     // Initialize intent agent if specifed by config
-    if (config.autoIdentify) {
+    if (config.autoPage || config.autoIdentify) {
       this._intentAgent = new UnifyIntentAgent(this._context);
-      this._intentAgent.startAutoIdentify();
     }
   }
 
@@ -85,6 +86,31 @@ class UnifyIntentClient {
     }
 
     return false;
+  };
+
+  /**
+   * This function will instantiate an agent which continuously monitors
+   * page changes to automatically log page events.
+   *
+   * The corresponding `stopAutoPage` can be used to temporarily
+   * stop the continuous monitoring.
+   */
+  public startAutoPage = () => {
+    if (!this._intentAgent) {
+      this._intentAgent = new UnifyIntentAgent(this._context);
+    }
+
+    this._intentAgent.startAutoPage();
+  };
+
+  /**
+   * If continuous page monitoring was previously triggered, this function
+   * is used to halt the monitoring.
+   *
+   * The corresponding `startAutoPage` can be used to start it again.
+   */
+  public stopAutoPage = () => {
+    this._intentAgent?.stopAutoPage();
   };
 
   /**

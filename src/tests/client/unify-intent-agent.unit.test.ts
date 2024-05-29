@@ -1,15 +1,18 @@
 import { mock, mockReset } from 'jest-mock-extended';
+import { v4 as uuidv4 } from 'uuid';
 
-import { IdentifyActivity } from 'client/activities';
+import { IdentifyActivity, PageActivity } from 'client/activities';
 import UnifyIntentAgent from 'client/unify-intent-agent';
 
 import { UnifyIntentContext } from 'types';
 
 import { MockUnifyIntentContext } from '../mocks/intent-context-mock';
 
+const mockedPageActivity = mock(PageActivity.prototype);
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
 jest.mock('client/activities', () => ({
   ...jest.requireActual('client/activities'),
+  PageActivity: jest.fn().mockImplementation(() => mockedPageActivity),
   IdentifyActivity: jest.fn().mockImplementation(() => mockedIdentifyActivity),
 }));
 
@@ -67,6 +70,54 @@ describe('UnifyIntentAgent', () => {
     mockReset(mockContext.apiClient);
     mockReset(mockContext.identityManager);
     mockReset(mockContext.sessionManager);
+    mockReset(mockedPageActivity);
+    mockReset(mockedIdentifyActivity);
+  });
+
+  describe('startAutoPage', () => {
+    const agent = new UnifyIntentAgent(mockContext);
+
+    beforeAll(() => {
+      agent.startAutoPage();
+    });
+
+    afterAll(() => {
+      agent.stopAutoPage();
+    });
+
+    it('tracks page events for history pushState', () => {
+      history.pushState(
+        {},
+        '',
+        `${location.protocol}//${location.hostname}/${uuidv4()}`,
+      );
+      expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
+    });
+
+    it('tracks page events for window popstate', () => {
+      window.dispatchEvent(new Event('popstate'));
+      expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
+    });
+
+    describe('history.replaceState', () => {
+      it('tracks page events for new pages', () => {
+        history.replaceState(
+          {},
+          '',
+          `${location.protocol}//${location.hostname}/${uuidv4()}`,
+        );
+        expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not track page events for the same page', () => {
+        history.replaceState(
+          {},
+          '',
+          `${location.protocol}//${location.hostname}${location.pathname}?someParam=True`,
+        );
+        expect(mockedPageActivity.track).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('startAutoIdentify', () => {

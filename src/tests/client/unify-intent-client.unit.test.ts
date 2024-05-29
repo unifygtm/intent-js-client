@@ -47,26 +47,6 @@ describe('UnifyIntentClient', () => {
     expect(mockedSessionManager.getOrCreateSession).toHaveBeenCalledTimes(1);
   });
 
-  it('logs a page event on initialization if specified by the config', () => {
-    new UnifyIntentClient(TEST_WRITE_KEY, { autoPage: true });
-    expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not log a page event on initialization if specified by the config', () => {
-    new UnifyIntentClient(TEST_WRITE_KEY, { autoPage: false });
-    expect(mockedPageActivity.track).not.toHaveBeenCalled();
-  });
-
-  it('does not start auto-identify by default', () => {
-    new UnifyIntentClient(TEST_WRITE_KEY);
-    expect(mockedIntentAgent.startAutoIdentify).not.toHaveBeenCalled();
-  });
-
-  it('starts auto-identify when specified by the config', () => {
-    new UnifyIntentClient(TEST_WRITE_KEY, { autoIdentify: true });
-    expect(mockedIntentAgent.startAutoIdentify).toHaveBeenCalledTimes(1);
-  });
-
   describe('page', () => {
     it('creates a new PageActivity and tracks it', () => {
       const unify = new UnifyIntentClient(TEST_WRITE_KEY, { autoPage: false });
