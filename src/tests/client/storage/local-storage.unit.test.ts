@@ -1,9 +1,8 @@
-import { LocalStorageService } from 'client/storage';
+import { LocalStorageService } from '../../../client/storage';
 import {
   encodeForStorage,
   isLocalStorageAvailable,
-} from 'client/storage/utils';
-
+} from '../../../client/storage/utils';
 import { MockClientSession, TEST_WRITE_KEY } from '../../mocks/data';
 
 jest.mock('client/storage/utils', () => ({

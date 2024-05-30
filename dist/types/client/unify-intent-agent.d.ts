@@ -1,4 +1,4 @@
-import { UnifyIntentContext } from 'types';
+import { UnifyIntentContext } from '../types';
 /**
  * This class acts as an agent to automatically monitor user
  * intent-related activity and log relevant events and data to Unify.

@@ -1,9 +1,8 @@
 import { DeepMockProxy, mockDeep, mockReset } from 'jest-mock-extended';
 import Cookies from 'js-cookie';
 
-import { CookieStorageService } from 'client/storage';
-import { encodeForStorage } from 'client/storage/utils';
-
+import { CookieStorageService } from '../../../client/storage';
+import { encodeForStorage } from '../../../client/storage/utils';
 import { TEST_ANONYMOUS_USER_ID, TEST_WRITE_KEY } from '../../mocks/data';
 
 jest.mock('js-cookie', () => ({

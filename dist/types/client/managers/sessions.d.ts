@@ -1,4 +1,4 @@
-import { ClientSession } from 'types';
+import { ClientSession } from '../../types';
 export declare const CLIENT_SESSION_STORAGE_KEY = "clientSession";
 export declare const SESSION_MINUTES_TO_EXPIRE = 30;
 /**

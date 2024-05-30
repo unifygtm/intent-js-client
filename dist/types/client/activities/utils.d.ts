@@ -1,4 +1,4 @@
-import { ActivityContext } from 'types';
+import { ActivityContext } from '../../types';
 /**
  * Constructs the activity context data which is logged for page,
  * identity, etc. actions.

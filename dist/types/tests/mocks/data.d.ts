@@ -1,4 +1,4 @@
-import { ActivityContext, ClientSession, PageProperties, UserAgentDataType } from 'types';
+import { ActivityContext, ClientSession, PageProperties, UserAgentDataType } from '../../types';
 export declare const TEST_WRITE_KEY = "1234";
 export declare const TEST_ANONYMOUS_USER_ID = "5678";
 export declare const MockUTM: {

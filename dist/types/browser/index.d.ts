@@ -1,4 +1,4 @@
-import UnifyIntentClient from 'client';
+import UnifyIntentClient from '../client';
 declare global {
     interface Window {
         unify?: UnifyIntentClient;

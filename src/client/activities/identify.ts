@@ -2,8 +2,7 @@ import {
   AnalyticsEventType,
   IdentifyEventData,
   UnifyIntentContext,
-} from 'types';
-
+} from '../../types';
 import { UNIFY_INTENT_V1_URL } from '../constants';
 import Activity from './activity';
 

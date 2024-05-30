@@ -1,4 +1,4 @@
-import { AnalyticsEventType, UnifyIntentContext } from 'types';
+import { AnalyticsEventType, UnifyIntentContext } from '../../types';
 /**
  * Abstract class which other activites should extend. Exposes an interface
  * to track the activity with base activity data and any additional data needed.

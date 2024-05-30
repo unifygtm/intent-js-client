@@ -1,4 +1,4 @@
-import { AnalyticsEventType, PageEventData } from 'types';
+import { AnalyticsEventType, PageEventData } from '../../types';
 import Activity from './activity';
 export declare const UNIFY_INTENT_PAGE_URL = "https://unifyintent.com/analytics/api/v1/page";
 /**

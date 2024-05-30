@@ -2,8 +2,7 @@ import {
   AnalyticsEventBase,
   AnalyticsEventType,
   UnifyIntentContext,
-} from 'types';
-
+} from '../../types';
 import { getActivityContext } from './utils';
 
 /**

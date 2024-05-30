@@ -1,10 +1,11 @@
 import { anyNumber, mock, mockReset } from 'jest-mock-extended';
 
-import { CLIENT_SESSION_STORAGE_KEY, SessionManager } from 'client/managers';
-import { LocalStorageService } from 'client/storage';
-
-import { ClientSession } from 'types';
-
+import {
+  CLIENT_SESSION_STORAGE_KEY,
+  SessionManager,
+} from '../../../client/managers';
+import { LocalStorageService } from '../../../client/storage';
+import { ClientSession } from '../../../types';
 import { MockClientSession, TEST_WRITE_KEY } from '../../mocks/data';
 
 const localStorageMock = mock(LocalStorageService.prototype);

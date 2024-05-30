@@ -1,4 +1,4 @@
-import { isLocalStorageAvailable } from 'client/storage/utils';
+import { isLocalStorageAvailable } from '../../../client/storage/utils';
 
 const mockedSetItem = jest.mocked<typeof localStorage.setItem>(
   localStorage.setItem,

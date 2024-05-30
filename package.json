@@ -39,7 +39,6 @@
     "@babel/preset-env": "^7.20.2",
     "@babel/preset-typescript": "^7.21.0",
     "@faker-js/faker": "^8.4.1",
-    "@trivago/prettier-plugin-sort-imports": "^4.1.1",
     "@types/jest": "^29.5.5",
     "@types/js-cookie": "^3.0.3",
     "@types/node": "^18.17.1",

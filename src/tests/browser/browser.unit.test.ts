@@ -1,8 +1,8 @@
-import { initBrowser } from 'browser';
-import UnifyIntentClient from 'client';
 import { mock, mockReset } from 'jest-mock-extended';
 
-import { TEST_WRITE_KEY } from 'tests/mocks/data';
+import { initBrowser } from '../../browser';
+import UnifyIntentClient from '../../client';
+import { TEST_WRITE_KEY } from '../../tests/mocks/data';
 
 const mockIntentClient = mock(UnifyIntentClient.prototype);
 jest.mock('client', () => ({

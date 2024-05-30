@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
-import { ClientSession } from 'types';
-
+import { ClientSession } from '../../types';
 import { LocalStorageService } from '../storage';
 import {
   getCurrentPageProperties,

@@ -1,4 +1,4 @@
-import { AnalyticsEventType, IdentifyEventData, UnifyIntentContext } from 'types';
+import { AnalyticsEventType, IdentifyEventData, UnifyIntentContext } from '../../types';
 import Activity from './activity';
 export declare const UNIFY_INTENT_IDENTIFY_URL = "https://unifyintent.com/analytics/api/v1/identify";
 /**

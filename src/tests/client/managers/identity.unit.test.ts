@@ -3,9 +3,8 @@ import { anyString, mock, mockReset } from 'jest-mock-extended';
 import {
   ANONYMOUS_USER_ID_STORAGE_KEY,
   IdentityManager,
-} from 'client/managers';
-import { CookieStorageService } from 'client/storage';
-
+} from '../../../client/managers';
+import { CookieStorageService } from '../../../client/storage';
 import { TEST_ANONYMOUS_USER_ID, TEST_WRITE_KEY } from '../../mocks/data';
 
 const cookieStorageMock = mock(CookieStorageService.prototype);

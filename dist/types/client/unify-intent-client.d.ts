@@ -1,4 +1,4 @@
-import { UnifyIntentClientConfig } from 'types';
+import { UnifyIntentClientConfig } from '../types';
 export declare const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig;
 /**
  * This class is used to leverage the Unify Intent API to log user

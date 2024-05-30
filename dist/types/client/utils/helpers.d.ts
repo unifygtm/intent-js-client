@@ -1,4 +1,4 @@
-import { PageProperties, UserAgentDataType } from 'types';
+import { PageProperties, UserAgentDataType } from '../../types';
 /**
  * Gets a milliseconds since epoch for `minutes` in the future.
  *
