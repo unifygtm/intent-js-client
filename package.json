@@ -1,6 +1,6 @@
 {
   "name": "@unifygtm/intent-client",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "UNLICENSED",
   "private": false,
   "main": "./dist/minjs/intent-client.js",
