@@ -56,12 +56,12 @@
     "prettier": "^2.8.8",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5",
-    "user-agent-data-types": "^0.4.2"
+    "typescript": "^5.4.5"
   },
   "dependencies": {
     "js-base64": "^3.7.5",
     "js-cookie": "^3.0.5",
+    "user-agent-data-types": "^0.4.2",
     "uuid": "^9.0.0"
   }
 }
