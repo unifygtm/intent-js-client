@@ -1,5 +1,4 @@
-import { AnalyticsEventType, PageEventData } from 'types';
-
+import { AnalyticsEventType, PageEventData } from '../../types';
 import { UNIFY_INTENT_V1_URL } from '../constants';
 import { getCurrentPageProperties } from '../utils/helpers';
 import Activity from './activity';

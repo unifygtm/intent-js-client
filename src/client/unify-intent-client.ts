@@ -1,5 +1,4 @@
-import { UnifyIntentClientConfig, UnifyIntentContext } from 'types';
-
+import { UnifyIntentClientConfig, UnifyIntentContext } from '../types';
 import { IdentifyActivity, PageActivity } from './activities';
 import { IdentityManager, SessionManager } from './managers';
 import UnifyApiClient from './unify-api-client';

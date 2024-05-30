@@ -1,5 +1,4 @@
-import { UnifyIntentContext } from 'types';
-
+import { UnifyIntentContext } from '../types';
 import { IdentifyActivity, PageActivity } from './activities';
 import { validateEmail } from './utils/helpers';
 

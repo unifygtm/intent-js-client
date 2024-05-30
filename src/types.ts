@@ -1,6 +1,7 @@
-import { IdentityManager, SessionManager } from 'client/managers';
-import UnifyApiClient from 'client/unify-api-client';
+/// <reference types="user-agent-data-types" />
 
+import { IdentityManager, SessionManager } from './client/managers';
+import UnifyApiClient from './client/unify-api-client';
 import { components } from './spec';
 
 export interface UnifyIntentClientConfig {

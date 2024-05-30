@@ -1,5 +1,4 @@
-import { ActivityContext, CampaignParams } from 'types';
-
+import { ActivityContext, CampaignParams } from '../../types';
 import { getCurrentUserAgentData } from '../utils/helpers';
 
 /**

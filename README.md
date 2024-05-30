@@ -23,19 +23,19 @@ You can install the client package directly using your preferred package manager
 #### npm
 
 ```
-npm install @unifygtm/intent-js-client
+npm install @unifygtm/intent-client
 ```
 
 #### yarn
 
 ```
-yarn add @unifygtm/intent-js-client
+yarn add @unifygtm/intent-client
 ```
 
 After installing the package, you must initialize it in your application code:
 
 ```
-import * as UnifyIntentClient from '@unifygtm/intent-js-client';
+import UnifyIntentClient from '@unifygtm/intent-client';
 
 const unify = new UnifyIntentClient('YOUR_PUBLIC_UNIFY_API_KEY');
 ```

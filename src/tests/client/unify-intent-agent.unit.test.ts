@@ -1,11 +1,9 @@
 import { mock, mockReset } from 'jest-mock-extended';
 import { v4 as uuidv4 } from 'uuid';
 
-import { IdentifyActivity, PageActivity } from 'client/activities';
-import UnifyIntentAgent from 'client/unify-intent-agent';
-
-import { UnifyIntentContext } from 'types';
-
+import { IdentifyActivity, PageActivity } from '../../client/activities';
+import UnifyIntentAgent from '../../client/unify-intent-agent';
+import { UnifyIntentContext } from '../../types';
 import { MockUnifyIntentContext } from '../mocks/intent-context-mock';
 
 const mockedPageActivity = mock(PageActivity.prototype);

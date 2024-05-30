@@ -1,7 +1,22 @@
 {
-  "name": "@unifygtm/intent-js-client",
-  "version": "0.1.0",
+  "name": "@unifygtm/intent-client",
+  "version": "0.1.9",
+  "description": "JavaScript client for interacting with the Unify Intent API in the browser.",
+  "keywords": [
+    "unify",
+    "intent",
+    "client"
+  ],
+  "homepage": "https://github.com/unifygtm/intent-js-client",
+  "bugs": "https://github.com/unifygtm/intent-js-client/issues",
+  "author": {
+    "name": "Solomon Astley",
+    "email": "solomon@unifygtm.com"
+  },
   "license": "UNLICENSED",
+  "private": false,
+  "browser": "./dist/js/client/index.min.js",
+  "types": "./dist/types/client/index.d.ts",
   "nodemonConfig": {
     "watch": [
       "./src/"
@@ -9,11 +24,12 @@
     "ext": "ts,json"
   },
   "scripts": {
+    "build:client": "pnpm generate && ts-node src/build-client.ts && npx tsc",
     "build:browser": "pnpm generate && ts-node src/build-browser.ts",
-    "build:browser:s3:prod": "pnpm build:browser && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script.js",
-    "build:browser:s3:staging": "pnpm build:browser && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script-staging.js",
-    "build:browser:s3:testing": "pnpm build:browser && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script-testing.js",
-    "generate": "pnpm openapi-typescript '../unify/api/tsp-output/@typespec/openapi3/openapi.UnifyAnalyticsApi.yaml' -o './src/spec.d.ts'",
+    "build:browser:s3:prod": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script.js",
+    "build:browser:s3:staging": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script-staging.js",
+    "build:browser:s3:testing": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script-testing.js",
+    "generate": "pnpm openapi-typescript '../unify/api/tsp-output/@typespec/openapi3/openapi.UnifyAnalyticsApi.yaml' -o './src/spec.ts'",
     "start": "http-server -o -p 0",
     "test": "pnpm jest"
   },
@@ -23,7 +39,6 @@
     "@babel/preset-env": "^7.20.2",
     "@babel/preset-typescript": "^7.21.0",
     "@faker-js/faker": "^8.4.1",
-    "@trivago/prettier-plugin-sort-imports": "^4.1.1",
     "@types/jest": "^29.5.5",
     "@types/js-cookie": "^3.0.3",
     "@types/node": "^18.17.1",
@@ -41,12 +56,12 @@
     "prettier": "^2.8.8",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.5",
-    "user-agent-data-types": "^0.4.2"
+    "typescript": "^5.4.5"
   },
   "dependencies": {
     "js-base64": "^3.7.5",
     "js-cookie": "^3.0.5",
+    "user-agent-data-types": "^0.4.2",
     "uuid": "^9.0.0"
   }
 }
