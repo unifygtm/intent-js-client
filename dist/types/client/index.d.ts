@@ -1,4 +1,5 @@
 import UnifyIntentClient from './unify-intent-client';
-export { UnifyIntentClientConfig } from '../types';
+import { UnifyIntentClientConfig as ClientConfig } from '../types';
+export type UnifyIntentClientConfig = ClientConfig;
 export default UnifyIntentClient;
 //# sourceMappingURL=index.d.ts.map
