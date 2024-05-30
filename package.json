@@ -9,6 +9,10 @@
   ],
   "homepage": "https://github.com/unifygtm/intent-js-client",
   "bugs": "https://github.com/unifygtm/intent-js-client/issues",
+  "author": {
+    "name": "Solomon Astley",
+    "email": "solomon@unifygtm.com"
+  },
   "license": "UNLICENSED",
   "private": false,
   "browser": "./dist/js/client/index.min.js",
