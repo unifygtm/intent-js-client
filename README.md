@@ -22,19 +22,19 @@ You can install the client package directly using your preferred package manager
 
 #### npm
 
-```
+```Shell
 npm install @unifygtm/intent-client
 ```
 
 #### yarn
 
-```
+```Shell
 yarn add @unifygtm/intent-client
 ```
 
 After installing the package, you must initialize it in your application code:
 
-```
+```TypeScript
 import UnifyIntentClient from '@unifygtm/intent-client';
 
 const unify = new UnifyIntentClient('YOUR_PUBLIC_UNIFY_API_KEY');
@@ -61,7 +61,7 @@ The Unify intent client is capable of automatically monitoring the user's curren
 
 In either case, this behavior can be enabled or disabled programmatically via the `startAutoPage` and `stopAutoPage` methods on the client:
 
-```
+```TypeScript
 // Initialize the client and tell it to automatically monitor pages
 const unify = new UnifyIntentClient(
   'YOUR_PUBLIC_UNIFY_API_KEY',
@@ -79,7 +79,7 @@ unify.startAutoPage();
 
 You can also manually trigger a page event with the `page` method on the client. This is useful when you do not want to trigger page events for _every_ page.
 
-```
+```TypeScript
 const unify = new UnifyIntentClient('YOUR_PUBLIC_UNIFY_API_KEY');
 
 // Trigger a page event for whatever page the user is currently on
@@ -103,7 +103,7 @@ The Unify intent client is capable of automatically monitoring text and email in
 
 In either case, this behavior can be enabled or disabled programmatically via the `startAutoIdentify` and `stopAutoIdentify` methods on the client:
 
-```
+```TypeScript
 // Initialize the client and tell it to automatically monitor inputs
 const unify = new UnifyIntentClient(
   'YOUR_PUBLIC_UNIFY_API_KEY',
@@ -121,7 +121,7 @@ unify.startAutoIdentify();
 
 You can also manually trigger an identify event with the `identify` method on the client. This is useful when users log-in with OAuth or SSO, for example, because they do not enter their email into an input on the page.
 
-```
+```TypeScript
 const unify = new UnifyIntentClient('YOUR_PUBLIC_UNIFY_API_KEY');
 
 // However you determine the currently logged-in user
