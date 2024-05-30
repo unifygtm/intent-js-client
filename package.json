@@ -1,7 +1,9 @@
 {
-  "name": "@unifygtm/intent-js-client",
+  "name": "@unifygtm/intent-client",
   "version": "0.1.0",
   "license": "UNLICENSED",
+  "private": false,
+  "main": "./dist/minjs/intent-client.js",
   "nodemonConfig": {
     "watch": [
       "./src/"
@@ -9,6 +11,7 @@
     "ext": "ts,json"
   },
   "scripts": {
+    "build:client": "pnpm generate && ts-node src/build-client.ts",
     "build:browser": "pnpm generate && ts-node src/build-browser.ts",
     "build:browser:s3:prod": "pnpm build:browser && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script.js",
     "build:browser:s3:staging": "pnpm build:browser && aws s3 cp ./dist/minjs/unify-tag-script.js s3://unifygtm-public/tag/v1/script-staging.js",
