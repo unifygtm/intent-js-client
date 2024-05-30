@@ -1,1 +1,0 @@
-{"version":3,"file":"unify-api-client.d.ts","sourceRoot":"","sources":["../../../src/client/unify-api-client.ts"],"names":[],"mappings":"AAEA;;GAEG;AACH,cAAM,cAAc;IAClB,OAAO,CAAC,QAAQ,CAAC,SAAS,CAAS;gBAEvB,QAAQ,EAAE,MAAM;IAIrB,IAAI,0CACJ,MAAM,WACF,QAAQ,UAyBjB;IAEF,OAAO,CAAC,aAAa;CAGtB;AAED,eAAe,cAAc,CAAC"}
