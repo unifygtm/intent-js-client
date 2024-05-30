@@ -9,7 +9,7 @@ esbuild
     entryPoints: ['./src/client/index.ts'],
     bundle: true,
     minify: true,
-    platform: 'node',
+    platform: 'browser',
     target: ['es6'],
     outfile: './dist/js/client/index.min.js',
     external: devDependencies,
