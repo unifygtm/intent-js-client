@@ -35,7 +35,7 @@ yarn add @unifygtm/intent-client
 After installing the package, you must initialize it in your application code:
 
 ```
-import * as UnifyIntentClient from '@unifygtm/intent-client';
+import UnifyIntentClient from '@unifygtm/intent-client';
 
 const unify = new UnifyIntentClient('YOUR_PUBLIC_UNIFY_API_KEY');
 ```
