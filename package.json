@@ -1,6 +1,6 @@
 {
   "name": "@unifygtm/intent-client",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "JavaScript client for interacting with the Unify Intent API in the browser.",
   "keywords": [
     "unify",
@@ -29,7 +29,7 @@
     "build:browser:s3:prod": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script.js",
     "build:browser:s3:staging": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script-staging.js",
     "build:browser:s3:testing": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script-testing.js",
-    "generate": "pnpm openapi-typescript '../unify/api/tsp-output/@typespec/openapi3/openapi.UnifyAnalyticsApi.yaml' -o './src/spec.d.ts'",
+    "generate": "pnpm openapi-typescript '../unify/api/tsp-output/@typespec/openapi3/openapi.UnifyAnalyticsApi.yaml' -o './src/spec.ts'",
     "start": "http-server -o -p 0",
     "test": "pnpm jest"
   },
