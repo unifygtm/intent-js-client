@@ -1,6 +1,7 @@
 {
   "name": "@unifygtm/intent-client",
-  "version": "0.1.13",
+  "version": "0.1.14",
+  "type": "module",
   "description": "JavaScript client for interacting with the Unify Intent API in the browser.",
   "keywords": [
     "unify",
@@ -24,8 +25,8 @@
     "ext": "ts,json"
   },
   "scripts": {
-    "build:client": "pnpm generate && ts-node src/build-client.ts && npx tsc",
-    "build:browser": "pnpm generate && ts-node src/build-browser.ts",
+    "build:client": "pnpm generate && tsx src/build-client.ts && npx tsc",
+    "build:browser": "pnpm generate && tsx src/build-browser.ts",
     "build:browser:s3:prod": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script.js",
     "build:browser:s3:staging": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script-staging.js",
     "build:browser:s3:testing": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script-testing.js",
@@ -56,6 +57,7 @@
     "prettier": "^2.8.8",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.11.0",
     "typescript": "^5.4.5"
   },
   "dependencies": {

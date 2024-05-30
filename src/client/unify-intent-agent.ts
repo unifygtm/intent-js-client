@@ -6,7 +6,7 @@ import { validateEmail } from './utils/helpers';
  * This class acts as an agent to automatically monitor user
  * intent-related activity and log relevant events and data to Unify.
  */
-class UnifyIntentAgent {
+export default class UnifyIntentAgent {
   private readonly _intentContext: UnifyIntentContext;
   private readonly _monitoredInputs: Set<HTMLInputElement>;
   private readonly _submittedEmails: Set<string>;
@@ -252,5 +252,3 @@ function isNewPage(oldLocation: Location, newLocation: Location): boolean {
 function isCandidateIdentityInput(element: HTMLInputElement) {
   return element.type === 'email' || element.type === 'text';
 }
-
-export default UnifyIntentAgent;

@@ -12,6 +12,7 @@ esbuild
     platform: 'browser',
     target: ['es6'],
     outfile: './dist/js/client/index.min.js',
+    format: 'esm',
     external: devDependencies,
   })
   .catch(() => process.exit(1));
