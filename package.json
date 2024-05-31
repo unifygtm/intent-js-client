@@ -1,6 +1,6 @@
 {
   "name": "@unifygtm/intent-client",
-  "version": "0.1.18",
+  "version": "0.1.19",
   "type": "module",
   "description": "JavaScript client for interacting with the Unify Intent API in the browser.",
   "keywords": [
@@ -16,8 +16,9 @@
   },
   "license": "UNLICENSED",
   "private": false,
-  "module": "./dist/js/client/index.min.js",
-  "types": "./dist/types/client/index.d.ts",
+  "main": "./dist/js/client/index.cjs.js",
+  "module": "./dist/js/client/index.esm.js",
+  "types": "./dist/js/index.d.ts",
   "nodemonConfig": {
     "watch": [
       "./src/"
