@@ -8,8 +8,8 @@ import { CookieStorageService } from '../../../client/storage';
 import { TEST_ANONYMOUS_USER_ID, TEST_WRITE_KEY } from '../../mocks/data';
 
 const cookieStorageMock = mock(CookieStorageService.prototype);
-jest.mock('client/storage', () => ({
-  ...jest.requireActual('client/storage'),
+jest.mock('../../../client/storage', () => ({
+  ...jest.requireActual('../../../client/storage'),
   CookieStorageService: jest.fn().mockImplementation(() => cookieStorageMock),
 }));
 

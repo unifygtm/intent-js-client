@@ -37,3 +37,15 @@ export function isLocalStorageAvailable() {
     return false;
   }
 }
+
+/**
+ * Helper function to get the current top-level domain from location.
+ * For example, if the current location is "app.unifygtm.com", this
+ * will return "unifygtm.com".
+ *
+ * @param hostname - optional param to use instead of the current location
+ * @returns the top-level domain associated with the location
+ */
+export function getCurrentTopLevelDomain(hostname?: string) {
+  return (hostname ?? window.location.hostname).split('.').slice(-2).join('.');
+}

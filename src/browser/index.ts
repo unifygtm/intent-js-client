@@ -11,6 +11,11 @@ declare global {
  * from the global context if there are any.
  */
 export const initBrowser = function () {
+  // If not running in a browser environment, do nothing
+  if (window === undefined) {
+    return;
+  }
+
   // If the client has already been initialized, do nothing
   if (window.unify && !Array.isArray(window.unify)) {
     return;

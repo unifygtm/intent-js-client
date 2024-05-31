@@ -1,14 +1,14 @@
 import { mock, mockReset } from 'jest-mock-extended';
 
 import { initBrowser } from '../../browser';
-import UnifyIntentClient from '../../client';
+import { UnifyIntentClient } from '../../client';
 import { TEST_WRITE_KEY } from '../../tests/mocks/data';
 
 const mockIntentClient = mock(UnifyIntentClient.prototype);
-jest.mock('client', () => ({
-  ...jest.requireActual('client'),
+jest.mock('../../client', () => ({
+  ...jest.requireActual('../../client'),
   __esModule: true,
-  default: jest.fn().mockImplementation(() => mockIntentClient),
+  UnifyIntentClient: jest.fn().mockImplementation(() => mockIntentClient),
 }));
 
 const MOCK_UNIFY_TAG_WRITE_KEY = `

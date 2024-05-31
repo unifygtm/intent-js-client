@@ -44,6 +44,8 @@ Once the client is initialized it will be immediately ready for use. See [Usage]
 
 ## Usage
 
+The Unify Intent Client can be used to log user activity across multiple subdomains of the same top-level domain. For example, if a user visits your marketing website at `www.yoursite.com` and then logs into your production web application at `app.yoursite.com`, the activity in both places will be attributed to the same person.
+
 ### Page View Events
 
 Website page views are an indicator of buyer intent. You can log this information to the Unify platform for usage with the `page` method.
