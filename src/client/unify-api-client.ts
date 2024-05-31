@@ -3,7 +3,7 @@ import { encode } from 'js-base64';
 /**
  * Basic API client class for making requests to the Unify Intent API.
  */
-class UnifyApiClient {
+export default class UnifyApiClient {
   private readonly _writeKey: string;
 
   constructor(writeKey: string) {
@@ -43,5 +43,3 @@ class UnifyApiClient {
     return `Basic ${encode(writeKey + ':')}`;
   }
 }
-
-export default UnifyApiClient;

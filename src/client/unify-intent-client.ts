@@ -14,7 +14,7 @@ export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
  * This class is used to leverage the Unify Intent API to log user
  * analytics like page views, sessions, identity, and actions.
  */
-class UnifyIntentClient {
+export default class UnifyIntentClient {
   private readonly _context: UnifyIntentContext;
 
   private _intentAgent?: UnifyIntentAgent;
@@ -137,5 +137,3 @@ class UnifyIntentClient {
     this._intentAgent?.stopAutoIdentify();
   };
 }
-
-export default UnifyIntentClient;
