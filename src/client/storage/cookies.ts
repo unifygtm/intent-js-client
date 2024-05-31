@@ -21,6 +21,8 @@ export class CookieStorageService extends StorageService {
     // of setting cookies at the top-level domain only. This call to
     // `remove` will temporarily be used to remove old cookies stored
     // at the subdomain level in favor of storing them at the TLD.
+    //
+    // TODO(Solomon): Remove this after a few months have passed
     if (value) {
       // Remove subdomain-specific cookie
       Cookies.remove(key);
