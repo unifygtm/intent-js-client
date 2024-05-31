@@ -1,6 +1,7 @@
 import Cookies from 'js-cookie';
 
 import StorageService from './storage';
+import { getCurrentTopLevelDomain } from './utils';
 
 /**
  * Storage service class for storing and retrieving data via cookies.
@@ -18,11 +19,15 @@ export class CookieStorageService extends StorageService {
 
   /**
    * Stores an encoded value associated with a given key in cookies.
+   * This cookie can be shared across subdomains of the current
+   * top-level domain.
    *
    * @param key - the key associated with the value to store
    * @param encodedValue - the encoded value to store
    */
   protected storeValue(key: string, encodedValue: string): void {
-    Cookies.set(key, encodedValue);
+    Cookies.set(key, encodedValue, {
+      domain: `.${getCurrentTopLevelDomain()}`,
+    });
   }
 }
