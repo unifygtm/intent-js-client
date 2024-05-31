@@ -14,7 +14,22 @@ export class CookieStorageService extends StorageService {
    * @returns the encoded value from cookies if it exists, otherwise `null`
    */
   protected retrieveValue(key: string): string | null {
-    return Cookies.get(key) ?? null;
+    const value = Cookies.get(key) ?? null;
+
+    // We used to set cookies on a specific subdomain, but to enable
+    // re-using cookies across subdomains we deprecated this in favor
+    // of setting cookies at the top-level domain only. This call to
+    // `remove` will temporarily be used to remove old cookies stored
+    // at the subdomain level in favor of storing them at the TLD.
+    if (value) {
+      // Remove subdomain-specific cookie
+      Cookies.remove(key);
+
+      // Store same cookie at top-level domain
+      this.storeValue(key, value);
+    }
+
+    return value;
   }
 
   /**
