@@ -5,13 +5,15 @@
     "declaration": true,
     "emitDeclarationOnly": true,
     "declarationMap": true,
-    "outFile": "dist/js/index.d.ts",
+    "declarationDir": "./dist/js/client",
+    "outDir": "./dist/js/client",
+    "rootDir": "./src/",
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "**/node_modules", ".vscode", "**/.*/"]
 }

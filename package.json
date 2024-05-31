@@ -1,6 +1,6 @@
 {
   "name": "@unifygtm/intent-client",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "type": "module",
   "description": "JavaScript client for interacting with the Unify Intent API in the browser.",
   "keywords": [
@@ -18,7 +18,7 @@
   "private": false,
   "main": "./dist/js/client/index.cjs.js",
   "module": "./dist/js/client/index.esm.js",
-  "types": "./dist/js/index.d.ts",
+  "types": "./src/index.d.ts",
   "nodemonConfig": {
     "watch": [
       "./src/"
@@ -26,7 +26,7 @@
     "ext": "ts,json"
   },
   "scripts": {
-    "build:client": "pnpm generate && tsx src/build-client.ts && npx tsc",
+    "build:client": "pnpm generate && tsx src/build-client.ts",
     "build:browser": "pnpm generate && tsx src/build-browser.ts",
     "build:browser:s3:prod": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script.js",
     "build:browser:s3:staging": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script-staging.js",
