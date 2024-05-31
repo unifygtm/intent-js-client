@@ -32,7 +32,7 @@
     "build:browser:s3:staging": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script-staging.js",
     "build:browser:s3:testing": "pnpm build:browser && aws s3 cp ./dist/js/browser/index.min.js s3://unifygtm-public/tag/v1/script-testing.js",
     "generate": "pnpm openapi-typescript '../unify/api/tsp-output/@typespec/openapi3/openapi.UnifyAnalyticsApi.yaml' -o './src/spec.ts'",
-    "test": "pnpm jest"
+    "test": "pnpm jest unit.test"
   },
   "devDependencies": {
     "@babel/cli": "^7.22.10",

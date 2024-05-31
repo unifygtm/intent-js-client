@@ -2,7 +2,10 @@ import { DeepMockProxy, mockDeep, mockReset } from 'jest-mock-extended';
 import Cookies from 'js-cookie';
 
 import { CookieStorageService } from '../../../client/storage';
-import { encodeForStorage } from '../../../client/storage/utils';
+import {
+  encodeForStorage,
+  getCurrentTopLevelDomain,
+} from '../../../client/storage/utils';
 import { TEST_ANONYMOUS_USER_ID, TEST_WRITE_KEY } from '../../mocks/data';
 
 jest.mock('js-cookie', () => ({
@@ -41,6 +44,7 @@ describe('CookieStorageService', () => {
       expect(CookiesMock.set).toHaveBeenCalledWith(
         encodeForStorage(`${TEST_WRITE_KEY}_anonymousUserId`),
         encodeForStorage(TEST_ANONYMOUS_USER_ID),
+        { domain: `.${getCurrentTopLevelDomain()}` },
       );
     });
 
@@ -50,6 +54,7 @@ describe('CookieStorageService', () => {
       expect(CookiesMock.set).toHaveBeenCalledWith(
         encodeForStorage(`ő_anonymousUserId`),
         encodeForStorage(TEST_ANONYMOUS_USER_ID),
+        { domain: `.${getCurrentTopLevelDomain()}` },
       );
     });
   });

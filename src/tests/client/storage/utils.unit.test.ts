@@ -4,10 +4,10 @@ import {
 } from '../../../client/storage/utils';
 
 const mockedSetItem = jest.mocked<typeof localStorage.setItem>(
-  localStorage.setItem
+  localStorage.setItem,
 );
 const mockedRemoveItem = jest.mocked<typeof localStorage.removeItem>(
-  localStorage.removeItem
+  localStorage.removeItem,
 );
 
 describe('Storage Utils', () => {
@@ -37,7 +37,7 @@ describe('Storage Utils', () => {
         'app.staging.unifygtm.com',
       ];
       subdomains.forEach((subdomain) =>
-        expect(getCurrentTopLevelDomain(subdomain)).toEqual('unifygtm.com')
+        expect(getCurrentTopLevelDomain(subdomain)).toEqual('unifygtm.com'),
       );
     });
   });

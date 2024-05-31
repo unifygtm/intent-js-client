@@ -8,8 +8,8 @@ import { MockUnifyIntentContext } from '../mocks/intent-context-mock';
 
 const mockedPageActivity = mock(PageActivity.prototype);
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
-jest.mock('client/activities', () => ({
-  ...jest.requireActual('client/activities'),
+jest.mock('../../client/activities', () => ({
+  ...jest.requireActual('../../client/activities'),
   PageActivity: jest.fn().mockImplementation(() => mockedPageActivity),
   IdentifyActivity: jest.fn().mockImplementation(() => mockedIdentifyActivity),
 }));

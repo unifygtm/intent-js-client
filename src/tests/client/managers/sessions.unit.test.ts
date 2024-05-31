@@ -9,8 +9,8 @@ import { ClientSession } from '../../../types';
 import { MockClientSession, TEST_WRITE_KEY } from '../../mocks/data';
 
 const localStorageMock = mock(LocalStorageService.prototype);
-jest.mock('client/storage', () => ({
-  ...jest.requireActual('client/storage'),
+jest.mock('../../../client/storage', () => ({
+  ...jest.requireActual('../../../client/storage'),
   LocalStorageService: jest.fn().mockImplementation(() => localStorageMock),
 }));
 
