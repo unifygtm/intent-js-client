@@ -93,8 +93,16 @@ export default class UnifyIntentAgent {
     // `pushState` is usually triggered to navigate to a new page
     const pushState = history.pushState;
     history.pushState = (...args) => {
+      // Get location before history changes
+      const oldLocation = { ...window.location };
+
+      // Update history
       pushState.apply(history, args);
-      this.maybeTrackPage();
+
+      // Compare old location to new location and maybe track page event
+      if (isNewPage(oldLocation, window.location)) {
+        this.maybeTrackPage();
+      }
     };
 
     // Sometimes `replaceState` is used to navigate to a new page, but
