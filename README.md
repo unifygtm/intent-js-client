@@ -35,9 +35,16 @@ yarn add @unifygtm/intent-client
 After installing the package, you must initialize it in your application code:
 
 ```TypeScript
-import { UnifyIntentClient } from '@unifygtm/intent-client';
+import { UnifyIntentClient, UnifyIntentClientConfig } from '@unifygtm/intent-client';
 
-const unify = new UnifyIntentClient('YOUR_PUBLIC_UNIFY_API_KEY');
+const writeKey = 'YOUR_PUBLIC_API_KEY';
+
+const config: UnifyIntentClientConfig = {
+  autoPage: true,
+  autoIdentify: false,
+};
+
+const unify = new UnifyIntentClient(writeKey, config);
 ```
 
 Once the client is initialized it will be immediately ready for use. See [Usage](#usage) below for how to use the client after installing.
@@ -66,7 +73,7 @@ In either case, this behavior can be enabled or disabled programmatically via th
 ```TypeScript
 // Initialize the client and tell it to automatically monitor pages
 const unify = new UnifyIntentClient(
-  'YOUR_PUBLIC_UNIFY_API_KEY',
+  'YOUR_PUBLIC_API_KEY',
   { autoPage: true },
 );
 
@@ -82,7 +89,7 @@ unify.startAutoPage();
 You can also manually trigger a page event with the `page` method on the client. This is useful when you do not want to trigger page events for _every_ page.
 
 ```TypeScript
-const unify = new UnifyIntentClient('YOUR_PUBLIC_UNIFY_API_KEY');
+const unify = new UnifyIntentClient('YOUR_PUBLIC_API_KEY');
 
 // Trigger a page event for whatever page the user is currently on
 unify.page();
@@ -108,7 +115,7 @@ In either case, this behavior can be enabled or disabled programmatically via th
 ```TypeScript
 // Initialize the client and tell it to automatically monitor inputs
 const unify = new UnifyIntentClient(
-  'YOUR_PUBLIC_UNIFY_API_KEY',
+  'YOUR_PUBLIC_API_KEY',
   { autoIdentify: true },
 );
 
@@ -124,7 +131,7 @@ unify.startAutoIdentify();
 You can also manually trigger an identify event with the `identify` method on the client. This is useful when users log-in with OAuth or SSO, for example, because they do not enter their email into an input on the page.
 
 ```TypeScript
-const unify = new UnifyIntentClient('YOUR_PUBLIC_UNIFY_API_KEY');
+const unify = new UnifyIntentClient('YOUR_PUBLIC_API_KEY');
 
 // However you determine the currently logged-in user
 const currentUser = getCurrentUser();
