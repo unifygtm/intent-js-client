@@ -83,18 +83,24 @@ describe('UnifyIntentAgent', () => {
       agent.stopAutoPage();
     });
 
-    it('tracks page events for history pushState', () => {
-      history.pushState(
-        {},
-        '',
-        `${location.protocol}//${location.hostname}/${uuidv4()}`,
-      );
-      expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
-    });
+    describe('history.pushState', () => {
+      it('tracks page events for new pages', () => {
+        history.pushState(
+          {},
+          '',
+          `${location.protocol}//${location.hostname}/${uuidv4()}`,
+        );
+        expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
+      });
 
-    it('tracks page events for window popstate', () => {
-      window.dispatchEvent(new Event('popstate'));
-      expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
+      it('does not track page events for the same page', () => {
+        history.pushState(
+          {},
+          '',
+          `${location.protocol}//${location.hostname}${location.pathname}?someParam=True`,
+        );
+        expect(mockedPageActivity.track).not.toHaveBeenCalled();
+      });
     });
 
     describe('history.replaceState', () => {
@@ -115,6 +121,11 @@ describe('UnifyIntentAgent', () => {
         );
         expect(mockedPageActivity.track).not.toHaveBeenCalled();
       });
+    });
+
+    it('tracks page events for window popstate', () => {
+      window.dispatchEvent(new Event('popstate'));
+      expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
     });
   });
 
