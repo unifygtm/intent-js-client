@@ -1,12 +1,15 @@
-import { UnifyIntentContext } from '../types';
-import { IdentifyActivity, PageActivity } from './activities';
-import { validateEmail } from './utils/helpers';
+import { UnifyIntentContext } from '../../types';
+import { IdentifyActivity, PageActivity } from '../activities';
+import { DEFAULT_FORMS_IFRAME_ORIGIN } from '../constants';
+import { validateEmail } from '../utils/helpers';
+import { logUnifyError } from '../utils/logging';
+import { DefaultEvent, DefaultEventType } from './types/default';
 
 /**
  * This class acts as an agent to automatically monitor user
  * intent-related activity and log relevant events and data to Unify.
  */
-export default class UnifyIntentAgent {
+export class UnifyIntentAgent {
   private readonly _intentContext: UnifyIntentContext;
   private readonly _monitoredInputs: Set<HTMLInputElement>;
   private readonly _submittedEmails: Set<string>;
@@ -63,8 +66,11 @@ export default class UnifyIntentAgent {
    */
   public startAutoIdentify = () => {
     this._autoIdentify = true;
+
     this.refreshMonitoredInputs();
     setInterval(this.refreshMonitoredInputs, 2000);
+
+    this.subscribeToThirdPartyMessages();
   };
 
   /**
@@ -79,6 +85,9 @@ export default class UnifyIntentAgent {
       }
     });
     this._monitoredInputs.clear();
+
+    this.unsubscribeFromThirdPartyMessages();
+
     this._autoIdentify = false;
   };
 
@@ -168,13 +177,76 @@ export default class UnifyIntentAgent {
   };
 
   /**
+   * Listens for messages posted to the window from third-party
+   * integrations which communicate via `window.postMessage`. Sets
+   * up event handlers for each supported integration.
+   */
+  private subscribeToThirdPartyMessages = () => {
+    window.addEventListener('message', this.handleThirdPartyMessage);
+  };
+
+  /**
+   * Removes event listeners setup in `subscribeToThirdPartyMessages`.
+   */
+  private unsubscribeFromThirdPartyMessages = () => {
+    window.removeEventListener('message', this.handleThirdPartyMessage);
+  };
+
+  /**
+   * Handles an event posted to the window via `window.postMessage` by
+   * a third-party integration embedded in an iframe, e.g. a Default form.
+   *
+   * @param event - the event from `window.postMessage`
+   */
+  private handleThirdPartyMessage = (event: MessageEvent) => {
+    if (!this._autoIdentify) return;
+
+    let thirdParty: string | undefined;
+    try {
+      switch (event.origin) {
+        case DEFAULT_FORMS_IFRAME_ORIGIN: {
+          thirdParty = 'Default';
+          this.handleDefaultFormMessage(event as MessageEvent<DefaultEvent>);
+          break;
+        }
+      }
+    } catch (error: any) {
+      logUnifyError({
+        message: `Error occurred while handling message from third-party (${thirdParty}): ${error.message}`,
+      });
+    }
+  };
+
+  /**
+   * Message handler for messages posted from embedded Default forms.
+   *
+   * @param event - the event from `window.postMessage`
+   */
+  private handleDefaultFormMessage = (event: MessageEvent<DefaultEvent>) => {
+    if (!this._autoIdentify) return;
+
+    if (
+      event.data.event === DefaultEventType.FORM_PAGE_SUBMITTED ||
+      event.data.event === DefaultEventType.FORM_COMPLETED
+    ) {
+      const email = event.data.payload.email;
+      if (email) {
+        this.maybeIdentifyInputEmail(email);
+      }
+    }
+  };
+
+  /**
    * Blur event handler for a monitored input element.
    *
    * @param event - the relevant event to handle
    */
   private handleInputBlur = (event: FocusEvent) => {
     if (!this._autoIdentify) return;
-    this.maybeIdentifyInputEmail(event);
+
+    if (event.target instanceof HTMLInputElement) {
+      this.maybeIdentifyInputEmail(event.target.value);
+    }
   };
 
   /**
@@ -185,8 +257,9 @@ export default class UnifyIntentAgent {
    */
   private handleInputKeydown = (event: KeyboardEvent) => {
     if (!this._autoIdentify) return;
-    if (event.key === 'Enter') {
-      this.maybeIdentifyInputEmail(event);
+
+    if (event.key === 'Enter' && event.target instanceof HTMLInputElement) {
+      this.maybeIdentifyInputEmail(event.target.value);
     }
   };
 
@@ -196,14 +269,8 @@ export default class UnifyIntentAgent {
    *
    * @param event - the event object from a monitored input blur or keydown event
    */
-  private maybeIdentifyInputEmail = (event: KeyboardEvent | FocusEvent) => {
+  private maybeIdentifyInputEmail = (email: string) => {
     if (!this._autoIdentify) return;
-
-    if (!(event.target instanceof HTMLInputElement)) {
-      return;
-    }
-
-    const email = event.target?.value;
 
     if (email) {
       // Validate that the input is a valid email address and has not already

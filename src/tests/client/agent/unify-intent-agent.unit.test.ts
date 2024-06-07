@@ -1,15 +1,16 @@
 import { mock, mockReset } from 'jest-mock-extended';
 import { v4 as uuidv4 } from 'uuid';
 
-import { IdentifyActivity, PageActivity } from '../../client/activities';
-import UnifyIntentAgent from '../../client/unify-intent-agent';
-import { UnifyIntentContext } from '../../types';
-import { MockUnifyIntentContext } from '../mocks/intent-context-mock';
+import { IdentifyActivity, PageActivity } from '../../../client/activities';
+import { UnifyIntentAgent } from '../../../client/agent';
+import { UnifyIntentContext } from '../../../types';
+import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
+import { DEFAULT_FORMS_IFRAME_ORIGIN } from '../../../client/constants';
 
 const mockedPageActivity = mock(PageActivity.prototype);
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
-jest.mock('../../client/activities', () => ({
-  ...jest.requireActual('../../client/activities'),
+jest.mock('../../../client/activities', () => ({
+  ...jest.requireActual('../../../client/activities'),
   PageActivity: jest.fn().mockImplementation(() => mockedPageActivity),
   IdentifyActivity: jest.fn().mockImplementation(() => mockedIdentifyActivity),
 }));
@@ -139,6 +140,7 @@ describe('UnifyIntentAgent', () => {
         const agent = new UnifyIntentAgent(mockContext);
         agent.startAutoIdentify();
         expect(agent.__getMonitoredInputs().size).toEqual(0);
+        agent.stopAutoIdentify();
       });
     });
 
@@ -151,6 +153,7 @@ describe('UnifyIntentAgent', () => {
         const agent = new UnifyIntentAgent(mockContext);
         agent.startAutoIdentify();
         expect(agent.__getMonitoredInputs().size).toEqual(0);
+        agent.stopAutoIdentify();
       });
     });
 
@@ -180,6 +183,8 @@ describe('UnifyIntentAgent', () => {
             (input) => input.id === MOCK_TEXT_INPUT_EMPTY.id,
           ),
         ).toBeTruthy();
+
+        agent.stopAutoIdentify();
       });
 
       it('submits emails on valid input blur', () => {
@@ -214,6 +219,8 @@ describe('UnifyIntentAgent', () => {
           ),
         ).toBeTruthy();
         expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(2);
+
+        agent.stopAutoIdentify();
       });
 
       it('submits emails when user presses Enter', () => {
@@ -250,6 +257,8 @@ describe('UnifyIntentAgent', () => {
           ),
         ).toBeTruthy();
         expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(2);
+
+        agent.stopAutoIdentify();
       });
 
       it('does not submit emails when non-Enter key pressed', () => {
@@ -275,6 +284,8 @@ describe('UnifyIntentAgent', () => {
         // Verify emails submitted
         expect(agent.__getSubmittedEmails().size).toEqual(0);
         expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
+
+        agent.stopAutoIdentify();
       });
 
       it('does not submit the same emails multiple times', () => {
@@ -314,6 +325,43 @@ describe('UnifyIntentAgent', () => {
         // Verify emails not submitted again
         expect(agent.__getSubmittedEmails().size).toEqual(2);
         expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
+
+        agent.stopAutoIdentify();
+      });
+    });
+
+    describe('third-party integration handlers', () => {
+      describe('Default form messages', () => {
+        let defaultFormEvent: MessageEventInit = {
+          origin: DEFAULT_FORMS_IFRAME_ORIGIN,
+          data: { payload: { formId: 1234 } },
+        };
+
+        it('does not log an identify event without email from the event data', () => {
+          const agent = new UnifyIntentAgent(mockContext);
+          agent.startAutoIdentify();
+
+          defaultFormEvent.data.payload.email = null;
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          agent.stopAutoIdentify();
+
+          expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
+          expect(agent.__getSubmittedEmails().size).toEqual(0);
+        });
+
+        it('logs an identify event when email included in data', () => {
+          const agent = new UnifyIntentAgent(mockContext);
+          agent.startAutoIdentify();
+
+          defaultFormEvent.data.payload.email = 'solomon@unifygtm.com';
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          agent.stopAutoIdentify();
+
+          expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+          expect(agent.__getSubmittedEmails().size).toEqual(1);
+        });
       });
     });
   });
