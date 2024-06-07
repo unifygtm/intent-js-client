@@ -5,7 +5,7 @@ export enum DefaultEventType {
   FORM_COMPLETED = 'default.form_completed',
   FORM_PAGE_SUBMITTED = 'default.form_page_submitted',
   MEETING_BOOKED = 'default.meeting_booked',
-  SCHEDULER_DISPLAED = 'default.scheduled_displayed',
+  SCHEDULER_DISPLAYED = 'default.scheduler_displayed',
 }
 
 /**
@@ -45,7 +45,7 @@ export interface DefaultMeetingBookedEvent {
  * Event emitted when the meeting scheduler is displayed to a user.
  */
 export interface DefaultSchedulerDisplayedEvent {
-  event: DefaultEventType.SCHEDULER_DISPLAED;
+  event: DefaultEventType.SCHEDULER_DISPLAYED;
   payload: DefaultSchedulerDisplayedEventPayload;
 }
 
