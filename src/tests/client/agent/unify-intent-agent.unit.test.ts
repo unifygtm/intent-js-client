@@ -1,16 +1,16 @@
 import { mock, mockReset } from 'jest-mock-extended';
 import { v4 as uuidv4 } from 'uuid';
 
-import { IdentifyActivity, PageActivity } from '../../client/activities';
-import UnifyIntentAgent from '../../client/unify-intent-agent';
-import { UnifyIntentContext } from '../../types';
-import { MockUnifyIntentContext } from '../mocks/intent-context-mock';
-import { DEFAULT_FORMS_IFRAME_ORIGIN } from '../../client/constants';
+import { IdentifyActivity, PageActivity } from '../../../client/activities';
+import { UnifyIntentAgent } from '../../../client/agent';
+import { UnifyIntentContext } from '../../../types';
+import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
+import { DEFAULT_FORMS_IFRAME_ORIGIN } from '../../../client/constants';
 
 const mockedPageActivity = mock(PageActivity.prototype);
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
-jest.mock('../../client/activities', () => ({
-  ...jest.requireActual('../../client/activities'),
+jest.mock('../../../client/activities', () => ({
+  ...jest.requireActual('../../../client/activities'),
   PageActivity: jest.fn().mockImplementation(() => mockedPageActivity),
   IdentifyActivity: jest.fn().mockImplementation(() => mockedIdentifyActivity),
 }));

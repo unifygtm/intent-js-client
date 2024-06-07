@@ -1,13 +1,15 @@
-import { UnifyIntentContext } from '../types';
-import { IdentifyActivity, PageActivity } from './activities';
-import { DEFAULT_FORMS_IFRAME_ORIGIN } from './constants';
-import { validateEmail } from './utils/helpers';
+import { UnifyIntentContext } from '../../types';
+import { IdentifyActivity, PageActivity } from '../activities';
+import { DEFAULT_FORMS_IFRAME_ORIGIN } from '../constants';
+import { validateEmail } from '../utils/helpers';
+import { logUnifyError } from '../utils/logging';
+import { DefaultEvent, DefaultEventType } from './types/default';
 
 /**
  * This class acts as an agent to automatically monitor user
  * intent-related activity and log relevant events and data to Unify.
  */
-export default class UnifyIntentAgent {
+export class UnifyIntentAgent {
   private readonly _intentContext: UnifyIntentContext;
   private readonly _monitoredInputs: Set<HTMLInputElement>;
   private readonly _submittedEmails: Set<string>;
@@ -199,11 +201,19 @@ export default class UnifyIntentAgent {
   private handleThirdPartyMessage = (event: MessageEvent) => {
     if (!this._autoIdentify) return;
 
-    switch (event.origin) {
-      case DEFAULT_FORMS_IFRAME_ORIGIN: {
-        this.handleDefaultFormMessage(event);
-        break;
+    let thirdParty: string | undefined;
+    try {
+      switch (event.origin) {
+        case DEFAULT_FORMS_IFRAME_ORIGIN: {
+          thirdParty = 'Default';
+          this.handleDefaultFormMessage(event);
+          break;
+        }
       }
+    } catch (error: any) {
+      logUnifyError({
+        message: `Error occurred while handling message from third-party (${thirdParty}): ${error.message}`,
+      });
     }
   };
 
@@ -212,12 +222,17 @@ export default class UnifyIntentAgent {
    *
    * @param event - the event from `window.postMessage`
    */
-  private handleDefaultFormMessage = (event: MessageEvent) => {
+  private handleDefaultFormMessage = (event: MessageEvent<DefaultEvent>) => {
     if (!this._autoIdentify) return;
 
-    const email = event.data?.payload?.email;
-    if (email) {
-      this.maybeIdentifyInputEmail(email);
+    if (
+      event.data.event === DefaultEventType.FORM_PAGE_SUBMITTED ||
+      event.data.event === DefaultEventType.FORM_COMPLETED
+    ) {
+      const email = event.data.payload.email;
+      if (email) {
+        this.maybeIdentifyInputEmail(email);
+      }
     }
   };
 

@@ -3,7 +3,7 @@ import { mock, mockReset } from 'jest-mock-extended';
 import { UnifyIntentClient } from '../../client';
 import { IdentifyActivity, PageActivity } from '../../client/activities';
 import { IdentityManager, SessionManager } from '../../client/managers';
-import UnifyIntentAgent from '../../client/unify-intent-agent';
+import { UnifyIntentAgent } from '../../client/agent';
 import { TEST_WRITE_KEY } from '../mocks/data';
 
 const mockedIdentityManager = mock(IdentityManager.prototype);
@@ -15,10 +15,10 @@ jest.mock('../../client/managers', () => ({
 }));
 
 const mockedIntentAgent = mock(UnifyIntentAgent.prototype);
-jest.mock('../../client/unify-intent-agent', () => ({
-  ...jest.requireActual('../../client/unify-intent-agent'),
+jest.mock('../../client/agent', () => ({
+  ...jest.requireActual('../../client/agent'),
   __esModule: true,
-  default: jest.fn().mockImplementation(() => mockedIntentAgent),
+  UnifyIntentAgent: jest.fn().mockImplementation(() => mockedIntentAgent),
 }));
 
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);

@@ -2,7 +2,7 @@ import { UnifyIntentClientConfig, UnifyIntentContext } from '../types';
 import { IdentifyActivity, PageActivity } from './activities';
 import { IdentityManager, SessionManager } from './managers';
 import UnifyApiClient from './unify-api-client';
-import UnifyIntentAgent from './unify-intent-agent';
+import { UnifyIntentAgent } from './agent';
 import { validateEmail } from './utils/helpers';
 
 export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
