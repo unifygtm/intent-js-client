@@ -6,5 +6,5 @@
  * @param message - the error message to log
  */
 export function logUnifyError({ message }: { message: string }) {
-  console.debug(`%cUnify Error: %c${message}`, 'font-weight: bold;', '');
+  console.debug(`%c[Unify]: %c${message}`, 'font-weight: bold;', '');
 }

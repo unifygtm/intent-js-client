@@ -206,7 +206,7 @@ export class UnifyIntentAgent {
       switch (event.origin) {
         case DEFAULT_FORMS_IFRAME_ORIGIN: {
           thirdParty = 'Default';
-          this.handleDefaultFormMessage(event);
+          this.handleDefaultFormMessage(event as MessageEvent<DefaultEvent>);
           break;
         }
       }
