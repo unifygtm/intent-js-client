@@ -1,5 +1,6 @@
 import { UnifyIntentContext } from '../types';
 import { IdentifyActivity, PageActivity } from './activities';
+import { DEFAULT_FORMS_IFRAME_ORIGIN } from './constants';
 import { validateEmail } from './utils/helpers';
 
 /**
@@ -32,6 +33,10 @@ export default class UnifyIntentAgent {
     if (this._autoIdentify) {
       this.startAutoIdentify();
     }
+
+    // Setup event handlers for messages posted by third-party integrations
+    // embedded within iframes, e.g a Default form
+    this.subscribeToThirdPartyMessages();
   }
 
   /**
@@ -165,6 +170,35 @@ export default class UnifyIntentAgent {
       input.addEventListener('keydown', this.handleInputKeydown);
       this._monitoredInputs.add(input);
     });
+  };
+
+  /**
+   * Listens for messages posted to the window from third-party
+   * integrations which communicate via `window.postMessage`. Sets
+   * up event handlers for each supported integration.
+   */
+  private subscribeToThirdPartyMessages = () => {
+    window.addEventListener('message', (event: MessageEvent) => {
+      switch (event.origin) {
+        case DEFAULT_FORMS_IFRAME_ORIGIN: {
+          this.handleDefaultFormMessage(event);
+        }
+      }
+    });
+  };
+
+  /**
+   * Message handler for messages posted from embedded Default forms.
+   *
+   * @param event - the event from `window.postMessage`
+   */
+  private handleDefaultFormMessage = (event: MessageEvent) => {
+    if (!this._autoIdentify) return;
+
+    const email = event.data?.payload?.email;
+    if (email) {
+      this.maybeIdentifyInputEmail(email);
+    }
   };
 
   /**
