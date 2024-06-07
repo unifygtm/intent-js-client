@@ -5,7 +5,7 @@ import { IdentifyActivity, PageActivity } from '../../../client/activities';
 import { UnifyIntentAgent } from '../../../client/agent';
 import { UnifyIntentContext } from '../../../types';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
-import { DEFAULT_FORMS_IFRAME_ORIGIN } from '../../../client/constants';
+import { DEFAULT_FORMS_IFRAME_ORIGIN } from '../../../client/agent/constants';
 
 const mockedPageActivity = mock(PageActivity.prototype);
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);

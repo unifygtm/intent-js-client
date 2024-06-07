@@ -1,9 +1,13 @@
 import { UnifyIntentContext } from '../../types';
 import { IdentifyActivity, PageActivity } from '../activities';
-import { DEFAULT_FORMS_IFRAME_ORIGIN } from '../constants';
 import { validateEmail } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
-import { DefaultEvent, DefaultEventType } from './types/default';
+import {
+  DEFAULT_FORMS_IFRAME_ORIGIN,
+  DEFAULT_FORM_EVENT_TYPES,
+} from './constants';
+import { DefaultEventData, DefaultEventType } from './types/default';
+import { isDefaultFormEventData } from './utils';
 
 /**
  * This class acts as an agent to automatically monitor user
@@ -206,7 +210,9 @@ export class UnifyIntentAgent {
       switch (event.origin) {
         case DEFAULT_FORMS_IFRAME_ORIGIN: {
           thirdParty = 'Default';
-          this.handleDefaultFormMessage(event as MessageEvent<DefaultEvent>);
+          this.handleDefaultFormMessage(
+            event as MessageEvent<DefaultEventData>,
+          );
           break;
         }
       }
@@ -222,13 +228,12 @@ export class UnifyIntentAgent {
    *
    * @param event - the event from `window.postMessage`
    */
-  private handleDefaultFormMessage = (event: MessageEvent<DefaultEvent>) => {
+  private handleDefaultFormMessage = (
+    event: MessageEvent<DefaultEventData>,
+  ) => {
     if (!this._autoIdentify) return;
 
-    if (
-      event.data.event === DefaultEventType.FORM_PAGE_SUBMITTED ||
-      event.data.event === DefaultEventType.FORM_COMPLETED
-    ) {
+    if (isDefaultFormEventData(event.data)) {
       const email = event.data.payload.email;
       if (email) {
         this.maybeIdentifyInputEmail(email);
