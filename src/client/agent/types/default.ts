@@ -3,24 +3,26 @@
  */
 export enum DefaultEventType {
   FORM_COMPLETED = 'default.form_completed',
-  FORM_PAGE_SUBMITTED = 'default.form_page_submitted',
+  FORM_PAGE_SUBMITTED = 'deafult.form_page_submitted',
+  FORM_PAGE_SUBMITTED_V2 = 'default.form_page_submitted',
   MEETING_BOOKED = 'default.meeting_booked',
-  SCHEDULER_DISPLAED = 'default.scheduled_displayed',
+  SCHEDULER_DISPLAYED = 'default.scheduler_displayed',
 }
 
 /**
  * Union of all events which can be emitted by Default.
  */
-export type DefaultEvent =
-  | DefaultFormCompletedEvent
-  | DefaultFormPageSubmittedEvent
-  | DefaultMeetingBookedEvent
-  | DefaultSchedulerDisplayedEvent;
+export type DefaultEventData =
+  | DefaultFormCompletedEventData
+  | DefaultFormPageSubmittedEventData
+  | DefaultFormPageSubmittedV2EventData
+  | DefaultMeetingBookedEventData
+  | DefaultSchedulerDisplayedEventData;
 
 /**
  * Event emitted when a form is completed.
  */
-export interface DefaultFormCompletedEvent {
+export interface DefaultFormCompletedEventData {
   event: DefaultEventType.FORM_COMPLETED;
   payload: DefaultFormEventPayload;
 }
@@ -28,15 +30,19 @@ export interface DefaultFormCompletedEvent {
 /**
  * Event emitted when a particular page of a form is completed.
  */
-export interface DefaultFormPageSubmittedEvent {
+export interface DefaultFormPageSubmittedEventData {
   event: DefaultEventType.FORM_PAGE_SUBMITTED;
+  payload: DefaultFormEventPayload;
+}
+export interface DefaultFormPageSubmittedV2EventData {
+  event: DefaultEventType.FORM_PAGE_SUBMITTED_V2;
   payload: DefaultFormEventPayload;
 }
 
 /**
  * Event emitted when a meeting has been booked.
  */
-export interface DefaultMeetingBookedEvent {
+export interface DefaultMeetingBookedEventData {
   event: DefaultEventType.MEETING_BOOKED;
   payload: DefaultMeetingBookedEventPayload;
 }
@@ -44,8 +50,8 @@ export interface DefaultMeetingBookedEvent {
 /**
  * Event emitted when the meeting scheduler is displayed to a user.
  */
-export interface DefaultSchedulerDisplayedEvent {
-  event: DefaultEventType.SCHEDULER_DISPLAED;
+export interface DefaultSchedulerDisplayedEventData {
+  event: DefaultEventType.SCHEDULER_DISPLAYED;
   payload: DefaultSchedulerDisplayedEventPayload;
 }
 

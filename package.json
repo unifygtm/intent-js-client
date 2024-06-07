@@ -1,6 +1,6 @@
 {
   "name": "@unifygtm/intent-client",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "description": "JavaScript client for interacting with the Unify Intent API in the browser.",
   "keywords": [
