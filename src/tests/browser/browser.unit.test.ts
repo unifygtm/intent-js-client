@@ -1,14 +1,32 @@
-import { mock, mockReset } from 'jest-mock-extended';
+import { mock } from 'jest-mock-extended';
 
 import { initBrowser } from '../../browser';
-import { UnifyIntentClient } from '../../client';
 import { TEST_WRITE_KEY } from '../../tests/mocks/data';
+import { IdentifyActivity, PageActivity } from '../../client/activities';
+import { UnifyIntentAgent } from '../../client/agent';
+import { IdentityManager, SessionManager } from '../../client/managers';
 
-const mockIntentClient = mock(UnifyIntentClient.prototype);
-jest.mock('../../client', () => ({
-  ...jest.requireActual('../../client'),
+const mockedIdentityManager = mock(IdentityManager.prototype);
+const mockedSessionManager = mock(SessionManager.prototype);
+jest.mock('../../client/managers', () => ({
+  ...jest.requireActual('../../client/managers'),
+  IdentityManager: jest.fn().mockImplementation(() => mockedIdentityManager),
+  SessionManager: jest.fn().mockImplementation(() => mockedSessionManager),
+}));
+
+const mockedIntentAgent = mock(UnifyIntentAgent.prototype);
+jest.mock('../../client/agent', () => ({
+  ...jest.requireActual('../../client/agent'),
   __esModule: true,
-  UnifyIntentClient: jest.fn().mockImplementation(() => mockIntentClient),
+  UnifyIntentAgent: jest.fn().mockImplementation(() => mockedIntentAgent),
+}));
+
+const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
+const mockedPageActivity = mock(PageActivity.prototype);
+jest.mock('../../client/activities', () => ({
+  ...jest.requireActual('../../client/activities'),
+  IdentifyActivity: jest.fn().mockImplementation(() => mockedIdentifyActivity),
+  PageActivity: jest.fn().mockImplementation(() => mockedPageActivity),
 }));
 
 const MOCK_UNIFY_TAG_WRITE_KEY = `
@@ -23,7 +41,6 @@ describe('Browser', () => {
   beforeEach(() => {
     document.body.innerHTML = MOCK_UNIFY_TAG_WRITE_KEY;
     window.unify = undefined;
-    mockReset(mockIntentClient);
   });
 
   describe('initBrowser', () => {
@@ -37,17 +54,6 @@ describe('Browser', () => {
       document.body.innerHTML = MOCK_UNIFY_TAG_API_KEY;
       expect(window.unify).toBeFalsy();
       initBrowser();
-      expect(window.unify).toBeTruthy();
-    });
-
-    it('clears methods in the queue', () => {
-      // @ts-expect-error
-      window.unify = [['page'], ['identify', 'solomon@unifygtm.com']];
-      initBrowser();
-      expect(mockIntentClient.page).toHaveBeenCalledTimes(1);
-      expect(mockIntentClient.identify).toHaveBeenCalledWith(
-        'solomon@unifygtm.com',
-      );
       expect(window.unify).toBeTruthy();
     });
   });

@@ -31,11 +31,24 @@ jest.mock('../../client/activities', () => ({
 
 describe('UnifyIntentClient', () => {
   beforeEach(() => {
+    window.unify = undefined;
     mockReset(mockedIdentityManager);
     mockReset(mockedSessionManager);
     mockReset(mockedIntentAgent);
     mockReset(mockedPageActivity);
     mockReset(mockedIdentifyActivity);
+  });
+
+  it('clears methods in the queue', () => {
+    // @ts-expect-error
+    window.unify = [
+      ['page', []],
+      ['identify', ['solomon@unifygtm.com']],
+    ];
+    new UnifyIntentClient(TEST_WRITE_KEY);
+    expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
+    expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+    expect(window.unify).toBeTruthy();
   });
 
   it('initializes an anonymous user ID and client session', () => {

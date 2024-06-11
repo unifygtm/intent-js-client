@@ -183,8 +183,13 @@ function flushUnifyQueue(unify: UnifyIntentClient) {
   queue.forEach(([method, args]) => {
     if (typeof unify[method as keyof UnifyIntentClient] === 'function') {
       try {
-        // @ts-expect-error the type of the args is unknown at this point
-        unify[method as keyof UnifyIntentClient].call(unify, ...args);
+        if (Array.isArray(args)) {
+          // @ts-expect-error the type of the args is unknown at this point
+          unify[method as keyof UnifyIntentClient].call(unify, ...args);
+        } else {
+          // @ts-expect-error the type of the args is unknown at this point
+          unify[method as keyof UnifyIntentClient].call(unify);
+        }
       } catch (error: any) {
         // Swallow errors so client is not potentially affected, this
         // should ideally never happen.
