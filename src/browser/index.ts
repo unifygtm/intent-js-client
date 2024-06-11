@@ -26,11 +26,11 @@ export const initBrowser = function () {
 
   if (!writeKey) return;
 
-  // Instantiate the Unify client
+  // Instantiate the Unify client and mount it
   new UnifyIntentClient(writeKey, {
     autoPage: true,
     autoIdentify: true,
-  });
+  }).mount();
 };
 
 initBrowser();

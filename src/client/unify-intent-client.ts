@@ -5,6 +5,7 @@ import UnifyApiClient from './unify-api-client';
 import { UnifyIntentAgent } from './agent';
 import { validateEmail } from './utils/helpers';
 import { logUnifyError } from './utils/logging';
+import { MOUNT_REQUIRED_ERROR_MESSAGE } from './constants';
 
 declare global {
   interface Window {
@@ -22,14 +23,27 @@ export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
  * analytics like page views, sessions, identity, and actions.
  */
 export default class UnifyIntentClient {
-  private readonly _context!: UnifyIntentContext;
+  private readonly _writeKey: string;
+  private readonly _config: UnifyIntentClientConfig;
 
+  private _mounted: boolean = false;
+  private _context!: UnifyIntentContext;
   private _intentAgent?: UnifyIntentAgent;
 
   constructor(
     writeKey: string,
     config: UnifyIntentClientConfig = DEFAULT_UNIFY_INTENT_CLIENT_CONFIG,
   ) {
+    this._writeKey = writeKey;
+    this._config = config;
+  }
+
+  /**
+   * This function initializes the `UnifyIntentClient` for use. It should only
+   * be called once the global `window` object exists. If using the client in
+   * React, for example, this would take place inside a `useEffect` hook.
+   */
+  public mount = () => {
     // The client should never be initialized outside a global window context
     if (typeof window === 'undefined') return;
 
@@ -43,29 +57,33 @@ export default class UnifyIntentClient {
     }
 
     // Initialize API client
-    const apiClient = new UnifyApiClient(writeKey);
+    const apiClient = new UnifyApiClient(this._writeKey);
 
     // Initialize user session
-    const sessionManager = new SessionManager(writeKey);
+    const sessionManager = new SessionManager(this._writeKey);
     sessionManager.getOrCreateSession();
 
     // Create anonymous user ID if needed
-    const identityManager = new IdentityManager(writeKey);
+    const identityManager = new IdentityManager(this._writeKey);
     identityManager.getOrCreateAnonymousUserId();
 
     // Initialize context
     this._context = {
-      writeKey,
-      clientConfig: config,
+      writeKey: this._writeKey,
+      clientConfig: this._config,
       apiClient,
       sessionManager,
       identityManager,
     };
 
     // Initialize intent agent if specifed by config
-    if (config.autoPage || config.autoIdentify) {
+    if (this._config.autoPage || this._config.autoIdentify) {
       this._intentAgent = new UnifyIntentAgent(this._context);
     }
+
+    // We set `mounted` to `true` before flushing the queue since the
+    // methdods which can be called require that.
+    this._mounted = true;
 
     // When the client is loaded from CDN, it's possible that method
     // calls have been queued on `window.unify`
@@ -73,13 +91,36 @@ export default class UnifyIntentClient {
 
     // Set unify object on window to prevent multiple instantiations
     window.unify = this;
-  }
+  };
+
+  /**
+   * This function cleans up this instance of the `UnifyIntentClient` when
+   * it should be unmounted from the DOM. If using the client in
+   * React, for example, this would take place inside the function returned
+   * by the same `useEffect` used to mount the client.
+   */
+  public unmount = () => {
+    // If window no longer exists at this point, there is nothing to unmount
+    if (typeof window === 'undefined') return;
+
+    if (this._config.autoPage) {
+      this.stopAutoPage();
+    }
+
+    if (this._config.autoIdentify) {
+      this.stopAutoIdentify();
+    }
+
+    this._mounted = false;
+  };
 
   /**
    * This function logs a page view for the current page to
    * the Unify Intent API.
    */
   public page = () => {
+    this.requireMounted();
+
     const action = new PageActivity(this._context);
     action.track();
   };
@@ -93,6 +134,8 @@ export default class UnifyIntentClient {
    * @returns `true` if the email was valid and logged, otherwise `false`
    */
   public identify = (email: string): boolean => {
+    this.requireMounted();
+
     const validatedEmail = validateEmail(email);
     if (validatedEmail) {
       const action = new IdentifyActivity(this._context, {
@@ -114,6 +157,8 @@ export default class UnifyIntentClient {
    * stop the continuous monitoring.
    */
   public startAutoPage = () => {
+    this.requireMounted();
+
     if (!this._intentAgent) {
       this._intentAgent = new UnifyIntentAgent(this._context);
     }
@@ -128,6 +173,8 @@ export default class UnifyIntentClient {
    * The corresponding `startAutoPage` can be used to start it again.
    */
   public stopAutoPage = () => {
+    this.requireMounted();
+
     this._intentAgent?.stopAutoPage();
   };
 
@@ -139,6 +186,8 @@ export default class UnifyIntentClient {
    * stop the continuous monitoring.
    */
   public startAutoIdentify = () => {
+    this.requireMounted();
+
     if (!this._intentAgent) {
       this._intentAgent = new UnifyIntentAgent(this._context);
     }
@@ -153,7 +202,21 @@ export default class UnifyIntentClient {
    * The corresponding `startAutoIdentify` can be used to start it again.
    */
   public stopAutoIdentify = () => {
+    this.requireMounted();
+
     this._intentAgent?.stopAutoIdentify();
+  };
+
+  /**
+   * Helper function to ensure the client has been mounted before being used.
+   */
+  private requireMounted = () => {
+    if (!this._mounted) {
+      logUnifyError({
+        message: MOUNT_REQUIRED_ERROR_MESSAGE,
+      });
+      throw new Error(MOUNT_REQUIRED_ERROR_MESSAGE);
+    }
   };
 }
 
