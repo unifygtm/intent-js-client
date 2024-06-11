@@ -6,6 +6,12 @@ import { UnifyIntentAgent } from './agent';
 import { validateEmail } from './utils/helpers';
 import { logUnifyError } from './utils/logging';
 
+declare global {
+  interface Window {
+    unify?: UnifyIntentClient;
+  }
+}
+
 export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
   autoPage: false,
   autoIdentify: false,
@@ -60,6 +66,10 @@ export default class UnifyIntentClient {
     if (config.autoPage || config.autoIdentify) {
       this._intentAgent = new UnifyIntentAgent(this._context);
     }
+
+    // When the client is loaded from CDN, it's possible that method
+    // calls have been queued on `window.unify`
+    flushUnifyQueue(this);
 
     // Set unify object on window to prevent multiple instantiations
     window.unify = this;
@@ -145,4 +155,41 @@ export default class UnifyIntentClient {
   public stopAutoIdentify = () => {
     this._intentAgent?.stopAutoIdentify();
   };
+}
+
+/**
+ * It's possible that client code will execute functions on the global
+ * `UnifyIntentClient` object before it is actually loaded and instantiated
+ * because this code is loaded asynchronously by the client.
+ *
+ * Until `flushUnifyQueue` is called, `window.unify` is set to an array of queued
+ * method calls, which are themselves each represented by an array. The first
+ * element of each of these "method call subarrays" is the method name to call,
+ * and the rest of the elements are the arguments to pass to that method.
+ *
+ * Once the Unify intent script is loaded and the `UnifyIntentClient` has
+ * been instantiated, this function is called to flush the queued method
+ * calls on the existing `window.unify` array if there are any to flush. It
+ * iterates over each queued method call and applies that method and its
+ * arguments to the newly instantiated `UnifyIntentClient`.
+ *
+ * @param unify - the `UnifyIntentClient` to apply method calls to
+ */
+function flushUnifyQueue(unify: UnifyIntentClient) {
+  const queue: [string, unknown[]][] = Array.isArray(window.unify)
+    ? [...window.unify]
+    : [];
+
+  queue.forEach(([method, args]) => {
+    if (typeof unify[method as keyof UnifyIntentClient] === 'function') {
+      try {
+        // @ts-expect-error the type of the args is unknown at this point
+        unify[method as keyof UnifyIntentClient].call(unify, ...args);
+      } catch (error: any) {
+        // Swallow errors so client is not potentially affected, this
+        // should ideally never happen.
+        logUnifyError({ message: error?.message });
+      }
+    }
+  });
 }
