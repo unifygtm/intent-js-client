@@ -129,4 +129,20 @@ describe('UnifyIntentClient', () => {
       unify.unmount();
     });
   });
+
+  describe('unmount', () => {
+    it('cleans up Unify intent agent', () => {
+      const unify = new UnifyIntentClient(TEST_WRITE_KEY, {
+        autoPage: true,
+        autoIdentify: true,
+      });
+      unify.mount();
+
+      expect(mockedIntentAgent.stopAutoPage).not.toHaveBeenCalled();
+      expect(mockedIntentAgent.stopAutoIdentify).not.toHaveBeenCalled();
+      unify.unmount();
+      expect(mockedIntentAgent.stopAutoPage).toHaveBeenCalledTimes(1);
+      expect(mockedIntentAgent.stopAutoIdentify).toHaveBeenCalledTimes(1);
+    });
+  });
 });
