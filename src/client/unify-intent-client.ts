@@ -4,6 +4,7 @@ import { IdentityManager, SessionManager } from './managers';
 import UnifyApiClient from './unify-api-client';
 import { UnifyIntentAgent } from './agent';
 import { validateEmail } from './utils/helpers';
+import { logUnifyError } from './utils/logging';
 
 export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
   autoPage: false,
@@ -15,7 +16,7 @@ export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
  * analytics like page views, sessions, identity, and actions.
  */
 export default class UnifyIntentClient {
-  private readonly _context: UnifyIntentContext;
+  private readonly _context!: UnifyIntentContext;
 
   private _intentAgent?: UnifyIntentAgent;
 
@@ -23,11 +24,16 @@ export default class UnifyIntentClient {
     writeKey: string,
     config: UnifyIntentClientConfig = DEFAULT_UNIFY_INTENT_CLIENT_CONFIG,
   ) {
+    // The client should never be initialized outside a global window context
+    if (typeof window === 'undefined') return;
+
     // The client should never be instantiated more than once
     if (window.unify !== undefined && !Array.isArray(window.unify)) {
-      console.warn(
-        'Global UnifyIntentClient already exists, a new one will not be created.',
-      );
+      logUnifyError({
+        message:
+          'Global UnifyIntentClient already exists, a new one will not be created.',
+      });
+      return;
     }
 
     // Initialize API client
@@ -54,6 +60,9 @@ export default class UnifyIntentClient {
     if (config.autoPage || config.autoIdentify) {
       this._intentAgent = new UnifyIntentAgent(this._context);
     }
+
+    // Set unify object on window to prevent multiple instantiations
+    window.unify = this;
   }
 
   /**
