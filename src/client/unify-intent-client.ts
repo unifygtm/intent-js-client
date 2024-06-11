@@ -31,7 +31,7 @@ export default class UnifyIntentClient {
     if (window.unify !== undefined && !Array.isArray(window.unify)) {
       logUnifyError({
         message:
-          'Global UnifyIntentClient already exists, a new one will not be created.',
+          'UnifyIntentClient already exists on window, a new one will not be created.',
       });
       return;
     }

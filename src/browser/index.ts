@@ -1,4 +1,5 @@
 import { UnifyIntentClient } from '../client';
+import { logUnifyError } from '../client/utils/logging';
 
 declare global {
   interface Window {
@@ -12,12 +13,14 @@ declare global {
  */
 export const initBrowser = function () {
   // If not running in a browser environment, do nothing
-  if (window === undefined) {
-    return;
-  }
+  if (typeof window === 'undefined') return;
 
   // If the client has already been initialized, do nothing
-  if (window.unify && !Array.isArray(window.unify)) {
+  if (window.unify !== undefined && !Array.isArray(window.unify)) {
+    logUnifyError({
+      message:
+        'UnifyIntentClient already exists on window, a new one will not be created.',
+    });
     return;
   }
 
@@ -37,10 +40,6 @@ export const initBrowser = function () {
 
   // Flush method calls which were made before this script loaded
   flushUnifyQueue(unify);
-
-  // Re-assign the global Unify client object so future method calls
-  // will go straight to the newly instantiated client
-  window.unify = unify;
 };
 
 /**
