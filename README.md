@@ -18,7 +18,7 @@ When you include this tag in your HTML, you will immediately be able to access t
 
 This method is typically used to install the client in e.g. frontend application code such as a Single Page App (SPA) (as opposed to on a static marketing website).
 
-NOTE: See (@unifygtm/intent-react)[https://www.npmjs.com/package/@unifygtm/intent-react] if you are using React.
+NOTE: See [@unifygtm/intent-react](https://www.npmjs.com/package/@unifygtm/intent-react) if you are using React.
 
 You can install the client package directly using your preferred package manager:
 
@@ -38,6 +38,7 @@ After installing the package, you must initialize it in your application code an
 
 ```TypeScript
 import { UnifyIntentClient, UnifyIntentClientConfig } from '@unifygtm/intent-client';
+import { useEffect, useState } from 'react';
 
 const writeKey = 'YOUR_PUBLIC_API_KEY';
 
@@ -114,12 +115,13 @@ unify.stopAutoPage();
 unify.startAutoPage();
 ```
 
-#### Manual Identification
+#### Manual Page Logging
 
 You can also manually trigger a page event with the `page` method on the client. This is useful when you do not want to trigger page events for _every_ page.
 
 ```TypeScript
 const unify = new UnifyIntentClient('YOUR_PUBLIC_API_KEY');
+unify.mount();
 
 // Trigger a page event for whatever page the user is currently on
 unify.page();
