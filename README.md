@@ -18,6 +18,8 @@ When you include this tag in your HTML, you will immediately be able to access t
 
 This method is typically used to install the client in e.g. frontend application code such as a Single Page App (SPA) (as opposed to on a static marketing website).
 
+NOTE: See (@unifygtm/intent-react)[https://www.npmjs.com/package/@unifygtm/intent-react] if you are using React.
+
 You can install the client package directly using your preferred package manager:
 
 #### npm
@@ -32,7 +34,7 @@ npm install @unifygtm/intent-client
 yarn add @unifygtm/intent-client
 ```
 
-After installing the package, you must initialize it in your application code:
+After installing the package, you must initialize it in your application code and mount it:
 
 ```TypeScript
 import { UnifyIntentClient, UnifyIntentClientConfig } from '@unifygtm/intent-client';
@@ -45,9 +47,36 @@ const config: UnifyIntentClientConfig = {
 };
 
 const unify = new UnifyIntentClient(writeKey, config);
+
+// Do not call mount during server side rendering. Only call it in a browser context.
+unify.mount();
 ```
 
-Once the client is initialized it will be immediately ready for use. See [Usage](#usage) below for how to use the client after installing.
+NOTE: The `mount` method on the client is used to initialize it once it is in a browser context. If your application uses server side rendering, you should be sure not to call `mount()` until the code is running in a browser context.
+
+Once the client is initialized and mounted it will be immediately ready for use. See [Usage](#usage) below for how to use the client after installing. If you wish to cleanup the side effects created by initializing the client (e.g. event listeners), you can do so with the `unmount` method. Here is an example of mounting and unmounting the client in React code:
+
+```tsx
+import { UnifyIntentClient, UnifyIntentClientConfig } from '@unifygtm/intent-client';
+
+const writeKey = 'YOUR_PUBLIC_API_KEY';
+
+const intentClient = new UnifyIntentClient(writeKey);
+
+const TestComponent = () => {
+  const [unify] = useState<UnifyIntentClient>(intentClient);
+
+  useEffect(() => {
+    unify.mount();
+
+    return () => {
+      unify.unmount();
+    };
+  }, []);
+
+  ...
+}
+```
 
 ## Usage
 
@@ -76,6 +105,7 @@ const unify = new UnifyIntentClient(
   'YOUR_PUBLIC_API_KEY',
   { autoPage: true },
 );
+unify.mount();
 
 // Tell the client to stop monitoring pages
 unify.stopAutoPage();
@@ -118,6 +148,7 @@ const unify = new UnifyIntentClient(
   'YOUR_PUBLIC_API_KEY',
   { autoIdentify: true },
 );
+unify.mount();
 
 // Tell the client to stop monitoring inputs for now
 unify.stopAutoIdentify();
@@ -132,6 +163,7 @@ You can also manually trigger an identify event with the `identify` method on th
 
 ```TypeScript
 const unify = new UnifyIntentClient('YOUR_PUBLIC_API_KEY');
+unify.mount();
 
 // However you determine the currently logged-in user
 const currentUser = getCurrentUser();
