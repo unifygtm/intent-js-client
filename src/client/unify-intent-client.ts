@@ -5,7 +5,6 @@ import UnifyApiClient from './unify-api-client';
 import { UnifyIntentAgent } from './agent';
 import { validateEmail } from './utils/helpers';
 import { logUnifyError } from './utils/logging';
-import { MOUNT_REQUIRED_ERROR_MESSAGE } from './constants';
 
 declare global {
   interface Window {
@@ -112,6 +111,7 @@ export default class UnifyIntentClient {
     }
 
     this._mounted = false;
+    window.unify = undefined;
   };
 
   /**
@@ -119,7 +119,7 @@ export default class UnifyIntentClient {
    * the Unify Intent API.
    */
   public page = () => {
-    this.requireMounted();
+    if (!this._mounted) return;
 
     const action = new PageActivity(this._context);
     action.track();
@@ -134,7 +134,7 @@ export default class UnifyIntentClient {
    * @returns `true` if the email was valid and logged, otherwise `false`
    */
   public identify = (email: string): boolean => {
-    this.requireMounted();
+    if (!this._mounted) return false;
 
     const validatedEmail = validateEmail(email);
     if (validatedEmail) {
@@ -157,7 +157,7 @@ export default class UnifyIntentClient {
    * stop the continuous monitoring.
    */
   public startAutoPage = () => {
-    this.requireMounted();
+    if (!this._mounted) return;
 
     if (!this._intentAgent) {
       this._intentAgent = new UnifyIntentAgent(this._context);
@@ -173,7 +173,7 @@ export default class UnifyIntentClient {
    * The corresponding `startAutoPage` can be used to start it again.
    */
   public stopAutoPage = () => {
-    this.requireMounted();
+    if (!this._mounted) return;
 
     this._intentAgent?.stopAutoPage();
   };
@@ -186,7 +186,7 @@ export default class UnifyIntentClient {
    * stop the continuous monitoring.
    */
   public startAutoIdentify = () => {
-    this.requireMounted();
+    if (!this._mounted) return;
 
     if (!this._intentAgent) {
       this._intentAgent = new UnifyIntentAgent(this._context);
@@ -202,21 +202,9 @@ export default class UnifyIntentClient {
    * The corresponding `startAutoIdentify` can be used to start it again.
    */
   public stopAutoIdentify = () => {
-    this.requireMounted();
+    if (!this._mounted) return;
 
     this._intentAgent?.stopAutoIdentify();
-  };
-
-  /**
-   * Helper function to ensure the client has been mounted before being used.
-   */
-  private requireMounted = () => {
-    if (!this._mounted) {
-      logUnifyError({
-        message: MOUNT_REQUIRED_ERROR_MESSAGE,
-      });
-      throw new Error(MOUNT_REQUIRED_ERROR_MESSAGE);
-    }
   };
 }
 

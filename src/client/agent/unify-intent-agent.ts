@@ -2,11 +2,8 @@ import { UnifyIntentContext } from '../../types';
 import { IdentifyActivity, PageActivity } from '../activities';
 import { validateEmail } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
-import {
-  DEFAULT_FORMS_IFRAME_ORIGIN,
-  DEFAULT_FORM_EVENT_TYPES,
-} from './constants';
-import { DefaultEventData, DefaultEventType } from './types/default';
+import { DEFAULT_FORMS_IFRAME_ORIGIN } from './constants';
+import { DefaultEventData } from './types/default';
 import { isDefaultFormEventData } from './utils';
 
 /**
