@@ -34,6 +34,7 @@
     "generate": "pnpm openapi-typescript '../unify/api/tsp-output/@typespec/openapi3/openapi.UnifyAnalyticsApi.yaml' -o './src/spec.ts'",
     "test": "pnpm jest unit.test"
   },
+  "packageManager": "pnpm@9.4.0",
   "devDependencies": {
     "@babel/cli": "^7.22.10",
     "@babel/core": "^7.21.0",
