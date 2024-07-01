@@ -125,6 +125,9 @@ unify.mount();
 
 // Trigger a page event for whatever page the user is currently on
 unify.page();
+
+// Trigger a page event for a custom page that the user is not necessarily on
+unify.page({ pathname: '/some-custom-page' });
 ```
 
 ### Identify Events
