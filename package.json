@@ -1,7 +1,6 @@
 {
   "name": "@unifygtm/intent-client",
-  "version": "1.0.4",
-  "type": "module",
+  "version": "1.0.12",
   "description": "JavaScript client for interacting with the Unify Intent API in the browser.",
   "keywords": [
     "unify",
@@ -42,9 +41,7 @@
     "@babel/preset-typescript": "^7.21.0",
     "@faker-js/faker": "^8.4.1",
     "@types/jest": "^29.5.5",
-    "@types/js-cookie": "^3.0.3",
     "@types/node": "^18.17.1",
-    "@types/uuid": "^9.0.1",
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^29.7.0",
     "esbuild": "^0.17.19",
@@ -60,6 +57,8 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@types/js-cookie": "^3.0.6",
+    "@types/uuid": "^9.0.8",
     "js-base64": "^3.7.5",
     "js-cookie": "^3.0.5",
     "user-agent-data-types": "^0.4.2",

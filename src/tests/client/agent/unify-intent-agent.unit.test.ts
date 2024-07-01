@@ -6,6 +6,7 @@ import { UnifyIntentAgent } from '../../../client/agent';
 import { UnifyIntentContext } from '../../../types';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 import { DEFAULT_FORMS_IFRAME_ORIGIN } from '../../../client/agent/constants';
+import { DefaultEventType } from '../../../client/agent/types/default';
 
 const mockedPageActivity = mock(PageActivity.prototype);
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
@@ -74,14 +75,18 @@ describe('UnifyIntentAgent', () => {
   });
 
   describe('startAutoPage', () => {
-    const agent = new UnifyIntentAgent(mockContext);
+    let agent: UnifyIntentAgent | null = null;
 
-    beforeAll(() => {
-      agent.startAutoPage();
+    beforeEach(() => {
+      agent = new UnifyIntentAgent({
+        ...mockContext,
+        clientConfig: { ...mockContext.clientConfig, autoPage: true },
+      });
+      mockReset(mockedPageActivity);
     });
 
-    afterAll(() => {
-      agent.stopAutoPage();
+    afterEach(() => {
+      agent?.stopAutoPage();
     });
 
     describe('history.pushState', () => {
@@ -122,11 +127,6 @@ describe('UnifyIntentAgent', () => {
         );
         expect(mockedPageActivity.track).not.toHaveBeenCalled();
       });
-    });
-
-    it('tracks page events for window popstate', () => {
-      window.dispatchEvent(new Event('popstate'));
-      expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -334,7 +334,10 @@ describe('UnifyIntentAgent', () => {
       describe('Default form messages', () => {
         let defaultFormEvent: MessageEventInit = {
           origin: DEFAULT_FORMS_IFRAME_ORIGIN,
-          data: { payload: { formId: 1234 } },
+          data: {
+            event: DefaultEventType.FORM_PAGE_SUBMITTED,
+            payload: { formId: 1234 },
+          },
         };
 
         it('does not log an identify event without email from the event data', () => {

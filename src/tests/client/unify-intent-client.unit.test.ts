@@ -31,6 +31,7 @@ jest.mock('../../client/activities', () => ({
 
 describe('UnifyIntentClient', () => {
   beforeEach(() => {
+    window.unify = undefined;
     mockReset(mockedIdentityManager);
     mockReset(mockedSessionManager);
     mockReset(mockedIntentAgent);
@@ -38,44 +39,79 @@ describe('UnifyIntentClient', () => {
     mockReset(mockedIdentifyActivity);
   });
 
+  it('clears methods in the queue', () => {
+    // @ts-expect-error
+    window.unify = [
+      ['page', []],
+      ['identify', ['solomon@unifygtm.com']],
+    ];
+    const unify = new UnifyIntentClient(TEST_WRITE_KEY);
+    unify.mount();
+
+    expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
+    expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+    expect(window.unify).toBeTruthy();
+
+    unify.unmount();
+  });
+
   it('initializes an anonymous user ID and client session', () => {
-    new UnifyIntentClient(TEST_WRITE_KEY);
+    const unify = new UnifyIntentClient(TEST_WRITE_KEY);
+    unify.mount();
+
     expect(
       mockedIdentityManager.getOrCreateAnonymousUserId,
     ).toHaveBeenCalledTimes(1);
     expect(mockedSessionManager.getOrCreateSession).toHaveBeenCalledTimes(1);
+
+    unify.unmount();
   });
 
   describe('page', () => {
     it('creates a new PageActivity and tracks it', () => {
       const unify = new UnifyIntentClient(TEST_WRITE_KEY, { autoPage: false });
+      unify.mount();
+
       expect(mockedPageActivity.track).not.toHaveBeenCalled();
       unify.page();
       expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
+
+      unify.unmount();
     });
   });
 
   describe('identify', () => {
     it('creates a new IdentifyActivity and tracks it when valid', () => {
       const unify = new UnifyIntentClient(TEST_WRITE_KEY);
+      unify.mount();
+
       unify.identify('solomon@unifygtm.com');
       expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+
+      unify.unmount();
     });
 
     it('does nothing when the email argument is invalid', () => {
       const unify = new UnifyIntentClient(TEST_WRITE_KEY);
+      unify.mount();
+
       unify.identify('not-a-valid-email');
       expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
+
+      unify.unmount();
     });
   });
 
   describe('startAutoIdentify', () => {
     it('tells the Unify Intent Agent to start auto-identification', () => {
       const unify = new UnifyIntentClient(TEST_WRITE_KEY);
-      expect(mockedIntentAgent.startAutoIdentify).not.toHaveBeenCalled();
+      unify.mount();
 
+      expect(mockedIntentAgent.startAutoIdentify).not.toHaveBeenCalled();
       unify.startAutoIdentify();
       expect(mockedIntentAgent.startAutoIdentify).toHaveBeenCalledTimes(1);
+
+      unify.unmount();
     });
   });
 
@@ -84,9 +120,28 @@ describe('UnifyIntentClient', () => {
       const unify = new UnifyIntentClient(TEST_WRITE_KEY, {
         autoIdentify: true,
       });
-      expect(mockedIntentAgent.stopAutoIdentify).not.toHaveBeenCalled();
+      unify.mount();
 
+      expect(mockedIntentAgent.stopAutoIdentify).not.toHaveBeenCalled();
       unify.stopAutoIdentify();
+      expect(mockedIntentAgent.stopAutoIdentify).toHaveBeenCalledTimes(1);
+
+      unify.unmount();
+    });
+  });
+
+  describe('unmount', () => {
+    it('cleans up Unify intent agent', () => {
+      const unify = new UnifyIntentClient(TEST_WRITE_KEY, {
+        autoPage: true,
+        autoIdentify: true,
+      });
+      unify.mount();
+
+      expect(mockedIntentAgent.stopAutoPage).not.toHaveBeenCalled();
+      expect(mockedIntentAgent.stopAutoIdentify).not.toHaveBeenCalled();
+      unify.unmount();
+      expect(mockedIntentAgent.stopAutoPage).toHaveBeenCalledTimes(1);
       expect(mockedIntentAgent.stopAutoIdentify).toHaveBeenCalledTimes(1);
     });
   });

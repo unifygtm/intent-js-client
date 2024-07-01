@@ -2,11 +2,8 @@ import { UnifyIntentContext } from '../../types';
 import { IdentifyActivity, PageActivity } from '../activities';
 import { validateEmail } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
-import {
-  DEFAULT_FORMS_IFRAME_ORIGIN,
-  DEFAULT_FORM_EVENT_TYPES,
-} from './constants';
-import { DefaultEventData, DefaultEventType } from './types/default';
+import { DEFAULT_FORMS_IFRAME_ORIGIN } from './constants';
+import { DefaultEventData } from './types/default';
 import { isDefaultFormEventData } from './utils';
 
 /**
@@ -21,6 +18,7 @@ export class UnifyIntentAgent {
   private _autoPage: boolean;
   private _autoIdentify: boolean;
   private _historyMonitored: boolean;
+  private _lastLocation?: Location;
 
   constructor(intentContext: UnifyIntentContext) {
     this._intentContext = intentContext;
@@ -60,6 +58,10 @@ export class UnifyIntentAgent {
    * user's current page changes.
    */
   public stopAutoPage = () => {
+    if (this._historyMonitored) {
+      window.removeEventListener('popstate', this.maybeTrackPage);
+    }
+
     this._autoPage = false;
   };
 
@@ -106,49 +108,40 @@ export class UnifyIntentAgent {
     // `pushState` is usually triggered to navigate to a new page
     const pushState = history.pushState;
     history.pushState = (...args) => {
-      // Get location before history changes
-      const oldLocation = { ...window.location };
-
       // Update history
       pushState.apply(history, args);
 
-      // Compare old location to new location and maybe track page event
-      if (isNewPage(oldLocation, window.location)) {
-        this.maybeTrackPage();
-      }
+      // Track page if valid page change
+      this.maybeTrackPage();
     };
 
     // Sometimes `replaceState` is used to navigate to a new page, but
     // sometimes it is used to e.g. update query params
     const replaceState = history.replaceState;
     history.replaceState = (...args) => {
-      // Get location before history changes
-      const oldLocation = { ...window.location };
-
       // Update history
       replaceState.apply(history, args);
 
-      // Compare old location to new location and maybe track page event
-      if (isNewPage(oldLocation, window.location)) {
-        this.maybeTrackPage();
-      }
+      // Track page if valid page change
+      this.maybeTrackPage();
     };
 
     // `popstate` is triggered when the user clicks the back button
-    window.addEventListener('popstate', () => {
-      this.maybeTrackPage();
-    });
+    window.addEventListener('popstate', this.maybeTrackPage);
 
     this._historyMonitored = true;
   };
 
   /**
    * Triggers a page event for the current page and context if auto-page
-   * is currently set to `true`.
+   * is currently set to `true` and the page has actually changed.
    */
   private maybeTrackPage = () => {
-    if (this._autoPage) {
+    if (!this._autoPage) return;
+
+    if (!this._lastLocation || isNewPage(this._lastLocation, window.location)) {
       new PageActivity(this._intentContext).track();
+      this._lastLocation = { ...window.location };
     }
   };
 
