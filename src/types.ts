@@ -29,6 +29,17 @@ export interface UnifyIntentContext {
   identityManager: IdentityManager;
 }
 
+/**
+ * Options which can be used when logging a page event via the intent client.
+ */
+export interface PageEventOptions {
+  /**
+   * Optional pathname to use in place of the current pathname,
+   * e.g. "/some-custom-page/v1"
+   */
+  pathname?: string;
+}
+
 export type ClientSession = {
   sessionId: string;
   expiration: number;

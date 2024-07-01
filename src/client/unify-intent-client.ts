@@ -1,4 +1,8 @@
-import { UnifyIntentClientConfig, UnifyIntentContext } from '../types';
+import {
+  PageEventOptions,
+  UnifyIntentClientConfig,
+  UnifyIntentContext,
+} from '../types';
 import { IdentifyActivity, PageActivity } from './activities';
 import { IdentityManager, SessionManager } from './managers';
 import UnifyApiClient from './unify-api-client';
@@ -115,13 +119,16 @@ export default class UnifyIntentClient {
   };
 
   /**
-   * This function logs a page view for the current page to
-   * the Unify Intent API.
+   * This function logs a page view for the current page or the page
+   * specified in options to the Unify Intent API.
+   *
+   * @param options - options which can be used to customize the page
+   *        event which is logged. See `PageEventOptions` for details.
    */
-  public page = () => {
+  public page = (options?: PageEventOptions) => {
     if (!this._mounted) return;
 
-    const action = new PageActivity(this._context);
+    const action = new PageActivity(this._context, options);
     action.track();
   };
 

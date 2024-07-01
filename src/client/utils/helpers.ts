@@ -18,14 +18,48 @@ export function getTimeForMinutesInFuture(
 
 /**
  * Gets the properties of the current page used in intent logging.
+ *
+ * @param pathname - optional pathname to use instead of the current pathname
+ *        when constructing page properties. This allows supporting logging
+ *        a page other than the one the user is currently on.
+ * @returns a set of properties for the specified or current page
  */
-export const getCurrentPageProperties = (): PageProperties => ({
-  path: window.location.pathname,
+export const getCurrentPageProperties = (
+  pathname?: string,
+): PageProperties => ({
+  path: pathname ?? window.location.pathname,
   query: parseUrlQueryParams(window.location.href),
   referrer: document.referrer,
   title: document.title,
-  url: window.location.href,
+  url:
+    pathname !== undefined
+      ? getLocationHrefWithCustomPath({ location: window.location, pathname })
+      : window.location.href,
 });
+
+/**
+ * This function will replace the pathname for a given `location.href`
+ * with the specified custom pathname. This is more complicated than
+ * a simple `replace` because the pathname can be simply "/" which can
+ * occur in the URL before the pathname (i.e. after the protocol).
+ *
+ * @param location - the location containing the `href` to replace the
+ *        pathname for
+ * @param pathname - the custom pathname to replace the existing one with
+ * @returns the `location.href` with `pathname` replacing the existing pathname
+ */
+export function getLocationHrefWithCustomPath({
+  location,
+  pathname,
+}: {
+  location: Location;
+  pathname: string;
+}) {
+  const url = new URL(location.href);
+  url.pathname = pathname;
+
+  return url.toString();
+}
 
 /**
  * Gets the current user agent data used in intent logging.
