@@ -2,8 +2,13 @@ import { UnifyIntentContext } from '../../types';
 import { IdentifyActivity, PageActivity } from '../activities';
 import { validateEmail } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
-import { DEFAULT_FORMS_IFRAME_ORIGIN } from './constants';
+import {
+  DEFAULT_FORMS_IFRAME_ORIGIN,
+  NAVATTIC_IFRAME_ORIGIN,
+  NAVATTIC_USER_EMAIL_KEY,
+} from './constants';
 import { DefaultEventData } from './types/default';
+import { NavatticEventData, NavatticEventType } from './types/navattic';
 import { isDefaultFormEventData } from './utils';
 
 /**
@@ -208,6 +213,13 @@ export class UnifyIntentAgent {
           );
           break;
         }
+        case NAVATTIC_IFRAME_ORIGIN: {
+          thirdParty = 'Navattic';
+          this.handleNavatticDemoMessage(
+            event as MessageEvent<NavatticEventData>,
+          );
+          break;
+        }
       }
     } catch (error: any) {
       logUnifyError({
@@ -230,6 +242,41 @@ export class UnifyIntentAgent {
       const email = event.data.payload.email;
       if (email) {
         this.maybeIdentifyInputEmail(email);
+      }
+    }
+  };
+
+  /**
+   * Message handler for messages posted from embedded Navattic demos.
+   *
+   * @param event - the event from `window.postMessage`
+   */
+  private handleNavatticDemoMessage = (
+    event: MessageEvent<NavatticEventData>,
+  ) => {
+    if (!this._autoIdentify) return;
+
+    if (event.data.type === NavatticEventType.IDENTIFY_USER) {
+      // Prefer user-supplied email address over other forms of identification
+      const emailFromForm = event.data.eventAttributes.FORM?.[
+        NAVATTIC_USER_EMAIL_KEY
+      ] as string | undefined;
+      console.log(emailFromForm);
+
+      // If there is a user email, identify the user
+      if (emailFromForm) {
+        this.maybeIdentifyInputEmail(emailFromForm);
+      }
+      // Check if email is available from other sources of user attributes
+      else {
+        const email = Object.values(event.data.eventAttributes).find(
+          (attributes) => NAVATTIC_USER_EMAIL_KEY in attributes,
+        )?.[NAVATTIC_USER_EMAIL_KEY] as string | undefined;
+
+        // If there is a user email, identify the user
+        if (email) {
+          this.maybeIdentifyInputEmail(email);
+        }
       }
     }
   };
