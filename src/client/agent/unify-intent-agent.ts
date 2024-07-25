@@ -261,7 +261,6 @@ export class UnifyIntentAgent {
       const emailFromForm = event.data.eventAttributes.FORM?.[
         NAVATTIC_USER_EMAIL_KEY
       ] as string | undefined;
-      console.log(emailFromForm);
 
       // If there is a user email, identify the user
       if (emailFromForm) {
