@@ -5,8 +5,16 @@ import { IdentifyActivity, PageActivity } from '../../../client/activities';
 import { UnifyIntentAgent } from '../../../client/agent';
 import { UnifyIntentContext } from '../../../types';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
-import { DEFAULT_FORMS_IFRAME_ORIGIN } from '../../../client/agent/constants';
+import {
+  DEFAULT_FORMS_IFRAME_ORIGIN,
+  NAVATTIC_IFRAME_ORIGIN,
+  NAVATTIC_USER_EMAIL_KEY,
+} from '../../../client/agent/constants';
 import { DefaultEventType } from '../../../client/agent/types/default';
+import {
+  NavatticAttributeSource,
+  NavatticEventType,
+} from '../../../client/agent/types/navattic';
 
 const mockedPageActivity = mock(PageActivity.prototype);
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
@@ -364,6 +372,96 @@ describe('UnifyIntentAgent', () => {
 
           expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
           expect(agent.__getSubmittedEmails().size).toEqual(1);
+        });
+      });
+
+      describe('Navattic demo messages', () => {
+        let navatticDemoEvent: MessageEventInit = {
+          origin: NAVATTIC_IFRAME_ORIGIN,
+          data: {
+            type: NavatticEventType.IDENTIFY_USER,
+            eventAttributes: {
+              [NavatticAttributeSource.FORM]: {
+                [NAVATTIC_USER_EMAIL_KEY]: 'solomon@unifygtm.com',
+              },
+            },
+          },
+        };
+
+        it('does not log an identify event without email from the event data', () => {
+          const agent = new UnifyIntentAgent(mockContext);
+          agent.startAutoIdentify();
+
+          navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
+            {};
+          window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
+
+          agent.stopAutoIdentify();
+
+          expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
+          expect(agent.__getSubmittedEmails().size).toEqual(0);
+        });
+
+        it('logs an identify event when email included in data', () => {
+          const agent = new UnifyIntentAgent(mockContext);
+          agent.startAutoIdentify();
+
+          navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
+            {
+              [NAVATTIC_USER_EMAIL_KEY]: 'solomon@unifygtm.com',
+            };
+          window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
+
+          agent.stopAutoIdentify();
+
+          expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+          expect(agent.__getSubmittedEmails().size).toEqual(1);
+        });
+
+        it('prefers user email from FORM data source over others', () => {
+          const agent = new UnifyIntentAgent(mockContext);
+          agent.startAutoIdentify();
+
+          navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
+            {
+              [NAVATTIC_USER_EMAIL_KEY]: 'solomon-form@unifygtm.com',
+            };
+          navatticDemoEvent.data.eventAttributes[
+            NavatticAttributeSource.ENRICHMENT
+          ] = {
+            [NAVATTIC_USER_EMAIL_KEY]: 'solomon-enrichment@unifygtm.com',
+          };
+          window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
+
+          agent.stopAutoIdentify();
+
+          expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+          expect(agent.__getSubmittedEmails().size).toEqual(1);
+          expect(
+            agent.__getSubmittedEmails().entries().next().value[0],
+          ).toEqual('solomon-form@unifygtm.com');
+        });
+
+        it('gets user email from other sources if FORM not available', () => {
+          const agent = new UnifyIntentAgent(mockContext);
+          agent.startAutoIdentify();
+
+          navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
+            {};
+          navatticDemoEvent.data.eventAttributes[
+            NavatticAttributeSource.ENRICHMENT
+          ] = {
+            [NAVATTIC_USER_EMAIL_KEY]: 'solomon-enrichment@unifygtm.com',
+          };
+          window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
+
+          agent.stopAutoIdentify();
+
+          expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+          expect(agent.__getSubmittedEmails().size).toEqual(1);
+          expect(
+            agent.__getSubmittedEmails().entries().next().value[0],
+          ).toEqual('solomon-enrichment@unifygtm.com');
         });
       });
     });
