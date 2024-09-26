@@ -44,7 +44,7 @@ describe('CookieStorageService', () => {
       expect(CookiesMock.set).toHaveBeenCalledWith(
         encodeForStorage(`${TEST_WRITE_KEY}_anonymousUserId`),
         encodeForStorage(TEST_ANONYMOUS_USER_ID),
-        { domain: `.${getCurrentTopLevelDomain()}` },
+        { domain: `.${getCurrentTopLevelDomain()}`, expires: 365 },
       );
     });
 
@@ -54,7 +54,7 @@ describe('CookieStorageService', () => {
       expect(CookiesMock.set).toHaveBeenCalledWith(
         encodeForStorage(`ő_anonymousUserId`),
         encodeForStorage(TEST_ANONYMOUS_USER_ID),
-        { domain: `.${getCurrentTopLevelDomain()}` },
+        { domain: `.${getCurrentTopLevelDomain()}`, expires: 365 },
       );
     });
   });

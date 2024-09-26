@@ -45,6 +45,7 @@ export class CookieStorageService extends StorageService {
   protected storeValue(key: string, encodedValue: string): void {
     Cookies.set(key, encodedValue, {
       domain: `.${getCurrentTopLevelDomain()}`,
+      expires: 365,
     });
   }
 }
