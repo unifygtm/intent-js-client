@@ -63,5 +63,11 @@
     "js-cookie": "^3.0.5",
     "user-agent-data-types": "^0.4.2",
     "uuid": "^9.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "micromatch@<4.0.8": ">=4.0.8",
+      "cross-spawn@>=7.0.0 <7.0.5": ">=7.0.5"
+    }
   }
 }
