@@ -24,7 +24,23 @@ export enum NavatticAttributeSource {
   QUERY_PARAMS = 'QUERY_PARAMS',
   SHARE_LINK = 'SHARE_LINK',
   ENRICHMENT = 'ENRICHMENT',
+  REDUCER = 'REDUCER',
   OTHER = 'OTHER',
+}
+
+/**
+ * Known object types for Navattic event data.
+ */
+export enum NavatticObject {
+  COMPANY_ACCOUNT = 'COMPANY_ACCOUNT',
+  END_USER = 'END_USER',
+}
+
+/**
+ * Known capture methods for Navattic event data.
+ */
+export enum NavatticCaptureMethod {
+  DEMO = 'DEMO',
 }
 
 export interface NavatticProject {
@@ -85,6 +101,14 @@ export interface NavatticTask {
    * Title of the task.
    */
   title: string;
+}
+
+export interface NavatticEventDataProperty {
+  captureMethod: NavatticCaptureMethod;
+  object: NavatticObject;
+  source: NavatticAttributeSource;
+  name: string;
+  value: string;
 }
 
 export interface NavatticClientSideMetadata {
@@ -170,6 +194,11 @@ export interface BaseNavatticEventData {
    * by the source they come from, e.g. a form-fill.
    */
   eventAttributes: Record<NavatticAttributeSource, { [key: string]: any }>;
+
+  /**
+   * Data properties for the current end user, company account, etc.
+   */
+  properties?: NavatticEventDataProperty[];
 }
 
 export type NavatticNavigateEventData = BaseNavatticEventData & {

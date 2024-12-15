@@ -10,3 +10,4 @@ export const DEFAULT_FORM_EVENT_TYPES: DefaultEventType[] = [
 ];
 
 export const NAVATTIC_USER_EMAIL_KEY = 'user.email';
+export const NAVATTIC_USER_EMAIL_PROPERTY = 'email';

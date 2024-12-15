@@ -9,11 +9,14 @@ import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
   NAVATTIC_USER_EMAIL_KEY,
+  NAVATTIC_USER_EMAIL_PROPERTY,
 } from '../../../client/agent/constants';
 import { DefaultEventType } from '../../../client/agent/types/default';
 import {
   NavatticAttributeSource,
+  NavatticCaptureMethod,
   NavatticEventType,
+  NavatticObject,
 } from '../../../client/agent/types/navattic';
 
 const mockedPageActivity = mock(PageActivity.prototype);
@@ -376,17 +379,21 @@ describe('UnifyIntentAgent', () => {
       });
 
       describe('Navattic demo messages', () => {
-        let navatticDemoEvent: MessageEventInit = {
-          origin: NAVATTIC_IFRAME_ORIGIN,
-          data: {
-            type: NavatticEventType.IDENTIFY_USER,
-            eventAttributes: {
-              [NavatticAttributeSource.FORM]: {
-                [NAVATTIC_USER_EMAIL_KEY]: 'solomon@unifygtm.com',
+        let navatticDemoEvent: MessageEventInit;
+
+        beforeEach(() => {
+          navatticDemoEvent = {
+            origin: NAVATTIC_IFRAME_ORIGIN,
+            data: {
+              type: NavatticEventType.IDENTIFY_USER,
+              eventAttributes: {
+                [NavatticAttributeSource.FORM]: {
+                  [NAVATTIC_USER_EMAIL_KEY]: 'solomon@unifygtm.com',
+                },
               },
             },
-          },
-        };
+          };
+        });
 
         it('does not log an identify event without email from the event data', () => {
           const agent = new UnifyIntentAgent(mockContext);
@@ -462,6 +469,59 @@ describe('UnifyIntentAgent', () => {
           expect(
             agent.__getSubmittedEmails().entries().next().value[0],
           ).toEqual('solomon-enrichment@unifygtm.com');
+        });
+
+        describe('other event types', () => {
+          beforeEach(() => {
+            navatticDemoEvent = {
+              origin: NAVATTIC_IFRAME_ORIGIN,
+              data: {
+                type: NavatticEventType.VIEW_STEP,
+                properties: [],
+              },
+            };
+          });
+
+          it('logs an identify event when email in properties', () => {
+            const agent = new UnifyIntentAgent(mockContext);
+            agent.startAutoIdentify();
+
+            navatticDemoEvent.data.properties = [
+              {
+                captureMethod: NavatticCaptureMethod.DEMO,
+                object: NavatticObject.END_USER,
+                source: NavatticAttributeSource.REDUCER,
+                name: NAVATTIC_USER_EMAIL_PROPERTY,
+                value: 'solomon@unifygtm.com',
+              },
+            ];
+            window.dispatchEvent(
+              new MessageEvent('message', navatticDemoEvent),
+            );
+
+            agent.stopAutoIdentify();
+
+            expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+            expect(agent.__getSubmittedEmails().size).toEqual(1);
+            expect(
+              agent.__getSubmittedEmails().entries().next().value[0],
+            ).toEqual('solomon@unifygtm.com');
+          });
+
+          it('does not log an identify event when email not in properties', () => {
+            const agent = new UnifyIntentAgent(mockContext);
+            agent.startAutoIdentify();
+
+            navatticDemoEvent.data.properties = [];
+            window.dispatchEvent(
+              new MessageEvent('message', navatticDemoEvent),
+            );
+
+            agent.stopAutoIdentify();
+
+            expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(0);
+            expect(agent.__getSubmittedEmails().size).toEqual(0);
+          });
         });
       });
     });

@@ -6,9 +6,14 @@ import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
   NAVATTIC_USER_EMAIL_KEY,
+  NAVATTIC_USER_EMAIL_PROPERTY,
 } from './constants';
 import { DefaultEventData } from './types/default';
-import { NavatticEventData, NavatticEventType } from './types/navattic';
+import {
+  NavatticEventData,
+  NavatticEventType,
+  NavatticObject,
+} from './types/navattic';
 import { isDefaultFormEventData } from './utils';
 
 /**
@@ -276,6 +281,17 @@ export class UnifyIntentAgent {
         if (email) {
           this.maybeIdentifyInputEmail(email);
         }
+      }
+    } else {
+      const eventDataProperties = event.data.properties ?? [];
+      const endUserEmailProperty = eventDataProperties.find(
+        ({ object, name }) =>
+          object === NavatticObject.END_USER &&
+          name === NAVATTIC_USER_EMAIL_PROPERTY,
+      );
+
+      if (endUserEmailProperty) {
+        this.maybeIdentifyInputEmail(endUserEmailProperty.value);
       }
     }
   };
