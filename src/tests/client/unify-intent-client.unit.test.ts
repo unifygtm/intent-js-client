@@ -5,6 +5,7 @@ import { IdentifyActivity, PageActivity } from '../../client/activities';
 import { IdentityManager, SessionManager } from '../../client/managers';
 import { UnifyIntentAgent } from '../../client/agent';
 import { TEST_WRITE_KEY } from '../mocks/data';
+import { isIntentClient } from '../../client/utils/helpers';
 
 const mockedIdentityManager = mock(IdentityManager.prototype);
 const mockedSessionManager = mock(SessionManager.prototype);
@@ -51,8 +52,8 @@ describe('UnifyIntentClient', () => {
 
     expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
     expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
-    expect(window.unify).toBeTruthy();
-    expect(window.unifyBrowser).toBeTruthy();
+    expect(isIntentClient(window.unify)).toBeTruthy();
+    expect(isIntentClient(window.unifyBrowser)).toBeTruthy();
 
     unify.unmount();
   });
@@ -69,8 +70,8 @@ describe('UnifyIntentClient', () => {
 
     expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
     expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
-    expect(window.unify).toBeTruthy();
-    expect(window.unifyBrowser).toBeTruthy();
+    expect(isIntentClient(window.unify)).toBeTruthy();
+    expect(isIntentClient(window.unifyBrowser)).toBeTruthy();
 
     unify.unmount();
   });
