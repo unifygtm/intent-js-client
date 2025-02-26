@@ -32,6 +32,7 @@ jest.mock('../../client/activities', () => ({
 describe('UnifyIntentClient', () => {
   beforeEach(() => {
     window.unify = undefined;
+    window.unifyBrowser = undefined;
     mockReset(mockedIdentityManager);
     mockReset(mockedSessionManager);
     mockReset(mockedIntentAgent);
@@ -51,6 +52,25 @@ describe('UnifyIntentClient', () => {
     expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
     expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
     expect(window.unify).toBeTruthy();
+    expect(window.unifyBrowser).toBeTruthy();
+
+    unify.unmount();
+  });
+
+  it('clears methods in the queue when window.unifyBrowser is initialized', () => {
+    window.unify = undefined;
+    // @ts-expect-error
+    window.unifyBrowser = [
+      ['page', []],
+      ['identify', ['solomon@unifygtm.com']],
+    ];
+    const unify = new UnifyIntentClient(TEST_WRITE_KEY);
+    unify.mount();
+
+    expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
+    expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+    expect(window.unify).toBeTruthy();
+    expect(window.unifyBrowser).toBeTruthy();
 
     unify.unmount();
   });

@@ -1,4 +1,5 @@
 import { UnifyIntentClient } from '../client';
+import { isIntentClient } from '../client/utils/helpers';
 import { logUnifyError } from '../client/utils/logging';
 
 /**
@@ -10,7 +11,7 @@ export const initBrowser = function () {
   if (typeof window === 'undefined') return;
 
   // If the client has already been initialized, do nothing
-  if (window.unify !== undefined && !Array.isArray(window.unify)) {
+  if (isIntentClient(window.unify) || isIntentClient(window.unifyBrowser)) {
     logUnifyError({
       message:
         'UnifyIntentClient already exists on window, a new one will not be created.',
