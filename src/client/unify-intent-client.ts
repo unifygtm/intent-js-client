@@ -247,10 +247,10 @@ function flushUnifyQueue(unify: UnifyIntentClient) {
     if (typeof unify[method as keyof UnifyIntentClient] === 'function') {
       try {
         if (Array.isArray(args)) {
-          // @ts-expect-error the type of the args is unknown at this point
+          // @ts-ignore the type of the args is unknown at this point
           unify[method as keyof UnifyIntentClient].call(unify, ...args);
         } else {
-          // @ts-expect-error the type of the args is unknown at this point
+          // @ts-ignore the type of the args is unknown at this point
           unify[method as keyof UnifyIntentClient].call(unify);
         }
       } catch (error: any) {

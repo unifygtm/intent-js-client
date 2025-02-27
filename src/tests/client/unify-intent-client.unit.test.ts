@@ -42,7 +42,7 @@ describe('UnifyIntentClient', () => {
   });
 
   it('clears methods in the queue', () => {
-    // @ts-expect-error
+    // @ts-ignore
     window.unify = [
       ['page', []],
       ['identify', ['solomon@unifygtm.com']],
@@ -60,7 +60,7 @@ describe('UnifyIntentClient', () => {
 
   it('clears methods in the queue when window.unifyBrowser is initialized', () => {
     window.unify = undefined;
-    // @ts-expect-error
+    // @ts-ignore
     window.unifyBrowser = [
       ['page', []],
       ['identify', ['solomon@unifygtm.com']],
