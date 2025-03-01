@@ -7,12 +7,13 @@ import { IdentifyActivity, PageActivity } from './activities';
 import { IdentityManager, SessionManager } from './managers';
 import UnifyApiClient from './unify-api-client';
 import { UnifyIntentAgent } from './agent';
-import { validateEmail } from './utils/helpers';
+import { isIntentClient, validateEmail } from './utils/helpers';
 import { logUnifyError } from './utils/logging';
 
 declare global {
   interface Window {
     unify?: UnifyIntentClient;
+    unifyBrowser?: UnifyIntentClient;
   }
 }
 
@@ -51,7 +52,7 @@ export default class UnifyIntentClient {
     if (typeof window === 'undefined') return;
 
     // The client should never be instantiated more than once
-    if (window.unify !== undefined && !Array.isArray(window.unify)) {
+    if (isIntentClient(window.unify) || isIntentClient(window.unifyBrowser)) {
       logUnifyError({
         message:
           'UnifyIntentClient already exists on window, a new one will not be created.',
@@ -94,6 +95,7 @@ export default class UnifyIntentClient {
 
     // Set unify object on window to prevent multiple instantiations
     window.unify = this;
+    window.unifyBrowser = this;
   };
 
   /**
@@ -116,6 +118,7 @@ export default class UnifyIntentClient {
 
     this._mounted = false;
     window.unify = undefined;
+    window.unifyBrowser = undefined;
   };
 
   /**
@@ -236,16 +239,18 @@ export default class UnifyIntentClient {
 function flushUnifyQueue(unify: UnifyIntentClient) {
   const queue: [string, unknown[]][] = Array.isArray(window.unify)
     ? [...window.unify]
+    : Array.isArray(window.unifyBrowser)
+    ? [...window.unifyBrowser]
     : [];
 
   queue.forEach(([method, args]) => {
     if (typeof unify[method as keyof UnifyIntentClient] === 'function') {
       try {
         if (Array.isArray(args)) {
-          // @ts-expect-error the type of the args is unknown at this point
+          // @ts-ignore the type of the args is unknown at this point
           unify[method as keyof UnifyIntentClient].call(unify, ...args);
         } else {
-          // @ts-expect-error the type of the args is unknown at this point
+          // @ts-ignore the type of the args is unknown at this point
           unify[method as keyof UnifyIntentClient].call(unify);
         }
       } catch (error: any) {

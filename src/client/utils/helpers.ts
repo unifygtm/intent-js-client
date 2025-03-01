@@ -2,6 +2,35 @@ import { PageProperties, UserAgentDataType } from '../../types';
 
 const EMAIL_REGEX = /^[A-Za-z0-9._+%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$/;
 
+const TEST_CLIENT_PROPERTIES = ['identify', 'page'];
+
+/**
+ * Helper function to check if a value is an instance of the global Unify
+ * Intent Client. The following checks are performend:
+ *
+ * 1. Is the value an object? The intent client will always be.
+ * 2. Is the value defined? For obvious reasons.
+ * 3. Is the value NOT an array? We temporarily stub the intent client as
+ *    an array in the global context to queue method calls before the client loads.
+ * 4. Are the expected properties in the object? This is to protect against
+ *    a bug where customers accidentally override the global variable we
+ *    normally store the intent client at by setting the `id` of an element
+ *    in the DOM equal to the same name. For example, creating a `<script>`
+ *    tag with `id="unify"` will override `window.unify` to be the `<script>`
+ *    HTML element.
+ *
+ * @param value - the value to check is an instance of the intent client
+ * @returns `true` if the value is an instance of the intent client, or else `false`
+ */
+export function isIntentClient(value: unknown) {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    TEST_CLIENT_PROPERTIES.every((property) => property in value)
+  );
+}
+
 /**
  * Gets a milliseconds since epoch for `minutes` in the future.
  *

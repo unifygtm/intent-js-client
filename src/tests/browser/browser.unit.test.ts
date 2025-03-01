@@ -41,20 +41,25 @@ describe('Browser', () => {
   beforeEach(() => {
     document.body.innerHTML = MOCK_UNIFY_TAG_WRITE_KEY;
     window.unify = undefined;
+    window.unifyBrowser = undefined;
   });
 
   describe('initBrowser', () => {
     it('initializes a UnifyIntentClient on the window', () => {
       expect(window.unify).toBeFalsy();
+      expect(window.unifyBrowser).toBeFalsy();
       initBrowser();
       expect(window.unify).toBeTruthy();
+      expect(window.unifyBrowser).toBeTruthy();
     });
 
     it('falls back to data-api-key for legacy scripts', () => {
       document.body.innerHTML = MOCK_UNIFY_TAG_API_KEY;
       expect(window.unify).toBeFalsy();
+      expect(window.unifyBrowser).toBeFalsy();
       initBrowser();
       expect(window.unify).toBeTruthy();
+      expect(window.unifyBrowser).toBeTruthy();
     });
   });
 });

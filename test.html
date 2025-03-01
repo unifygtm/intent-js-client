@@ -4,33 +4,38 @@
     <meta charset="utf-8" />
     <script>
       !(function () {
-        window.unify ||
-          (window.unify = Object.assign(
+        var e = [
+          'identify',
+          'page',
+          'startAutoPage',
+          'stopAutoPage',
+          'startAutoIdentify',
+          'stopAutoIdentify',
+        ];
+        function t(o) {
+          return Object.assign(
             [],
-            [
-              'identify',
-              'page',
-              'startAutoPage',
-              'stopAutoPage',
-              'startAutoIdentify',
-              'stopAutoIdentify',
-            ].reduce(function (acc, m) {
-              acc[m] = function () {
-                unify.push([m, [].slice.call(arguments)]);
-                return unify;
-              };
-              return acc;
+            e.reduce(function (r, n) {
+              return (
+                (r[n] = function () {
+                  return o.push([n, [].slice.call(arguments)]), o;
+                }),
+                r
+              );
             }, {}),
-          ));
-        var s = document.createElement('script');
-        s.async = !0;
-        s.setAttribute('src', 'dist/js/browser/index.min.js');
-        s.setAttribute(
-          'data-api-key',
-          'wk_5fTtsDLJ_7vx9DsjPcr79yk4FweES727w59pxS8EJ',
-        );
-        s.setAttribute('id', 'unifytag');
-        (document.body || document.head).appendChild(s);
+          );
+        }
+        window.unify || (window.unify = t(window.unify)),
+          window.unifyBrowser || (window.unifyBrowser = t(window.unifyBrowser));
+        var n = document.createElement('script');
+        (n.async = !0),
+          n.setAttribute('src', 'dist/js/browser/index.min.js'),
+          n.setAttribute(
+            'data-api-key',
+            'wk_5fTtsDLJ_7vx9DsjPcr79yk4FweES727w59pxS8EJ',
+          ),
+          n.setAttribute('id', 'unifytag'),
+          (document.body || document.head).appendChild(n);
       })();
     </script>
   </head>
