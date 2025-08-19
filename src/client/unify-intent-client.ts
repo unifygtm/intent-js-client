@@ -136,6 +136,23 @@ export default class UnifyIntentClient {
   };
 
   /**
+   * This function returns the request payload for tracking a page event.
+   * This is useful if you want to send the payload to a proxy server to
+   * perform the tracking server-side.
+   *
+   * @param options - options which can be used to customize the page
+   *        event which is tracked. See `PageEventOptions` for details.
+   * @returns if the client is mounted, the request payload to track a page
+   *          event, otherwise returns `undefined`
+   */
+  public getPagePayload = (options?: PageEventOptions) => {
+    if (!this._mounted) return;
+
+    const action = new PageActivity(this._context, options);
+    return action.getTrackPayload();
+  };
+
+  /**
    * This function logs an identify event for the given email address
    * to the Unify Intent API. Unify will associate this email address
    * with the current user's session and all related activities.
@@ -157,6 +174,28 @@ export default class UnifyIntentClient {
     }
 
     return false;
+  };
+
+  /**
+   * This function returns the request payload for tracking an identify event.
+   * This is useful if you want to send the payload to a proxy server to
+   * perform the tracking server-side.
+   *
+   * @param email - the email address to log an identify event for
+   * @returns if the client is mounted and `email` is a valid email address,
+   *          the request payload to track an identify event, otherwise
+   *          returns `undefined`
+   */
+  public getIdentifyPayload = (email: string) => {
+    if (!this._mounted) return false;
+
+    const validatedEmail = validateEmail(email);
+    if (validatedEmail) {
+      const action = new IdentifyActivity(this._context, {
+        email: validatedEmail,
+      });
+      return action.getTrackPayload();
+    }
   };
 
   /**

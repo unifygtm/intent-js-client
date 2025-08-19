@@ -21,10 +21,22 @@ abstract class Activity<TActivityData extends object> {
    * to the relevant Unify Intent activity URL.
    */
   public track(): void {
-    this._intentContext.apiClient.post(this.getActivityURL(), {
+    this._intentContext.apiClient.post(
+      this.getActivityURL(),
+      this.getTrackPayload(),
+    );
+  }
+
+  /**
+   * Gets the request payload required to track this activity. This is useful
+   * if you want to send the payload to a proxy server to perform the tracking
+   * server-side.
+   */
+  public getTrackPayload(): AnalyticsEventBase & TActivityData {
+    return {
       ...this.getBaseActivityPayload(),
       ...this.getActivityData(),
-    });
+    };
   }
 
   /**
