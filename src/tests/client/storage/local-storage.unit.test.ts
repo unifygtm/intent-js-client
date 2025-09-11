@@ -69,16 +69,24 @@ describe('LocalStorageService', () => {
       it('sets the value in the underlying local storage', () => {
         const storageService = new LocalStorageService(TEST_WRITE_KEY);
         storageService.set('key', '1234');
-        expect(mockSetItem).toHaveBeenLastCalledWith('key', '1234');
+        expect(mockSetItem).toHaveBeenCalledWith('key', '1234');
+        expect(mockSetItem).toHaveBeenLastCalledWith(
+          encodeForStorage(`${TEST_WRITE_KEY}_key`),
+          encodeForStorage('1234'),
+        );
       });
 
       it('works for complex object storage', () => {
         const mockClientSession = MockClientSession();
         const storageService = new LocalStorageService(TEST_WRITE_KEY);
         storageService.set('key', mockClientSession);
-        expect(mockSetItem).toHaveBeenLastCalledWith(
+        expect(mockSetItem).toHaveBeenCalledWith(
           'key',
           JSON.stringify(mockClientSession),
+        );
+        expect(mockSetItem).toHaveBeenLastCalledWith(
+          encodeForStorage(`${TEST_WRITE_KEY}_key`),
+          encodeForStorage(mockClientSession),
         );
       });
     });

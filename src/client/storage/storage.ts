@@ -73,6 +73,21 @@ abstract class StorageService {
       key,
       typeof value === 'string' ? value : JSON.stringify(value),
     );
+
+    // Maintain backwards compatibility
+    this.legacySet(key, value);
+  };
+
+  /**
+   * @deprecated Legacy function to store a value in the underlying storage service.
+   * This cannot be removed to maintain backwards compatibility with older versions
+   * of the intent client. Versions `1.3.0` and older will depend on this.
+   *
+   * @param key - the key to associate with the value to be stored
+   * @param value - the value to store
+   */
+  private legacySet = <T>(key: string, value: T): void => {
+    this.storeValue(this.buildKey(key), encodeForStorage(value));
   };
 
   /**
