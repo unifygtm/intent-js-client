@@ -9,14 +9,14 @@ import {
 } from '../utils/helpers';
 
 /**
- * @deprecated Prefer `SESSION_ID_STORAGE_KEY` instead
+ * @deprecated Prefer `SESSION_STORAGE_KEY` instead
  */
-export const LEGACY_SESSION_ID_STORAGE_KEY = 'clientSession';
+export const LEGACY_SESSION_STORAGE_KEY = 'clientSession';
 
 /**
  * The localStorage key used to track the user's current session ID.
  */
-export const SESSION_ID_STORAGE_KEY = 'unify_session_id';
+export const SESSION_STORAGE_KEY = 'unify_session';
 export const SESSION_MINUTES_TO_EXPIRE = 30;
 
 /**
@@ -116,9 +116,8 @@ export class SessionManager {
    * @returns the stored session object, or `null` if none exists
    */
   private getStoredSession = (): ClientSession | null => {
-    const session = this._storageService.get<ClientSession>(
-      SESSION_ID_STORAGE_KEY,
-    );
+    const session =
+      this._storageService.get<ClientSession>(SESSION_STORAGE_KEY);
 
     if (session) {
       return session;
@@ -126,7 +125,7 @@ export class SessionManager {
 
     // Fall back to legacy key name for values stored by old client versions
     const legacySession = this._storageService.get<ClientSession>(
-      LEGACY_SESSION_ID_STORAGE_KEY,
+      LEGACY_SESSION_STORAGE_KEY,
     );
 
     // Store using new key so the next time we won't need to fall back
@@ -143,6 +142,6 @@ export class SessionManager {
    * @param session - the session to store
    */
   private setStoredSession = (session: ClientSession): void => {
-    this._storageService.set(SESSION_ID_STORAGE_KEY, session);
+    this._storageService.set(SESSION_STORAGE_KEY, session);
   };
 }
