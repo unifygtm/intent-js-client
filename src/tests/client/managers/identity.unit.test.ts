@@ -1,8 +1,9 @@
 import { anyString, mock, mockReset } from 'jest-mock-extended';
 
 import {
-  ANONYMOUS_USER_ID_STORAGE_KEY,
+  LEGACY_ANONYMOUS_USER_ID_STORAGE_KEY,
   IdentityManager,
+  ANONYMOUS_USER_ID_STORAGE_KEY,
 } from '../../../client/managers';
 import { CookieStorageService } from '../../../client/storage';
 import { TEST_ANONYMOUS_USER_ID, TEST_WRITE_KEY } from '../../mocks/data';
@@ -26,6 +27,9 @@ describe('IdentityManager', () => {
       expect(cookieStorageMock.get).toHaveBeenCalledWith(
         ANONYMOUS_USER_ID_STORAGE_KEY,
       );
+      expect(cookieStorageMock.get).toHaveBeenCalledWith(
+        LEGACY_ANONYMOUS_USER_ID_STORAGE_KEY,
+      );
       expect(cookieStorageMock.set).toHaveBeenCalledWith(
         ANONYMOUS_USER_ID_STORAGE_KEY,
         anyString(),
@@ -41,6 +45,12 @@ describe('IdentityManager', () => {
       const identityManager = new IdentityManager(TEST_WRITE_KEY);
       const result = identityManager.getOrCreateAnonymousUserId();
 
+      expect(cookieStorageMock.get).toHaveBeenCalledWith(
+        ANONYMOUS_USER_ID_STORAGE_KEY,
+      );
+      expect(cookieStorageMock.get).not.toHaveBeenCalledWith(
+        LEGACY_ANONYMOUS_USER_ID_STORAGE_KEY,
+      );
       expect(cookieStorageMock.set).not.toHaveBeenCalled();
       expect(result).toEqual(TEST_ANONYMOUS_USER_ID);
     });

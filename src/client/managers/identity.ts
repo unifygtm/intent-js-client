@@ -2,7 +2,15 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { CookieStorageService } from '../storage';
 
-export const ANONYMOUS_USER_ID_STORAGE_KEY = 'anonymousUserId';
+/**
+ * @deprecated Prefer `ANONYMOUS_USER_ID_STORAGE_KEY` instead
+ */
+export const LEGACY_ANONYMOUS_USER_ID_STORAGE_KEY = 'anonymousUserId';
+
+/**
+ * The name of the cookie used to store the current user's anonymous user ID.
+ */
+export const ANONYMOUS_USER_ID_STORAGE_KEY = 'unify_user_id';
 
 /**
  * This class is used to store and manage user identity information
@@ -43,7 +51,17 @@ export class IdentityManager {
    * @returns the anonymous user ID if it exists, else `null`
    */
   private getAnonymousUserId = (): string | null => {
-    return this._storageService.get(ANONYMOUS_USER_ID_STORAGE_KEY);
+    const userId = this._storageService.get<string>(
+      ANONYMOUS_USER_ID_STORAGE_KEY,
+    );
+
+    if (userId) {
+      return userId;
+    }
+
+    return this._storageService.get<string>(
+      LEGACY_ANONYMOUS_USER_ID_STORAGE_KEY,
+    );
   };
 
   /**

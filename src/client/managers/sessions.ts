@@ -8,7 +8,15 @@ import {
   getTimeForMinutesInFuture,
 } from '../utils/helpers';
 
-export const CLIENT_SESSION_STORAGE_KEY = 'clientSession';
+/**
+ * @deprecated Prefer `SESSION_ID_STORAGE_KEY` instead
+ */
+export const LEGACY_SESSION_ID_STORAGE_KEY = 'clientSession';
+
+/**
+ * The localStorage key used to track the user's current session ID.
+ */
+export const SESSION_ID_STORAGE_KEY = 'unify_session_id';
 export const SESSION_MINUTES_TO_EXPIRE = 30;
 
 /**
@@ -108,7 +116,17 @@ export class SessionManager {
    * @returns the stored session object, or `null` if none exists
    */
   private getStoredSession = (): ClientSession | null => {
-    return this._storageService.get<ClientSession>(CLIENT_SESSION_STORAGE_KEY);
+    const session = this._storageService.get<ClientSession>(
+      SESSION_ID_STORAGE_KEY,
+    );
+
+    if (session) {
+      return session;
+    }
+
+    return this._storageService.get<ClientSession>(
+      LEGACY_SESSION_ID_STORAGE_KEY,
+    );
   };
 
   /**
@@ -117,6 +135,6 @@ export class SessionManager {
    * @param session - the session to store
    */
   private setStoredSession = (session: ClientSession): void => {
-    this._storageService.set(CLIENT_SESSION_STORAGE_KEY, session);
+    this._storageService.set(SESSION_ID_STORAGE_KEY, session);
   };
 }

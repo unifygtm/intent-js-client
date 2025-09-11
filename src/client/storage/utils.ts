@@ -3,6 +3,9 @@ import { decode, encode } from 'js-base64';
 const TEST_STORAGE_VALUE = 'test';
 
 /**
+ * @deprecated The intent client no longer encodes keys and values for
+ * storage and instead stores them directly.
+ *
  * Encodes an arbitrary value to base-64 encoding for storage.
  *
  * @param value - the value to encode, can be a string, object, etc.
@@ -13,6 +16,9 @@ export function encodeForStorage<T>(value: T): string {
 }
 
 /**
+ * @deprecated The intent client no longer encodes keys and values for
+ * storage and instead stores them directly.
+ *
  * Decodes an encoded value which has been retrieved from storage.
  *
  * @param encodedValue - the value to decode

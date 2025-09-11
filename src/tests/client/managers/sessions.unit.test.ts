@@ -1,7 +1,8 @@
 import { anyNumber, mock, mockReset } from 'jest-mock-extended';
 
 import {
-  CLIENT_SESSION_STORAGE_KEY,
+  LEGACY_SESSION_ID_STORAGE_KEY,
+  SESSION_ID_STORAGE_KEY,
   SessionManager,
 } from '../../../client/managers';
 import { LocalStorageService } from '../../../client/storage';
@@ -24,11 +25,12 @@ describe('SessionManager', () => {
       const sessionManager = new SessionManager(TEST_WRITE_KEY);
       const result = sessionManager.getOrCreateSession();
 
+      expect(localStorageMock.get).toHaveBeenCalledWith(SESSION_ID_STORAGE_KEY);
       expect(localStorageMock.get).toHaveBeenCalledWith(
-        CLIENT_SESSION_STORAGE_KEY,
+        LEGACY_SESSION_ID_STORAGE_KEY,
       );
       expect(localStorageMock.set).toHaveBeenCalledWith(
-        CLIENT_SESSION_STORAGE_KEY,
+        SESSION_ID_STORAGE_KEY,
         result,
       );
     });
@@ -57,7 +59,7 @@ describe('SessionManager', () => {
 
           expect(localStorageMock.set).toHaveBeenCalledTimes(1);
           expect(localStorageMock.set).toHaveBeenCalledWith(
-            CLIENT_SESSION_STORAGE_KEY,
+            SESSION_ID_STORAGE_KEY,
             expectedSession,
           );
           expect(session.expiration).toBeGreaterThan(mockSession.expiration);
@@ -83,7 +85,7 @@ describe('SessionManager', () => {
           expect(localStorageMock.get).not.toHaveBeenCalled();
           expect(localStorageMock.set).toHaveBeenCalledTimes(1);
           expect(localStorageMock.set).toHaveBeenCalledWith(
-            CLIENT_SESSION_STORAGE_KEY,
+            SESSION_ID_STORAGE_KEY,
             session,
           );
         });
@@ -103,10 +105,15 @@ describe('SessionManager', () => {
           const sessionManager = new SessionManager(TEST_WRITE_KEY);
           const result = sessionManager.getOrCreateSession();
 
-          expect(localStorageMock.get).toHaveBeenCalledTimes(1);
+          expect(localStorageMock.get).toHaveBeenCalledWith(
+            LEGACY_SESSION_ID_STORAGE_KEY,
+          );
+          expect(localStorageMock.get).toHaveBeenCalledWith(
+            SESSION_ID_STORAGE_KEY,
+          );
           expect(localStorageMock.set).toHaveBeenCalledTimes(1);
           expect(localStorageMock.set).toHaveBeenCalledWith(
-            CLIENT_SESSION_STORAGE_KEY,
+            SESSION_ID_STORAGE_KEY,
             result,
           );
         });

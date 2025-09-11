@@ -35,6 +35,25 @@ abstract class StorageService {
    * @returns the value from storage if it exists, otherwise `null`
    */
   public get = <T>(key: string): T | null => {
+    const jsonValue = this.retrieveValue(key);
+    if (jsonValue) {
+      return JSON.parse(jsonValue) as T;
+    }
+
+    // Fall back to legacy get from storage for older client versions
+    return this.legacyGet(key);
+  };
+
+  /**
+   * @deprecated Legacy function to retrieve the value for a key from
+   * the underlying storage service. This cannot be removed to maintain
+   * backwards compatibility with older versions of the intent client.
+   * Versions `1.3.0` and older will depend on this.
+   *
+   * @param key - the key associated with the value to get
+   * @returns the value from storage if it exists, otherwise `null`
+   */
+  private legacyGet = <T>(key: string): T | null => {
     const encodedValue = this.retrieveValue(this.buildKey(key));
     if (encodedValue) {
       return decodeFromStorage(encodedValue);
@@ -51,10 +70,13 @@ abstract class StorageService {
    * @param value - the value to store
    */
   public set = <T>(key: string, value: T): void => {
-    this.storeValue(this.buildKey(key), encodeForStorage(value));
+    this.storeValue(key, JSON.stringify(value));
   };
 
   /**
+   * @deprecated The intent client no longer encodes keys and values for
+   * storage and instead stores them directly.
+   *
    * Generates a unique key using the public Unify API key for
    * storing a value in the underlying storage service.
    *

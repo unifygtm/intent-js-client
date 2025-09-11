@@ -22,17 +22,18 @@ describe('CookieStorageService', () => {
   describe('get', () => {
     it('gets the value from underlying Cookies storage', () => {
       const storageService = new CookieStorageService(TEST_WRITE_KEY);
-      storageService.get('anonymousUserId');
+      storageService.get('unify_user_id');
+      expect(CookiesMock.get).toHaveBeenCalledWith('unify_user_id');
       expect(CookiesMock.get).toHaveBeenCalledWith(
-        encodeForStorage(`${TEST_WRITE_KEY}_anonymousUserId`),
+        encodeForStorage(`${TEST_WRITE_KEY}_unify_user_id`),
       );
     });
 
     it('works with non-latin-1 characters', () => {
       const storageService = new CookieStorageService('ő');
-      storageService.get('anonymousUserId');
+      storageService.get('unify_user_id');
       expect(CookiesMock.get).toHaveBeenCalledWith(
-        encodeForStorage(`ő_anonymousUserId`),
+        encodeForStorage(`ő_unify_user_id`),
       );
     });
   });
@@ -40,10 +41,10 @@ describe('CookieStorageService', () => {
   describe('set', () => {
     it('sets the value in the underlying Cookies storage', () => {
       const storageService = new CookieStorageService(TEST_WRITE_KEY);
-      storageService.set('anonymousUserId', TEST_ANONYMOUS_USER_ID);
+      storageService.set('unify_user_id', TEST_ANONYMOUS_USER_ID);
       expect(CookiesMock.set).toHaveBeenCalledWith(
-        encodeForStorage(`${TEST_WRITE_KEY}_anonymousUserId`),
-        encodeForStorage(TEST_ANONYMOUS_USER_ID),
+        'unify_user_id',
+        TEST_ANONYMOUS_USER_ID,
         { domain: `.${getCurrentTopLevelDomain()}`, expires: 365 },
       );
     });
