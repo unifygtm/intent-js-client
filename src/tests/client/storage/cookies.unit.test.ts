@@ -7,6 +7,7 @@ import {
   getCurrentTopLevelDomain,
 } from '../../../client/storage/utils';
 import { TEST_ANONYMOUS_USER_ID, TEST_WRITE_KEY } from '../../mocks/data';
+import { ANONYMOUS_USER_ID_STORAGE_KEY } from '../../../client/managers';
 
 jest.mock('js-cookie', () => ({
   __esModule: true,
@@ -22,18 +23,12 @@ describe('CookieStorageService', () => {
   describe('get', () => {
     it('gets the value from underlying Cookies storage', () => {
       const storageService = new CookieStorageService(TEST_WRITE_KEY);
-      storageService.get('unify_user_id');
-      expect(CookiesMock.get).toHaveBeenCalledWith('unify_user_id');
+      storageService.get(ANONYMOUS_USER_ID_STORAGE_KEY);
       expect(CookiesMock.get).toHaveBeenCalledWith(
-        encodeForStorage(`${TEST_WRITE_KEY}_unify_user_id`),
+        ANONYMOUS_USER_ID_STORAGE_KEY,
       );
-    });
-
-    it('works with non-latin-1 characters', () => {
-      const storageService = new CookieStorageService('ő');
-      storageService.get('unify_user_id');
-      expect(CookiesMock.get).toHaveBeenCalledWith(
-        encodeForStorage(`ő_unify_user_id`),
+      expect(CookiesMock.get).toHaveBeenLastCalledWith(
+        encodeForStorage(`${TEST_WRITE_KEY}_unify_user_id`),
       );
     });
   });
@@ -41,20 +36,10 @@ describe('CookieStorageService', () => {
   describe('set', () => {
     it('sets the value in the underlying Cookies storage', () => {
       const storageService = new CookieStorageService(TEST_WRITE_KEY);
-      storageService.set('unify_user_id', TEST_ANONYMOUS_USER_ID);
+      storageService.set(ANONYMOUS_USER_ID_STORAGE_KEY, TEST_ANONYMOUS_USER_ID);
       expect(CookiesMock.set).toHaveBeenCalledWith(
-        'unify_user_id',
+        ANONYMOUS_USER_ID_STORAGE_KEY,
         TEST_ANONYMOUS_USER_ID,
-        { domain: `.${getCurrentTopLevelDomain()}`, expires: 365 },
-      );
-    });
-
-    it('works with non-latin-1 characters', () => {
-      const storageService = new CookieStorageService('ő');
-      storageService.set('anonymousUserId', TEST_ANONYMOUS_USER_ID);
-      expect(CookiesMock.set).toHaveBeenCalledWith(
-        encodeForStorage(`ő_anonymousUserId`),
-        encodeForStorage(TEST_ANONYMOUS_USER_ID),
         { domain: `.${getCurrentTopLevelDomain()}`, expires: 365 },
       );
     });

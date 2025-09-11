@@ -1,4 +1,4 @@
-import { decodeFromStorage, encodeForStorage } from './utils';
+import { decodeFromStorage, encodeForStorage, safeParse } from './utils';
 
 /**
  * Abstract class for storing generic key/value pairs in a storage service.
@@ -37,11 +37,10 @@ abstract class StorageService {
   public get = <T>(key: string): T | null => {
     const jsonValue = this.retrieveValue(key);
     if (jsonValue) {
-      return JSON.parse(jsonValue) as T;
+      return safeParse(jsonValue) as T;
     }
 
-    // Fall back to legacy get from storage for older client versions
-    return this.legacyGet(key);
+    return this.legacyGet<T>(key);
   };
 
   /**
@@ -70,7 +69,10 @@ abstract class StorageService {
    * @param value - the value to store
    */
   public set = <T>(key: string, value: T): void => {
-    this.storeValue(key, JSON.stringify(value));
+    this.storeValue(
+      key,
+      typeof value === 'string' ? value : JSON.stringify(value),
+    );
   };
 
   /**

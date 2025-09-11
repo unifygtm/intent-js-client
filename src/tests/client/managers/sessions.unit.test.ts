@@ -106,10 +106,10 @@ describe('SessionManager', () => {
           const result = sessionManager.getOrCreateSession();
 
           expect(localStorageMock.get).toHaveBeenCalledWith(
-            LEGACY_SESSION_ID_STORAGE_KEY,
-          );
-          expect(localStorageMock.get).toHaveBeenCalledWith(
             SESSION_ID_STORAGE_KEY,
+          );
+          expect(localStorageMock.get).not.toHaveBeenCalledWith(
+            LEGACY_SESSION_ID_STORAGE_KEY,
           );
           expect(localStorageMock.set).toHaveBeenCalledTimes(1);
           expect(localStorageMock.set).toHaveBeenCalledWith(

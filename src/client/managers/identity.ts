@@ -59,9 +59,17 @@ export class IdentityManager {
       return userId;
     }
 
-    return this._storageService.get<string>(
+    // Fall back to legacy key name for values stored by old client versions
+    const legacyUserId = this._storageService.get<string>(
       LEGACY_ANONYMOUS_USER_ID_STORAGE_KEY,
     );
+
+    // Store using new key so the next time we won't need to fall back
+    if (legacyUserId) {
+      this._storageService.set(ANONYMOUS_USER_ID_STORAGE_KEY, legacyUserId);
+    }
+
+    return legacyUserId;
   };
 
   /**

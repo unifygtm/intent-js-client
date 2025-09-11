@@ -124,9 +124,17 @@ export class SessionManager {
       return session;
     }
 
-    return this._storageService.get<ClientSession>(
+    // Fall back to legacy key name for values stored by old client versions
+    const legacySession = this._storageService.get<ClientSession>(
       LEGACY_SESSION_ID_STORAGE_KEY,
     );
+
+    // Store using new key so the next time we won't need to fall back
+    if (legacySession) {
+      this.setStoredSession(legacySession);
+    }
+
+    return legacySession;
   };
 
   /**
