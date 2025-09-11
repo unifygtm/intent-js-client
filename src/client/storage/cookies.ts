@@ -14,7 +14,14 @@ export class CookieStorageService extends StorageService {
    * @returns the encoded value from cookies if it exists, otherwise `null`
    */
   protected retrieveValue(key: string): string | null {
-    return Cookies.get(key) ?? null;
+    const value = Cookies.get(key) ?? null;
+
+    // Reset the cookie expiration
+    if (value) {
+      this.storeValue(key, value);
+    }
+
+    return value;
   }
 
   /**
@@ -28,7 +35,7 @@ export class CookieStorageService extends StorageService {
   protected storeValue(key: string, value: string): void {
     Cookies.set(key, value, {
       domain: `.${getCurrentTopLevelDomain()}`,
-      expires: 365,
+      expires: 400,
     });
   }
 }
