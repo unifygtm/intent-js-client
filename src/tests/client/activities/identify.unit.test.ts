@@ -5,7 +5,7 @@ import {
   UNIFY_INTENT_IDENTIFY_URL,
 } from '../../../client/activities';
 import { IdentifyEventData } from '../../../types';
-import { MockClientSession, TEST_ANONYMOUS_USER_ID } from '../../mocks/data';
+import { MockClientSession, TEST_VISITOR_ID } from '../../mocks/data';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 
 describe('IdentifyActivity', () => {
@@ -22,8 +22,8 @@ describe('IdentifyActivity', () => {
       mockContext.sessionManager.getOrCreateSession.mockReturnValue(
         MockClientSession(),
       );
-      mockContext.identityManager.getOrCreateAnonymousUserId.mockReturnValue(
-        TEST_ANONYMOUS_USER_ID,
+      mockContext.identityManager.getOrCreateVisitorId.mockReturnValue(
+        TEST_VISITOR_ID,
       );
     });
 

@@ -1,12 +1,12 @@
 import { anyString, mock, mockReset } from 'jest-mock-extended';
 
 import {
-  LEGACY_ANONYMOUS_USER_ID_STORAGE_KEY,
+  LEGACY_VISITOR_ID_STORAGE_KEY,
   IdentityManager,
-  ANONYMOUS_USER_ID_STORAGE_KEY,
+  VISITOR_ID_STORAGE_KEY,
 } from '../../../client/managers';
 import { CookieStorageService } from '../../../client/storage';
-import { TEST_ANONYMOUS_USER_ID, TEST_WRITE_KEY } from '../../mocks/data';
+import { TEST_VISITOR_ID, TEST_WRITE_KEY } from '../../mocks/data';
 
 const cookieStorageMock = mock(CookieStorageService.prototype);
 jest.mock('../../../client/storage', () => ({
@@ -19,54 +19,54 @@ describe('IdentityManager', () => {
     mockReset(cookieStorageMock);
   });
 
-  describe('getOrCreateAnonymousUserId', () => {
-    test('creates new anonymous user ID if none exists', () => {
+  describe('getOrCreateVisitorId', () => {
+    test('creates new visitor ID if none exists', () => {
       const identityManager = new IdentityManager(TEST_WRITE_KEY);
-      const result = identityManager.getOrCreateAnonymousUserId();
+      const result = identityManager.getOrCreateVisitorId();
 
       expect(cookieStorageMock.get).toHaveBeenCalledWith(
-        ANONYMOUS_USER_ID_STORAGE_KEY,
+        VISITOR_ID_STORAGE_KEY,
       );
       expect(cookieStorageMock.get).toHaveBeenCalledWith(
-        LEGACY_ANONYMOUS_USER_ID_STORAGE_KEY,
+        LEGACY_VISITOR_ID_STORAGE_KEY,
       );
       expect(cookieStorageMock.set).toHaveBeenCalledWith(
-        ANONYMOUS_USER_ID_STORAGE_KEY,
+        VISITOR_ID_STORAGE_KEY,
         anyString(),
       );
       expect(result).toEqual(anyString());
 
-      const cachedResult = identityManager.getOrCreateAnonymousUserId();
+      const cachedResult = identityManager.getOrCreateVisitorId();
       expect(cachedResult).toEqual(result);
     });
 
-    test('gets anonymous user ID from storage if one exists', () => {
-      cookieStorageMock.get.mockReturnValueOnce(TEST_ANONYMOUS_USER_ID);
+    test('gets visitor ID from storage if one exists', () => {
+      cookieStorageMock.get.mockReturnValueOnce(TEST_VISITOR_ID);
       const identityManager = new IdentityManager(TEST_WRITE_KEY);
-      const result = identityManager.getOrCreateAnonymousUserId();
+      const result = identityManager.getOrCreateVisitorId();
 
       expect(cookieStorageMock.get).toHaveBeenCalledWith(
-        ANONYMOUS_USER_ID_STORAGE_KEY,
+        VISITOR_ID_STORAGE_KEY,
       );
       expect(cookieStorageMock.get).not.toHaveBeenCalledWith(
-        LEGACY_ANONYMOUS_USER_ID_STORAGE_KEY,
+        LEGACY_VISITOR_ID_STORAGE_KEY,
       );
       expect(cookieStorageMock.set).not.toHaveBeenCalled();
-      expect(result).toEqual(TEST_ANONYMOUS_USER_ID);
+      expect(result).toEqual(TEST_VISITOR_ID);
     });
 
-    test('gets the cached anonymous user ID if it exists', () => {
+    test('gets the cached visitor ID if it exists', () => {
       // Initialize cached value
-      cookieStorageMock.get.mockReturnValueOnce(TEST_ANONYMOUS_USER_ID);
+      cookieStorageMock.get.mockReturnValueOnce(TEST_VISITOR_ID);
       const identityManager = new IdentityManager(TEST_WRITE_KEY);
-      identityManager.getOrCreateAnonymousUserId();
+      identityManager.getOrCreateVisitorId();
 
       // Clear mock so we can test fresh state
       cookieStorageMock.get.mockClear();
 
       // Check that cached value exists
-      const result = identityManager.getOrCreateAnonymousUserId();
-      expect(result).toEqual(TEST_ANONYMOUS_USER_ID);
+      const result = identityManager.getOrCreateVisitorId();
+      expect(result).toEqual(TEST_VISITOR_ID);
       expect(cookieStorageMock.get).not.toHaveBeenCalled();
     });
   });

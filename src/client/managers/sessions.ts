@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 import { ClientSession } from '../../types';
-import { LocalStorageService } from '../storage';
+import { CookieStorageService, LocalStorageService } from '../storage';
 import {
   getCurrentPageProperties,
   getCurrentUserAgentData,
@@ -14,10 +14,15 @@ import {
 export const LEGACY_SESSION_STORAGE_KEY = 'clientSession';
 
 /**
- * The localStorage key used to track the user's current session ID.
+ * The local storage key used to track the user's current session ID.
  */
 export const SESSION_STORAGE_KEY = 'unify_session';
 export const SESSION_MINUTES_TO_EXPIRE = 30;
+
+/**
+ * The key used to store the current session ID in cookies.
+ */
+export const SESSION_ID_STORAGE_KEY = 'unify_session_id';
 
 /**
  * This class is used to store and manage user session data in
@@ -26,12 +31,14 @@ export const SESSION_MINUTES_TO_EXPIRE = 30;
 export class SessionManager {
   private readonly _writeKey: string;
   private readonly _storageService: LocalStorageService;
+  private readonly _cookieStorageService: CookieStorageService;
 
   private _currentSession: ClientSession | null;
 
   constructor(writeKey: string) {
     this._writeKey = writeKey;
     this._storageService = new LocalStorageService(this._writeKey);
+    this._cookieStorageService = new CookieStorageService(this._writeKey);
     this._currentSession = null;
   }
 
@@ -137,11 +144,12 @@ export class SessionManager {
   };
 
   /**
-   * Stores a session object in local storage.
+   * Stores a session object in local storage and updates the ID
    *
    * @param session - the session to store
    */
   private setStoredSession = (session: ClientSession): void => {
     this._storageService.set(SESSION_STORAGE_KEY, session);
+    this._cookieStorageService.set(SESSION_ID_STORAGE_KEY, session.sessionId);
   };
 }

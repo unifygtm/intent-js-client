@@ -80,9 +80,7 @@ describe('UnifyIntentClient', () => {
     const unify = new UnifyIntentClient(TEST_WRITE_KEY);
     unify.mount();
 
-    expect(
-      mockedIdentityManager.getOrCreateAnonymousUserId,
-    ).toHaveBeenCalledTimes(1);
+    expect(mockedIdentityManager.getOrCreateVisitorId).toHaveBeenCalledTimes(1);
     expect(mockedSessionManager.getOrCreateSession).toHaveBeenCalledTimes(1);
 
     unify.unmount();

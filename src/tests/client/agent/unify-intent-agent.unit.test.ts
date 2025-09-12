@@ -445,7 +445,7 @@ describe('UnifyIntentAgent', () => {
           expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
           expect(agent.__getSubmittedEmails().size).toEqual(1);
           expect(
-            agent.__getSubmittedEmails().entries().next().value[0],
+            agent.__getSubmittedEmails().entries().next().value?.[0],
           ).toEqual('solomon-form@unifygtm.com');
         });
 
@@ -467,7 +467,7 @@ describe('UnifyIntentAgent', () => {
           expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
           expect(agent.__getSubmittedEmails().size).toEqual(1);
           expect(
-            agent.__getSubmittedEmails().entries().next().value[0],
+            agent.__getSubmittedEmails().entries().next().value?.[0],
           ).toEqual('solomon-enrichment@unifygtm.com');
         });
 
@@ -504,7 +504,7 @@ describe('UnifyIntentAgent', () => {
             expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
             expect(agent.__getSubmittedEmails().size).toEqual(1);
             expect(
-              agent.__getSubmittedEmails().entries().next().value[0],
+              agent.__getSubmittedEmails().entries().next().value?.[0],
             ).toEqual('solomon@unifygtm.com');
           });
 

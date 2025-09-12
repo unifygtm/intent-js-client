@@ -69,7 +69,7 @@ export default class UnifyIntentClient {
 
     // Create anonymous user ID if needed
     const identityManager = new IdentityManager(this._writeKey);
-    identityManager.getOrCreateAnonymousUserId();
+    identityManager.getOrCreateVisitorId();
 
     // Initialize context
     this._context = {
