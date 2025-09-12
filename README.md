@@ -79,6 +79,19 @@ const TestComponent = () => {
 }
 ```
 
+## Cookies
+
+**NOTE**: This section only applies to intent client versions `1.4.0` and up. If you install the intent client with the website tag, you automatically get access to the latest client version. Versions older than this use obfuscated cookie names and if you need to access them you can reach out
+
+When the intent client mounts, it places two values in the user's cookies:
+
+- `unify_visitor_id` - A randomly generated UUID which uniquely identifies the user. This persists across sessions.
+- `unify_session_id` - A randomly generated UUID which uniquely identifies the user's session. Sessions will continue as long as a new page or event is tracked at least once every 30 minutes.
+
+These cookies are _first-party cookies_ and associated with the top-level domain where the intent client is running. For example, if the intent client is running on [https://www.unifygtm.com](https://www.unifygtm.com) then the cookies will be associated with `.unifygtm.com`. This means that they are accessible and reused across all subdomains of the top-level domain. In this example, if the intent client were also running on [https://app.unifygtm.com](https://app.unifygtm.com) then a visitor ID stored while on the `www` subdomain would be reused on `app` subdomain.
+
+These cookies are stored for the maximum permitted time by Google Chrome of 400 days and updated every time the visitor visits your site. In other words, as long as the same visitor visits your site at least once every 400 days and does not clear their browser cookies, their visitor ID will be reused across sessions. Note that some browsers have default limits lower than 400 days. In these cases, the maximum allowed limit by the browser will be used.
+
 ## Usage
 
 The Unify Intent Client can be used to log user activity across multiple subdomains of the same top-level domain. For example, if a user visits your marketing website at `www.yoursite.com` and then logs into your production web application at `app.yoursite.com`, the activity in both places will be attributed to the same person.
