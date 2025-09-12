@@ -67,7 +67,7 @@ export default class UnifyIntentClient {
     const sessionManager = new SessionManager(this._writeKey);
     sessionManager.getOrCreateSession();
 
-    // Create anonymous user ID if needed
+    // Create visitor ID if needed
     const identityManager = new IdentityManager(this._writeKey);
     identityManager.getOrCreateVisitorId();
 
