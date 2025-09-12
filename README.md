@@ -81,12 +81,12 @@ const TestComponent = () => {
 
 ## Cookies
 
-**NOTE**: This section only applies to intent client versions `1.4.0` and up. If you install the intent client with the website tag, you automatically get access to the latest client version. Versions older than this use obfuscated cookie names and if you need to access them you can reach out
+**NOTE**: This section only applies to intent client versions `1.4.0` and up. If you install the intent client with the website tag, you automatically get access to the latest client version. Versions older than this use obfuscated cookie names. If for some reason you need access to these then you can reach out to the Unify team for support.
 
 When the intent client mounts, it places two values in the user's cookies:
 
 - `unify_visitor_id` - A randomly generated UUID which uniquely identifies the user. This persists across sessions.
-- `unify_session_id` - A randomly generated UUID which uniquely identifies the user's session. Sessions will continue as long as a new page or event is tracked at least once every 30 minutes.
+- `unify_session_id` - A randomly generated UUID which uniquely identifies the user's current session. Sessions will persist as long as a new `page`, `identify`, or `track` event is fired at least once every 30 minutes. This duration be customized with the `sessionDurationMinutes` option on the `UnifyIntentClientConfig`.
 
 These cookies are _first-party cookies_ and associated with the top-level domain where the intent client is running. For example, if the intent client is running on [https://www.unifygtm.com](https://www.unifygtm.com) then the cookies will be associated with `.unifygtm.com`. This means that they are accessible and reused across all subdomains of the top-level domain. In this example, if the intent client were also running on [https://app.unifygtm.com](https://app.unifygtm.com) then a visitor ID stored while on the `www` subdomain would be reused on `app` subdomain.
 
@@ -198,3 +198,5 @@ The following configuration options can be passed when initializing the client:
   - **Default**: `true` if the client is installed via the Unify JavaScript tag, `false` if installed via a package manager
 - `autoIdentify` - Tells the client to automatically monitor text and email input elements on the page for changes. When the current user enters a valid email address into an input, the client will log an `identify` event for that email address.
   - **Default**: `true` if the client is installed via the Unify JavaScript tag, `false` if installed via a package manager
+- `sessionDurationMinutes` - Length in minutes that user sessions will persist when no activities are tracked. Activities include `page`, `identify,` and `track` activities.
+  - **Default**: `30`

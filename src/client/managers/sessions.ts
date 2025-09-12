@@ -7,6 +7,15 @@ import {
   getCurrentUserAgentData,
   getTimeForMinutesInFuture,
 } from '../utils/helpers';
+import { DEFAULT_SESSION_MINUTES_TO_EXPIRE } from '../constants';
+
+export type SessionManagerOptions = {
+  durationMinutes?: number;
+};
+
+const DEFAULT_SESSION_MANAGER_OPTIONS: SessionManagerOptions = {
+  durationMinutes: DEFAULT_SESSION_MINUTES_TO_EXPIRE,
+};
 
 /**
  * @deprecated Prefer `SESSION_STORAGE_KEY` instead
@@ -17,7 +26,6 @@ export const LEGACY_SESSION_STORAGE_KEY = 'clientSession';
  * The local storage key used to track the user's current session ID.
  */
 export const SESSION_STORAGE_KEY = 'unify_session';
-export const SESSION_MINUTES_TO_EXPIRE = 30;
 
 /**
  * The key used to store the current session ID in cookies.
@@ -30,13 +38,15 @@ export const SESSION_ID_STORAGE_KEY = 'unify_session_id';
  */
 export class SessionManager {
   private readonly _writeKey: string;
+  private readonly _options: SessionManagerOptions;
   private readonly _storageService: LocalStorageService;
   private readonly _cookieStorageService: CookieStorageService;
 
   private _currentSession: ClientSession | null;
 
-  constructor(writeKey: string) {
+  constructor(writeKey: string, options?: SessionManagerOptions) {
     this._writeKey = writeKey;
+    this._options = options ?? DEFAULT_SESSION_MANAGER_OPTIONS;
     this._storageService = new LocalStorageService(this._writeKey);
     this._cookieStorageService = new CookieStorageService(this._writeKey);
     this._currentSession = null;
@@ -72,18 +82,15 @@ export class SessionManager {
 
   /**
    * Creates a new session in local storage.
-   *
-   * @param minutesToExpire - optional number of minutes after which the
-   *        user session should expire, defaults to `SESSION_MINUTES_TO_EXPIRE`
    * @returns the newly created session
    */
-  private createSession = (
-    minutesToExpire = SESSION_MINUTES_TO_EXPIRE,
-  ): ClientSession => {
+  private createSession = (): ClientSession => {
     const session: ClientSession = {
       sessionId: uuidv4(),
       startTime: new Date(),
-      expiration: getTimeForMinutesInFuture(minutesToExpire),
+      expiration: getTimeForMinutesInFuture(
+        this._options.durationMinutes ?? DEFAULT_SESSION_MINUTES_TO_EXPIRE,
+      ),
       initial: getCurrentPageProperties(),
       ...getCurrentUserAgentData(),
     };
@@ -99,17 +106,16 @@ export class SessionManager {
    * local storage.
    *
    * @param existingSession - the session to update expiration time for
-   * @param minutesToExpire - optional number of minutes after which the
-   *        session should expire, defaults to `MINUTES_TO_EXPIRE`
    * @returns the updated session object
    */
   private updateSessionExpiration = (
     existingSession: ClientSession,
-    minutesToExpire = SESSION_MINUTES_TO_EXPIRE,
   ): ClientSession => {
     const updatedSession: ClientSession = {
       ...existingSession,
-      expiration: getTimeForMinutesInFuture(minutesToExpire),
+      expiration: getTimeForMinutesInFuture(
+        this._options.durationMinutes ?? DEFAULT_SESSION_MINUTES_TO_EXPIRE,
+      ),
     };
     this._currentSession = updatedSession;
     this.setStoredSession(updatedSession);

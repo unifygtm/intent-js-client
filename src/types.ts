@@ -19,6 +19,14 @@ export interface UnifyIntentClientConfig {
    * @default false
    */
   autoIdentify?: boolean;
+
+  /**
+   * The amount of time in minutes that user sessions will persist even when
+   * no activities are tracked for the user. Activities which update the
+   * expiration time of sessions are `page`, `identify`, and `track` activities.
+   * @default 30
+   */
+  sessionDurationMinutes?: number;
 }
 
 export interface UnifyIntentContext {

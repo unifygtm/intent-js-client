@@ -9,6 +9,7 @@ import UnifyApiClient from './unify-api-client';
 import { UnifyIntentAgent } from './agent';
 import { isIntentClient, validateEmail } from './utils/helpers';
 import { logUnifyError } from './utils/logging';
+import { DEFAULT_SESSION_MINUTES_TO_EXPIRE } from './constants';
 
 declare global {
   interface Window {
@@ -20,6 +21,7 @@ declare global {
 export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
   autoPage: false,
   autoIdentify: false,
+  sessionDurationMinutes: DEFAULT_SESSION_MINUTES_TO_EXPIRE,
 };
 
 /**
@@ -64,7 +66,9 @@ export default class UnifyIntentClient {
     const apiClient = new UnifyApiClient(this._writeKey);
 
     // Initialize user session
-    const sessionManager = new SessionManager(this._writeKey);
+    const sessionManager = new SessionManager(this._writeKey, {
+      durationMinutes: this._config.sessionDurationMinutes,
+    });
     sessionManager.getOrCreateSession();
 
     // Create visitor ID if needed
