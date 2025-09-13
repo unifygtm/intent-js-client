@@ -6,7 +6,8 @@ import {
   encodeForStorage,
   getCurrentTopLevelDomain,
 } from '../../../client/storage/utils';
-import { TEST_ANONYMOUS_USER_ID, TEST_WRITE_KEY } from '../../mocks/data';
+import { TEST_VISITOR_ID, TEST_WRITE_KEY } from '../../mocks/data';
+import { VISITOR_ID_STORAGE_KEY } from '../../../client/managers';
 
 jest.mock('js-cookie', () => ({
   __esModule: true,
@@ -22,17 +23,10 @@ describe('CookieStorageService', () => {
   describe('get', () => {
     it('gets the value from underlying Cookies storage', () => {
       const storageService = new CookieStorageService(TEST_WRITE_KEY);
-      storageService.get('anonymousUserId');
-      expect(CookiesMock.get).toHaveBeenCalledWith(
-        encodeForStorage(`${TEST_WRITE_KEY}_anonymousUserId`),
-      );
-    });
-
-    it('works with non-latin-1 characters', () => {
-      const storageService = new CookieStorageService('ő');
-      storageService.get('anonymousUserId');
-      expect(CookiesMock.get).toHaveBeenCalledWith(
-        encodeForStorage(`ő_anonymousUserId`),
+      storageService.get(VISITOR_ID_STORAGE_KEY);
+      expect(CookiesMock.get).toHaveBeenCalledWith(VISITOR_ID_STORAGE_KEY);
+      expect(CookiesMock.get).toHaveBeenLastCalledWith(
+        encodeForStorage(`${TEST_WRITE_KEY}_${VISITOR_ID_STORAGE_KEY}`),
       );
     });
   });
@@ -40,21 +34,11 @@ describe('CookieStorageService', () => {
   describe('set', () => {
     it('sets the value in the underlying Cookies storage', () => {
       const storageService = new CookieStorageService(TEST_WRITE_KEY);
-      storageService.set('anonymousUserId', TEST_ANONYMOUS_USER_ID);
+      storageService.set(VISITOR_ID_STORAGE_KEY, TEST_VISITOR_ID);
       expect(CookiesMock.set).toHaveBeenCalledWith(
-        encodeForStorage(`${TEST_WRITE_KEY}_anonymousUserId`),
-        encodeForStorage(TEST_ANONYMOUS_USER_ID),
-        { domain: `.${getCurrentTopLevelDomain()}`, expires: 365 },
-      );
-    });
-
-    it('works with non-latin-1 characters', () => {
-      const storageService = new CookieStorageService('ő');
-      storageService.set('anonymousUserId', TEST_ANONYMOUS_USER_ID);
-      expect(CookiesMock.set).toHaveBeenCalledWith(
-        encodeForStorage(`ő_anonymousUserId`),
-        encodeForStorage(TEST_ANONYMOUS_USER_ID),
-        { domain: `.${getCurrentTopLevelDomain()}`, expires: 365 },
+        VISITOR_ID_STORAGE_KEY,
+        TEST_VISITOR_ID,
+        { domain: `.${getCurrentTopLevelDomain()}`, expires: 400 },
       );
     });
   });

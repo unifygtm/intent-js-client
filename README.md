@@ -18,7 +18,8 @@ When you include this tag in your HTML, you will immediately be able to access t
 
 This method is typically used to install the client in e.g. frontend application code such as a Single Page App (SPA) (as opposed to on a static marketing website).
 
-NOTE: See [@unifygtm/intent-react](https://www.npmjs.com/package/@unifygtm/intent-react) if you are using React.
+> [!NOTE]
+> See [@unifygtm/intent-react](https://www.npmjs.com/package/@unifygtm/intent-react) if you are using React.
 
 You can install the client package directly using your preferred package manager:
 
@@ -53,7 +54,8 @@ const unify = new UnifyIntentClient(writeKey, config);
 unify.mount();
 ```
 
-NOTE: The `mount` method on the client is used to initialize it once it is in a browser context. If your application uses server side rendering, you should be sure not to call `mount()` until the code is running in a browser context.
+> [!NOTE]
+> The `mount` method on the client is used to initialize it once it is in a browser context. If your application uses server side rendering, you should be sure not to call `mount()` until the code is running in a browser context.
 
 Once the client is initialized and mounted it will be immediately ready for use. See [Usage](#usage) below for how to use the client after installing. If you wish to cleanup the side effects created by initializing the client (e.g. event listeners), you can do so with the `unmount` method. Here is an example of mounting and unmounting the client in React code:
 
@@ -78,6 +80,20 @@ const TestComponent = () => {
   ...
 }
 ```
+
+## Cookies
+
+> [!NOTE]
+> This section only applies to intent client versions `1.4.0` and up. If you install the intent client with the website tag, you automatically get access to the latest client version. Versions older than this use obfuscated cookie names. If for some reason you need access to these then you can reach out to the Unify team for support.
+
+When the intent client mounts, it places two values in the user's cookies:
+
+- `unify_visitor_id` - A randomly generated UUID which uniquely identifies the user. This persists across sessions.
+- `unify_session_id` - A randomly generated UUID which uniquely identifies the user's current session. Sessions will persist as long as a new `page`, `identify`, or `track` event is fired at least once every 30 minutes. This duration be customized with the `sessionDurationMinutes` option on the `UnifyIntentClientConfig`.
+
+These cookies are _first-party cookies_ and associated with the top-level domain where the intent client is running. For example, if the intent client is running on [https://www.unifygtm.com](https://www.unifygtm.com) then the cookies will be associated with `.unifygtm.com`. This means that they are accessible and reused across all subdomains of the top-level domain. In this example, if the intent client were also running on [https://app.unifygtm.com](https://app.unifygtm.com) then a visitor ID stored while on the `www` subdomain would be reused on `app` subdomain.
+
+These cookies are stored for the maximum permitted time by Google Chrome of 400 days and updated every time the visitor visits your site. In other words, as long as the same visitor visits your site at least once every 400 days and does not clear their browser cookies, their visitor ID will be reused across sessions. Note that some browsers have default limits lower than 400 days. In these cases, the maximum allowed limit by the browser will be used.
 
 ## Usage
 
@@ -185,3 +201,5 @@ The following configuration options can be passed when initializing the client:
   - **Default**: `true` if the client is installed via the Unify JavaScript tag, `false` if installed via a package manager
 - `autoIdentify` - Tells the client to automatically monitor text and email input elements on the page for changes. When the current user enters a valid email address into an input, the client will log an `identify` event for that email address.
   - **Default**: `true` if the client is installed via the Unify JavaScript tag, `false` if installed via a package manager
+- `sessionDurationMinutes` - Length in minutes that user sessions will persist when no activities are tracked. Activities include `page`, `identify,` and `track` activities.
+  - **Default**: `30`

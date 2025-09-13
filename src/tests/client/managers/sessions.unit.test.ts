@@ -1,22 +1,31 @@
 import { anyNumber, mock, mockReset } from 'jest-mock-extended';
 
 import {
-  CLIENT_SESSION_STORAGE_KEY,
+  LEGACY_SESSION_STORAGE_KEY,
+  SESSION_ID_STORAGE_KEY,
+  SESSION_STORAGE_KEY,
   SessionManager,
 } from '../../../client/managers';
-import { LocalStorageService } from '../../../client/storage';
+import {
+  CookieStorageService,
+  LocalStorageService,
+} from '../../../client/storage';
 import { ClientSession } from '../../../types';
 import { MockClientSession, TEST_WRITE_KEY } from '../../mocks/data';
 
 const localStorageMock = mock(LocalStorageService.prototype);
+const cookieStorageMock = mock(CookieStorageService.prototype);
+
 jest.mock('../../../client/storage', () => ({
   ...jest.requireActual('../../../client/storage'),
   LocalStorageService: jest.fn().mockImplementation(() => localStorageMock),
+  CookieStorageService: jest.fn().mockImplementation(() => cookieStorageMock),
 }));
 
 describe('SessionManager', () => {
   beforeEach(() => {
     mockReset(localStorageMock);
+    mockReset(cookieStorageMock);
   });
 
   describe('getOrCreateSession', () => {
@@ -24,12 +33,17 @@ describe('SessionManager', () => {
       const sessionManager = new SessionManager(TEST_WRITE_KEY);
       const result = sessionManager.getOrCreateSession();
 
+      expect(localStorageMock.get).toHaveBeenCalledWith(SESSION_STORAGE_KEY);
       expect(localStorageMock.get).toHaveBeenCalledWith(
-        CLIENT_SESSION_STORAGE_KEY,
+        LEGACY_SESSION_STORAGE_KEY,
       );
       expect(localStorageMock.set).toHaveBeenCalledWith(
-        CLIENT_SESSION_STORAGE_KEY,
+        SESSION_STORAGE_KEY,
         result,
+      );
+      expect(cookieStorageMock.set).toHaveBeenCalledWith(
+        SESSION_ID_STORAGE_KEY,
+        result.sessionId,
       );
     });
 
@@ -57,8 +71,12 @@ describe('SessionManager', () => {
 
           expect(localStorageMock.set).toHaveBeenCalledTimes(1);
           expect(localStorageMock.set).toHaveBeenCalledWith(
-            CLIENT_SESSION_STORAGE_KEY,
+            SESSION_STORAGE_KEY,
             expectedSession,
+          );
+          expect(cookieStorageMock.set).toHaveBeenCalledWith(
+            SESSION_ID_STORAGE_KEY,
+            expectedSession.sessionId,
           );
           expect(session.expiration).toBeGreaterThan(mockSession.expiration);
         });
@@ -83,8 +101,12 @@ describe('SessionManager', () => {
           expect(localStorageMock.get).not.toHaveBeenCalled();
           expect(localStorageMock.set).toHaveBeenCalledTimes(1);
           expect(localStorageMock.set).toHaveBeenCalledWith(
-            CLIENT_SESSION_STORAGE_KEY,
+            SESSION_STORAGE_KEY,
             session,
+          );
+          expect(cookieStorageMock.set).toHaveBeenCalledWith(
+            SESSION_ID_STORAGE_KEY,
+            session.sessionId,
           );
         });
       });
@@ -103,11 +125,20 @@ describe('SessionManager', () => {
           const sessionManager = new SessionManager(TEST_WRITE_KEY);
           const result = sessionManager.getOrCreateSession();
 
-          expect(localStorageMock.get).toHaveBeenCalledTimes(1);
+          expect(localStorageMock.get).toHaveBeenCalledWith(
+            SESSION_STORAGE_KEY,
+          );
+          expect(localStorageMock.get).not.toHaveBeenCalledWith(
+            LEGACY_SESSION_STORAGE_KEY,
+          );
           expect(localStorageMock.set).toHaveBeenCalledTimes(1);
           expect(localStorageMock.set).toHaveBeenCalledWith(
-            CLIENT_SESSION_STORAGE_KEY,
+            SESSION_STORAGE_KEY,
             result,
+          );
+          expect(cookieStorageMock.set).toHaveBeenCalledWith(
+            SESSION_ID_STORAGE_KEY,
+            result.sessionId,
           );
         });
       });

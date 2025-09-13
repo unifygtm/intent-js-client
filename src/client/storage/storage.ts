@@ -1,4 +1,4 @@
-import { decodeFromStorage, encodeForStorage } from './utils';
+import { decodeFromStorage, encodeForStorage, safeParse } from './utils';
 
 /**
  * Abstract class for storing generic key/value pairs in a storage service.
@@ -35,6 +35,24 @@ abstract class StorageService {
    * @returns the value from storage if it exists, otherwise `null`
    */
   public get = <T>(key: string): T | null => {
+    const jsonValue = this.retrieveValue(key);
+    if (jsonValue) {
+      return safeParse(jsonValue) as T;
+    }
+
+    return this.legacyGet<T>(key);
+  };
+
+  /**
+   * @deprecated Legacy function to retrieve the value for a key from
+   * the underlying storage service. This cannot be removed to maintain
+   * backwards compatibility with older versions of the intent client.
+   * Versions `1.3.0` and older will depend on this.
+   *
+   * @param key - the key associated with the value to get
+   * @returns the value from storage if it exists, otherwise `null`
+   */
+  private legacyGet = <T>(key: string): T | null => {
     const encodedValue = this.retrieveValue(this.buildKey(key));
     if (encodedValue) {
       return decodeFromStorage(encodedValue);
@@ -51,10 +69,31 @@ abstract class StorageService {
    * @param value - the value to store
    */
   public set = <T>(key: string, value: T): void => {
+    this.storeValue(
+      key,
+      typeof value === 'string' ? value : JSON.stringify(value),
+    );
+
+    // Maintain backwards compatibility
+    this.legacySet(key, value);
+  };
+
+  /**
+   * @deprecated Legacy function to store a value in the underlying storage service.
+   * This cannot be removed to maintain backwards compatibility with older versions
+   * of the intent client. Versions `1.3.0` and older will depend on this.
+   *
+   * @param key - the key to associate with the value to be stored
+   * @param value - the value to store
+   */
+  private legacySet = <T>(key: string, value: T): void => {
     this.storeValue(this.buildKey(key), encodeForStorage(value));
   };
 
   /**
+   * @deprecated The intent client no longer encodes keys and values for
+   * storage and instead stores them directly.
+   *
    * Generates a unique key using the public Unify API key for
    * storing a value in the underlying storage service.
    *

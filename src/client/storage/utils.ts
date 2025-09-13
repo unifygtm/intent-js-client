@@ -3,6 +3,23 @@ import { decode, encode } from 'js-base64';
 const TEST_STORAGE_VALUE = 'test';
 
 /**
+ * Helper function to parse a value from storage as either JSON or a string.
+ *
+ * @param value the value to parse
+ * @returns the safely parsed value
+ */
+export function safeParse<T = unknown>(value: string): T | string {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
+/**
+ * @deprecated The intent client no longer encodes keys and values for
+ * storage and instead stores them directly.
+ *
  * Encodes an arbitrary value to base-64 encoding for storage.
  *
  * @param value - the value to encode, can be a string, object, etc.
@@ -13,13 +30,16 @@ export function encodeForStorage<T>(value: T): string {
 }
 
 /**
+ * @deprecated The intent client no longer encodes keys and values for
+ * storage and instead stores them directly.
+ *
  * Decodes an encoded value which has been retrieved from storage.
  *
  * @param encodedValue - the value to decode
  * @returns the decoded value
  */
 export function decodeFromStorage<T>(encodedValue: string): T {
-  return JSON.parse(decode(encodedValue)) as T;
+  return safeParse(decode(encodedValue)) as T;
 }
 
 /**

@@ -8,7 +8,7 @@ import {
 } from '../../types';
 
 export const TEST_WRITE_KEY = '1234';
-export const TEST_ANONYMOUS_USER_ID = '5678';
+export const TEST_VISITOR_ID = '5678';
 
 export const MockUTM = {
   source: 'google',

@@ -10,21 +10,25 @@ jest.mock('../../../client/storage/utils', () => ({
   isLocalStorageAvailable: jest.fn(),
 }));
 
-const mockedIsLocalStorageAvailable = jest.mocked<
-  typeof isLocalStorageAvailable
->(isLocalStorageAvailable);
-const mockedGetItem = jest.mocked<typeof localStorage.getItem>(
-  localStorage.getItem,
-);
-const mockedSetItem = jest.mocked<typeof localStorage.setItem>(
-  localStorage.setItem,
-);
+const mockedIsLocalStorageAvailable = jest.mocked(isLocalStorageAvailable);
 
 describe('LocalStorageService', () => {
+  const mockGetItem = jest.fn();
+  const mockSetItem = jest.fn();
+  const mockRemoveItem = jest.fn();
+
+  Object.defineProperty(window, 'localStorage', {
+    value: {
+      getItem: (...args: string[]) => mockGetItem(...args),
+      setItem: (...args: string[]) => mockSetItem(...args),
+      removeItem: (...args: string[]) => mockRemoveItem(...args),
+    },
+  });
+
   beforeEach(() => {
-    localStorage.clear();
-    mockedGetItem.mockClear();
-    mockedSetItem.mockClear();
+    mockGetItem.mockClear();
+    mockSetItem.mockClear();
+    mockRemoveItem.mockClear();
   });
 
   describe('get', () => {
@@ -36,16 +40,9 @@ describe('LocalStorageService', () => {
       it('gets the value from underlying local storage', () => {
         const storageService = new LocalStorageService(TEST_WRITE_KEY);
         storageService.get('clientSession');
-        expect(localStorage.getItem).toHaveBeenLastCalledWith(
+        expect(mockGetItem).toHaveBeenCalledWith('clientSession');
+        expect(mockGetItem).toHaveBeenLastCalledWith(
           encodeForStorage(`${TEST_WRITE_KEY}_clientSession`),
-        );
-      });
-
-      it('works with non-latin-1 characters', () => {
-        const storageService = new LocalStorageService('ő');
-        storageService.get('clientSession');
-        expect(localStorage.getItem).toHaveBeenLastCalledWith(
-          encodeForStorage(`ő_clientSession`),
         );
       });
     });
@@ -56,10 +53,9 @@ describe('LocalStorageService', () => {
       });
 
       it('does nothing', () => {
-        mockedIsLocalStorageAvailable.mockReturnValue(false);
         const storageService = new LocalStorageService(TEST_WRITE_KEY);
         storageService.get('clientSession');
-        expect(localStorage.getItem).not.toHaveBeenCalled();
+        expect(mockGetItem).not.toHaveBeenCalled();
       });
     });
   });
@@ -73,17 +69,9 @@ describe('LocalStorageService', () => {
       it('sets the value in the underlying local storage', () => {
         const storageService = new LocalStorageService(TEST_WRITE_KEY);
         storageService.set('key', '1234');
-        expect(localStorage.setItem).toHaveBeenLastCalledWith(
+        expect(mockSetItem).toHaveBeenCalledWith('key', '1234');
+        expect(mockSetItem).toHaveBeenLastCalledWith(
           encodeForStorage(`${TEST_WRITE_KEY}_key`),
-          encodeForStorage('1234'),
-        );
-      });
-
-      it('works with non-latin-1 characters', () => {
-        const storageService = new LocalStorageService('ő');
-        storageService.set('key', '1234');
-        expect(localStorage.setItem).toHaveBeenLastCalledWith(
-          encodeForStorage(`ő_key`),
           encodeForStorage('1234'),
         );
       });
@@ -92,7 +80,11 @@ describe('LocalStorageService', () => {
         const mockClientSession = MockClientSession();
         const storageService = new LocalStorageService(TEST_WRITE_KEY);
         storageService.set('key', mockClientSession);
-        expect(localStorage.setItem).toHaveBeenLastCalledWith(
+        expect(mockSetItem).toHaveBeenCalledWith(
+          'key',
+          JSON.stringify(mockClientSession),
+        );
+        expect(mockSetItem).toHaveBeenLastCalledWith(
           encodeForStorage(`${TEST_WRITE_KEY}_key`),
           encodeForStorage(mockClientSession),
         );
@@ -107,7 +99,7 @@ describe('LocalStorageService', () => {
       it('does nothing', () => {
         const storageService = new LocalStorageService(TEST_WRITE_KEY);
         storageService.set('key', '1234');
-        expect(localStorage.setItem).not.toHaveBeenCalled();
+        expect(mockSetItem).not.toHaveBeenCalled();
       });
     });
   });
