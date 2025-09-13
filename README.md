@@ -18,7 +18,8 @@ When you include this tag in your HTML, you will immediately be able to access t
 
 This method is typically used to install the client in e.g. frontend application code such as a Single Page App (SPA) (as opposed to on a static marketing website).
 
-NOTE: See [@unifygtm/intent-react](https://www.npmjs.com/package/@unifygtm/intent-react) if you are using React.
+> [!NOTE]
+> See [@unifygtm/intent-react](https://www.npmjs.com/package/@unifygtm/intent-react) if you are using React.
 
 You can install the client package directly using your preferred package manager:
 
@@ -53,7 +54,8 @@ const unify = new UnifyIntentClient(writeKey, config);
 unify.mount();
 ```
 
-NOTE: The `mount` method on the client is used to initialize it once it is in a browser context. If your application uses server side rendering, you should be sure not to call `mount()` until the code is running in a browser context.
+> [!NOTE]
+> The `mount` method on the client is used to initialize it once it is in a browser context. If your application uses server side rendering, you should be sure not to call `mount()` until the code is running in a browser context.
 
 Once the client is initialized and mounted it will be immediately ready for use. See [Usage](#usage) below for how to use the client after installing. If you wish to cleanup the side effects created by initializing the client (e.g. event listeners), you can do so with the `unmount` method. Here is an example of mounting and unmounting the client in React code:
 
@@ -81,7 +83,8 @@ const TestComponent = () => {
 
 ## Cookies
 
-**NOTE**: This section only applies to intent client versions `1.4.0` and up. If you install the intent client with the website tag, you automatically get access to the latest client version. Versions older than this use obfuscated cookie names. If for some reason you need access to these then you can reach out to the Unify team for support.
+> [!NOTE]
+> This section only applies to intent client versions `1.4.0` and up. If you install the intent client with the website tag, you automatically get access to the latest client version. Versions older than this use obfuscated cookie names. If for some reason you need access to these then you can reach out to the Unify team for support.
 
 When the intent client mounts, it places two values in the user's cookies:
 
