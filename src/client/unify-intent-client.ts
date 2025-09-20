@@ -1,5 +1,7 @@
 import {
+  AnalyticsEventBase,
   PageEventOptions,
+  TrackEventData,
   UnifyIntentClientConfig,
   UnifyIntentContext,
 } from '../types';
@@ -10,6 +12,7 @@ import { UnifyIntentAgent } from './agent';
 import { isIntentClient, validateEmail } from './utils/helpers';
 import { logUnifyError } from './utils/logging';
 import { DEFAULT_SESSION_MINUTES_TO_EXPIRE } from './constants';
+import { TrackActivity } from './activities/track';
 
 declare global {
   interface Window {
@@ -200,6 +203,44 @@ export default class UnifyIntentClient {
       });
       return action.getTrackPayload();
     }
+  };
+
+  /**
+   * This function logs a track event with the given name and properties
+   * to the Unify Intent API. Unify will associate this event
+   * with the current user's session and all related activities.
+   *
+   * @param name - the name of the event to track, e.g. "Demo Button Clicked"
+   * @param properties - optional properties to associate with the event
+   */
+  public track = (
+    name: string,
+    properties: TrackEventData['properties'],
+  ): void => {
+    if (!this._mounted) return;
+
+    const action = new TrackActivity(this._context, { name, properties });
+    action.track();
+  };
+
+  /**
+   * This function returns the request payload for a single track event.
+   * This is useful if you want to send the payload to a proxy server to
+   * perform the tracking server-side.
+   *
+   * @param name - the name of the event to track, e.g. "Demo Button Clicked"
+   * @param properties - optional properties to associate with the event
+   * @returns if the client is mounted, the request payload for a track event,
+   *          otherwise `undefined`
+   */
+  public getTrackPayload = (
+    name: string,
+    properties: TrackEventData['properties'],
+  ): (AnalyticsEventBase & TrackEventData) | undefined => {
+    if (!this._mounted) return;
+
+    const action = new TrackActivity(this._context, { name, properties });
+    return action.getTrackPayload();
   };
 
   /**

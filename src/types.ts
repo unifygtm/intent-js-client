@@ -75,6 +75,11 @@ export type PageEventData = Omit<
   components['schemas']['PageEvent'],
   keyof Omit<AnalyticsEventBase, 'type'>
 >;
+export type TrackEvent = components['schemas']['TrackEvent'];
+export type TrackEventData = Omit<
+  components['schemas']['TrackEvent'],
+  keyof Omit<AnalyticsEventBase, 'type'>
+>;
 export type PageProperties = components['schemas']['PageProperties'];
 export type Traits = components['schemas']['Traits'];
 export type UCountryCode = components['schemas']['UCountryCode'];

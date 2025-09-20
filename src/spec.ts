@@ -214,6 +214,92 @@ export interface components {
       /** @description URL of the page (equivalent to `location.href`). */
       url?: string;
     };
+    /** @description Track event. */
+    TrackEvent: {
+      /**
+       * @description Type of analytics event being sent.
+       * @enum {string}
+       */
+      type: "track";
+      /** @description Persistent identifier (e.g., database ID) for the user. */
+      userId?: string;
+      /** @description Identifier for the user when a persistent ID is not available. */
+      anonymousUserId: string;
+      /** @description Unique identifier for the user session. */
+      sessionId: string;
+      /**
+       * Format: date-time
+       * @description Event timestamp of the activity.
+       */
+      timestamp: string;
+      /**
+       * Format: date-time
+       * @description Timestamp at which the request is sent.
+       *
+       * Typically, this value is nearly identical to `timestamp`. However in some
+       * situations there is latency between when the activity occurs and when it
+       * is sent to Unify.
+       */
+      sentAt?: string;
+      /** @description Contextual information about the user behind the activity. */
+      context: components["schemas"]["ActivityContext"];
+      /**
+       * @deprecated
+       * @description Fingerprint information attached to the request.
+       */
+      fingerprint?: {
+        visitorId?: string;
+        requestId?: string;
+      };
+      name: string;
+      properties?: {
+        [key: string]: unknown;
+      };
+      /** @description Information about the company associated with the visitor. */
+      company?: {
+        /** @description Unique identifier for the record. */
+        id: components["schemas"]["uuid"];
+        /**
+         * Format: date-time
+         * @description Date and time the record was created.
+         */
+        createdAt: string;
+        /**
+         * Format: date-time
+         * @description Date and time the record was last updated.
+         */
+        updatedAt: string;
+        /** @description Name of the company. */
+        name?: string;
+        /** @description Website domain of the company. */
+        domain: string;
+        /** @description Physical address of the company. */
+        address?: components["schemas"]["UTypes.UAddress"];
+      };
+      /** @description Information about the person associated with the visitor. */
+      person?: {
+        /** @description Unique identifier for the record. */
+        id: components["schemas"]["uuid"];
+        /**
+         * Format: date-time
+         * @description Date and time the record was created.
+         */
+        createdAt: string;
+        /**
+         * Format: date-time
+         * @description Date and time the record was last updated.
+         */
+        updatedAt: string;
+        /** @description Email address of the person. */
+        email: string;
+        /** @description Physical address of the person. */
+        address?: components["schemas"]["UTypes.UAddress"];
+        /** @description First name of the person. */
+        firstName?: string;
+        /** @description Last name of the person. */
+        lastName?: string;
+      };
+    };
     /** @description Traits for the identify request payload. */
     Traits: {
       /** @description Email address of the visitor. */
@@ -249,6 +335,8 @@ export interface components {
     ipv4: string;
     /** Format: ipv6 */
     ipv6: string;
+    /** Format: uuid */
+    uuid: string;
   };
   responses: never;
   parameters: never;
