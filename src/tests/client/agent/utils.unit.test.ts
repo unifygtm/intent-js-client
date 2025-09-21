@@ -6,7 +6,7 @@ import {
 import {
   extractUnifyCapturePropertiesFromElement,
   getElementName,
-  isActionableButton,
+  isActionableElement,
 } from '../../../client/agent/utils';
 
 describe('Unify Intent Agent utils', () => {
@@ -22,37 +22,37 @@ describe('Unify Intent Agent utils', () => {
     });
 
     it('returns true when element is actionable', () => {
-      expect(isActionableButton(button)).toEqual(true);
+      expect(isActionableElement(button)).toEqual(true);
     });
 
     it('returns false when element is hidden', () => {
       button.hidden = true;
-      expect(isActionableButton(button)).toEqual(false);
+      expect(isActionableElement(button)).toEqual(false);
     });
 
     it('returns false when element is aria hidden', () => {
       button.setAttribute('aria-hidden', 'true');
-      expect(isActionableButton(button)).toEqual(false);
+      expect(isActionableElement(button)).toEqual(false);
     });
 
     it('returns false when element is visually hidden', () => {
       button.style.display = 'none';
-      expect(isActionableButton(button)).toEqual(false);
+      expect(isActionableElement(button)).toEqual(false);
     });
 
     it('returns false when element is disabled', () => {
       button.disabled = true;
-      expect(isActionableButton(button)).toEqual(false);
+      expect(isActionableElement(button)).toEqual(false);
     });
 
     it('returns false when element is aria disabled', () => {
       button.setAttribute('aria-disabled', 'true');
-      expect(isActionableButton(button)).toEqual(false);
+      expect(isActionableElement(button)).toEqual(false);
     });
 
     it('returns false when element is excluded', () => {
       button.dataset[UNIFY_ELEMENT_EXCLUSION_DATA_ATTR] = 'true';
-      expect(isActionableButton(button)).toEqual(false);
+      expect(isActionableElement(button)).toEqual(false);
     });
   });
 

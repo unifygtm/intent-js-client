@@ -20,7 +20,7 @@ export function isDefaultFormEventData(
   return DEFAULT_FORM_EVENT_TYPES.includes(data.event);
 }
 
-export function isActionableButton(element: Element): boolean {
+export function isActionableElement(element: Element): boolean {
   if (isElementHidden(element)) return false;
 
   const isDisabled =

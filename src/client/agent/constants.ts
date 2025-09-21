@@ -1,5 +1,9 @@
 import { DefaultEventType } from './types/default';
 
+export const UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME =
+  'data-unify-track-clicks';
+export const UNIFY_TRACK_CLICK_DATA_ATTR = 'unifyTrackClick';
+
 /**
  * This is the camel case name of the data attribute which can be
  * specified on an auto-tracked element (e.g. a `<button>` element) in
@@ -35,6 +39,15 @@ export const UNIFY_CAPTURE_ATTRIBUTES_DATA_ATTR_PREFIX = 'unifyCaptureAttr';
  * even though it would under normal circumstances.
  */
 export const UNIFY_ELEMENT_EXCLUSION_DATA_ATTR = 'unifyExclude';
+
+export const BUTTON_SELECTORS = [
+  'button',
+  "[role='button']",
+  "input[type='button']",
+  "input[type='submit']",
+  "input[type='reset']",
+  "input[type='image']",
+];
 
 export const DEFAULT_FORMS_IFRAME_ORIGIN = 'https://forms.default.com';
 export const NAVATTIC_IFRAME_ORIGIN = 'https://capture.navattic.com';

@@ -181,7 +181,7 @@ describe('UnifyIntentClient', () => {
       unify.mount();
 
       expect(mockedIntentAgent.startAutoTrack).not.toHaveBeenCalled();
-      unify.startAutoTrack({ trackButtonClicks: true });
+      unify.startAutoTrack({ clickTrackingSelectors: [] });
       expect(mockedIntentAgent.startAutoTrack).toHaveBeenCalledTimes(1);
 
       unify.unmount();
@@ -191,7 +191,7 @@ describe('UnifyIntentClient', () => {
   describe('stopAutoTrack', () => {
     it('tells the Unify Intent Agent to stop auto-tracking', () => {
       const unify = new UnifyIntentClient(TEST_WRITE_KEY, {
-        autoTrackOptions: { trackButtonClicks: true },
+        autoTrackOptions: { clickTrackingSelectors: [] },
       });
       unify.mount();
 
@@ -208,7 +208,7 @@ describe('UnifyIntentClient', () => {
       const unify = new UnifyIntentClient(TEST_WRITE_KEY, {
         autoPage: true,
         autoIdentify: true,
-        autoTrackOptions: { trackButtonClicks: true },
+        autoTrackOptions: { clickTrackingSelectors: [] },
       });
       unify.mount();
 

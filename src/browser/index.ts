@@ -32,7 +32,7 @@ export const initBrowser = function () {
     autoPage: true,
     autoIdentify: true,
     autoTrackOptions: {
-      trackButtonClicks: true,
+      clickTrackingSelectors: [],
     },
   }).mount();
 };

@@ -14,6 +14,7 @@ import {
   NAVATTIC_IFRAME_ORIGIN,
   NAVATTIC_USER_EMAIL_KEY,
   NAVATTIC_USER_EMAIL_PROPERTY,
+  UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from '../../../client/agent/constants';
 import { DefaultEventType } from '../../../client/agent/types/default';
 import {
@@ -25,7 +26,7 @@ import {
 import {
   extractUnifyCapturePropertiesFromElement,
   getElementName,
-  isActionableButton,
+  isActionableElement,
 } from '../../../client/agent/utils';
 
 const mockedPageActivity = mock(PageActivity.prototype);
@@ -40,12 +41,12 @@ jest.mock('../../../client/activities', () => ({
 
 jest.mock('../../../client/agent/utils', () => ({
   ...jest.requireActual('../../../client/agent/utils'),
-  isActionableButton: jest.fn(),
+  isActionableElement: jest.fn(),
   getElementName: jest.fn(),
   extractUnifyCapturePropertiesFromElement: jest.fn(),
 }));
 
-const mockedIsActionableButton = jest.mocked(isActionableButton);
+const mockedIsActionableElement = jest.mocked(isActionableElement);
 const mockedGetElementName = jest.mocked(getElementName);
 const mockedExtractUnifyCapturePropertiesFromElement = jest.mocked(
   extractUnifyCapturePropertiesFromElement,
@@ -59,6 +60,7 @@ interface InputElementData {
 
 interface ButtomElementData {
   label: string;
+  alwaysTrack?: boolean;
 }
 
 function mockDocumentWithInputs(inputs: InputElementData[]) {
@@ -78,7 +80,9 @@ const MOCK_BUTTON_NAME = 'Button';
 function mockDocumentWithButton(button?: ButtomElementData) {
   document.body.innerHTML = `
         <div>
-          <button id="test-button">${button?.label ?? MOCK_BUTTON_NAME}</button>
+          <button id="test-button" ${
+            button?.alwaysTrack ? UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME : ''
+          }>${button?.label ?? MOCK_BUTTON_NAME}</button>
         </div>
     `;
 }
@@ -118,6 +122,13 @@ const MOCK_EMAIL_INPUT_EMPTY: InputElementData = {
 
 describe('UnifyIntentAgent', () => {
   const mockContext: UnifyIntentContext = MockUnifyIntentContext();
+  let agent: UnifyIntentAgent | null = null;
+
+  afterEach(() => {
+    agent?.stopAutoIdentify();
+    agent?.stopAutoPage();
+    agent?.stopAutoTrack();
+  });
 
   beforeEach(() => {
     mockReset(mockContext.apiClient);
@@ -129,18 +140,12 @@ describe('UnifyIntentAgent', () => {
   });
 
   describe('startAutoPage', () => {
-    let agent: UnifyIntentAgent | null = null;
-
     beforeEach(() => {
       agent = new UnifyIntentAgent({
         ...mockContext,
         clientConfig: { ...mockContext.clientConfig, autoPage: true },
       });
       mockReset(mockedPageActivity);
-    });
-
-    afterEach(() => {
-      agent?.stopAutoPage();
     });
 
     describe('history.pushState', () => {
@@ -191,10 +196,9 @@ describe('UnifyIntentAgent', () => {
       });
 
       it('does not monitor any input elements', () => {
-        const agent = new UnifyIntentAgent(mockContext);
+        agent = new UnifyIntentAgent(mockContext);
         agent.startAutoIdentify();
         expect(agent.__getMonitoredInputs().size).toEqual(0);
-        agent.stopAutoIdentify();
       });
     });
 
@@ -204,10 +208,9 @@ describe('UnifyIntentAgent', () => {
       });
 
       it('does not monitor any input elements', () => {
-        const agent = new UnifyIntentAgent(mockContext);
+        agent = new UnifyIntentAgent(mockContext);
         agent.startAutoIdentify();
         expect(agent.__getMonitoredInputs().size).toEqual(0);
-        agent.stopAutoIdentify();
       });
     });
 
@@ -222,7 +225,7 @@ describe('UnifyIntentAgent', () => {
           MOCK_EMAIL_INPUT_EMPTY,
           MOCK_TEXT_INPUT_EMPTY,
         ]);
-        const agent = new UnifyIntentAgent(mockContext);
+        agent = new UnifyIntentAgent(mockContext);
         agent.startAutoIdentify();
 
         const monitoredInputs = Array.from(agent.__getMonitoredInputs());
@@ -237,8 +240,6 @@ describe('UnifyIntentAgent', () => {
             (input) => input.id === MOCK_TEXT_INPUT_EMPTY.id,
           ),
         ).toBeTruthy();
-
-        agent.stopAutoIdentify();
       });
 
       it('submits emails on valid input blur', () => {
@@ -248,7 +249,7 @@ describe('UnifyIntentAgent', () => {
           MOCK_EMAIL_INPUT_EMPTY,
           MOCK_TEXT_INPUT_WITH_NON_EMAIL,
         ]);
-        const agent = new UnifyIntentAgent(mockContext);
+        agent = new UnifyIntentAgent(mockContext);
         agent.startAutoIdentify();
 
         // No submitted emails before blur
@@ -273,8 +274,6 @@ describe('UnifyIntentAgent', () => {
           ),
         ).toBeTruthy();
         expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(2);
-
-        agent.stopAutoIdentify();
       });
 
       it('submits emails when user presses Enter', () => {
@@ -284,7 +283,7 @@ describe('UnifyIntentAgent', () => {
           MOCK_EMAIL_INPUT_EMPTY,
           MOCK_TEXT_INPUT_WITH_NON_EMAIL,
         ]);
-        const agent = new UnifyIntentAgent(mockContext);
+        agent = new UnifyIntentAgent(mockContext);
         agent.startAutoIdentify();
 
         // No submitted emails before Enter
@@ -311,8 +310,6 @@ describe('UnifyIntentAgent', () => {
           ),
         ).toBeTruthy();
         expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(2);
-
-        agent.stopAutoIdentify();
       });
 
       it('does not submit emails when non-Enter key pressed', () => {
@@ -322,7 +319,7 @@ describe('UnifyIntentAgent', () => {
           MOCK_EMAIL_INPUT_EMPTY,
           MOCK_TEXT_INPUT_WITH_NON_EMAIL,
         ]);
-        const agent = new UnifyIntentAgent(mockContext);
+        agent = new UnifyIntentAgent(mockContext);
         agent.startAutoIdentify();
 
         // No submitted emails before key press
@@ -338,8 +335,6 @@ describe('UnifyIntentAgent', () => {
         // Verify emails submitted
         expect(agent.__getSubmittedEmails().size).toEqual(0);
         expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
-
-        agent.stopAutoIdentify();
       });
 
       it('does not submit the same emails multiple times', () => {
@@ -349,7 +344,7 @@ describe('UnifyIntentAgent', () => {
           MOCK_EMAIL_INPUT_EMPTY,
           MOCK_TEXT_INPUT_WITH_NON_EMAIL,
         ]);
-        const agent = new UnifyIntentAgent(mockContext);
+        agent = new UnifyIntentAgent(mockContext);
         agent.startAutoIdentify();
 
         // No submitted emails before Enter
@@ -379,8 +374,6 @@ describe('UnifyIntentAgent', () => {
         // Verify emails not submitted again
         expect(agent.__getSubmittedEmails().size).toEqual(2);
         expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
-
-        agent.stopAutoIdentify();
       });
     });
 
@@ -395,26 +388,22 @@ describe('UnifyIntentAgent', () => {
         };
 
         it('does not log an identify event without email from the event data', () => {
-          const agent = new UnifyIntentAgent(mockContext);
+          agent = new UnifyIntentAgent(mockContext);
           agent.startAutoIdentify();
 
           defaultFormEvent.data.payload.email = null;
           window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
-
-          agent.stopAutoIdentify();
 
           expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
           expect(agent.__getSubmittedEmails().size).toEqual(0);
         });
 
         it('logs an identify event when email included in data', () => {
-          const agent = new UnifyIntentAgent(mockContext);
+          agent = new UnifyIntentAgent(mockContext);
           agent.startAutoIdentify();
 
           defaultFormEvent.data.payload.email = 'solomon@unifygtm.com';
           window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
-
-          agent.stopAutoIdentify();
 
           expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
           expect(agent.__getSubmittedEmails().size).toEqual(1);
@@ -439,21 +428,19 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('does not log an identify event without email from the event data', () => {
-          const agent = new UnifyIntentAgent(mockContext);
+          agent = new UnifyIntentAgent(mockContext);
           agent.startAutoIdentify();
 
           navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
             {};
           window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
 
-          agent.stopAutoIdentify();
-
           expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
           expect(agent.__getSubmittedEmails().size).toEqual(0);
         });
 
         it('logs an identify event when email included in data', () => {
-          const agent = new UnifyIntentAgent(mockContext);
+          agent = new UnifyIntentAgent(mockContext);
           agent.startAutoIdentify();
 
           navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
@@ -462,14 +449,12 @@ describe('UnifyIntentAgent', () => {
             };
           window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
 
-          agent.stopAutoIdentify();
-
           expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
           expect(agent.__getSubmittedEmails().size).toEqual(1);
         });
 
         it('prefers user email from FORM data source over others', () => {
-          const agent = new UnifyIntentAgent(mockContext);
+          agent = new UnifyIntentAgent(mockContext);
           agent.startAutoIdentify();
 
           navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
@@ -483,8 +468,6 @@ describe('UnifyIntentAgent', () => {
           };
           window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
 
-          agent.stopAutoIdentify();
-
           expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
           expect(agent.__getSubmittedEmails().size).toEqual(1);
           expect(
@@ -493,7 +476,7 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('gets user email from other sources if FORM not available', () => {
-          const agent = new UnifyIntentAgent(mockContext);
+          agent = new UnifyIntentAgent(mockContext);
           agent.startAutoIdentify();
 
           navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
@@ -504,8 +487,6 @@ describe('UnifyIntentAgent', () => {
             [NAVATTIC_USER_EMAIL_KEY]: 'solomon-enrichment@unifygtm.com',
           };
           window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
-
-          agent.stopAutoIdentify();
 
           expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
           expect(agent.__getSubmittedEmails().size).toEqual(1);
@@ -526,7 +507,7 @@ describe('UnifyIntentAgent', () => {
           });
 
           it('logs an identify event when email in properties', () => {
-            const agent = new UnifyIntentAgent(mockContext);
+            agent = new UnifyIntentAgent(mockContext);
             agent.startAutoIdentify();
 
             navatticDemoEvent.data.properties = [
@@ -542,8 +523,6 @@ describe('UnifyIntentAgent', () => {
               new MessageEvent('message', navatticDemoEvent),
             );
 
-            agent.stopAutoIdentify();
-
             expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
             expect(agent.__getSubmittedEmails().size).toEqual(1);
             expect(
@@ -552,15 +531,13 @@ describe('UnifyIntentAgent', () => {
           });
 
           it('does not log an identify event when email not in properties', () => {
-            const agent = new UnifyIntentAgent(mockContext);
+            agent = new UnifyIntentAgent(mockContext);
             agent.startAutoIdentify();
 
             navatticDemoEvent.data.properties = [];
             window.dispatchEvent(
               new MessageEvent('message', navatticDemoEvent),
             );
-
-            agent.stopAutoIdentify();
 
             expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(0);
             expect(agent.__getSubmittedEmails().size).toEqual(0);
@@ -571,28 +548,28 @@ describe('UnifyIntentAgent', () => {
   });
 
   describe('startAutoTrack', () => {
-    describe('auto-track buttons', () => {
+    describe('auto-track clicks', () => {
       beforeEach(() => {
         mockDocumentWithButton();
-        mockedIsActionableButton.mockReturnValue(false);
+        mockedIsActionableElement.mockReturnValue(false);
         mockedGetElementName.mockReturnValue(null);
       });
 
-      describe('when button is actionable', () => {
+      describe('when element is actionable', () => {
         beforeEach(() => {
-          mockedIsActionableButton.mockReturnValue(true);
+          mockedIsActionableElement.mockReturnValue(true);
         });
 
-        describe('when button has valid name', () => {
+        describe('when element has valid name', () => {
           beforeEach(() => {
             mockedGetElementName.mockReturnValue(MOCK_BUTTON_NAME);
           });
 
-          describe('when `trackButtonClicks` is `true`', () => {
-            it('tracks button clicks', () => {
-              const agent = new UnifyIntentAgent(
+          describe('when element matches selectors', () => {
+            it('tracks element clicks', () => {
+              agent = new UnifyIntentAgent(
                 MockUnifyIntentContext({
-                  autoTrackOptions: { trackButtonClicks: true },
+                  autoTrackOptions: { clickTrackingSelectors: ['button'] },
                 }),
               );
               agent.startAutoTrack();
@@ -600,18 +577,16 @@ describe('UnifyIntentAgent', () => {
               getTestButton()?.dispatchEvent(
                 new MouseEvent('click', { bubbles: true }),
               );
-
-              agent.stopAutoTrack();
 
               expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
             });
           });
 
-          describe('when `trackButtonClicks` is `false`', () => {
-            it('does not track button clicks', () => {
-              const agent = new UnifyIntentAgent(
+          describe('when element does not match selectors', () => {
+            it('does not track element clicks', () => {
+              agent = new UnifyIntentAgent(
                 MockUnifyIntentContext({
-                  autoTrackOptions: { trackButtonClicks: false },
+                  autoTrackOptions: { clickTrackingSelectors: [] },
                 }),
               );
               agent.startAutoTrack();
@@ -620,22 +595,38 @@ describe('UnifyIntentAgent', () => {
                 new MouseEvent('click', { bubbles: true }),
               );
 
-              agent.stopAutoTrack();
-
               expect(mockedTrackActivity.track).toHaveBeenCalledTimes(0);
+            });
+
+            it('tracks element clicks if element has click tracking attribute', () => {
+              mockDocumentWithButton({ label: 'Test', alwaysTrack: true });
+
+              agent = new UnifyIntentAgent(
+                MockUnifyIntentContext({
+                  autoTrackOptions: { clickTrackingSelectors: [] },
+                }),
+              );
+              agent.startAutoTrack();
+              expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+
+              getTestButton()?.dispatchEvent(
+                new MouseEvent('click', { bubbles: true }),
+              );
+
+              expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
             });
           });
         });
 
-        describe('when button does not have valid name', () => {
+        describe('when element does not have valid name', () => {
           beforeEach(() => {
             mockedGetElementName.mockReturnValue(null);
           });
 
-          it('does not track button clicks', () => {
-            const agent = new UnifyIntentAgent(
+          it('does not track element clicks', () => {
+            agent = new UnifyIntentAgent(
               MockUnifyIntentContext({
-                autoTrackOptions: { trackButtonClicks: true },
+                autoTrackOptions: { clickTrackingSelectors: ['button'] },
               }),
             );
             agent.startAutoTrack();
@@ -643,28 +634,26 @@ describe('UnifyIntentAgent', () => {
             getTestButton()?.dispatchEvent(
               new MouseEvent('click', { bubbles: true }),
             );
-
-            agent.stopAutoTrack();
 
             expect(mockedTrackActivity.track).toHaveBeenCalledTimes(0);
           });
         });
       });
 
-      describe('when button is not actionable', () => {
+      describe('when element is not actionable', () => {
         beforeEach(() => {
-          mockedIsActionableButton.mockReturnValue(false);
+          mockedIsActionableElement.mockReturnValue(false);
         });
 
-        describe('when button has valid name', () => {
+        describe('when element has valid name', () => {
           beforeEach(() => {
             mockedGetElementName.mockReturnValue(MOCK_BUTTON_NAME);
           });
 
-          it('does not track button clicks', () => {
-            const agent = new UnifyIntentAgent(
+          it('does not track element clicks', () => {
+            agent = new UnifyIntentAgent(
               MockUnifyIntentContext({
-                autoTrackOptions: { trackButtonClicks: true },
+                autoTrackOptions: { clickTrackingSelectors: ['button'] },
               }),
             );
             agent.startAutoTrack();
@@ -672,8 +661,6 @@ describe('UnifyIntentAgent', () => {
             getTestButton()?.dispatchEvent(
               new MouseEvent('click', { bubbles: true }),
             );
-
-            agent.stopAutoTrack();
 
             expect(mockedTrackActivity.track).toHaveBeenCalledTimes(0);
           });

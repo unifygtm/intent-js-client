@@ -51,16 +51,11 @@ export interface UnifyIntentContext {
  * e.g. button clicks.
  */
 export interface AutoTrackOptions {
-  /**
-   * Whether user button clicks should be auto-tracked. Includes `button`
-   * elements and other HTML elements with `role="button"`.
-   * @default false
-   */
-  trackButtonClicks?: boolean;
+  clickTrackingSelectors?: string[];
 }
 
 export enum UnifyStandardTrackEvent {
-  BUTTON_CLICKED = 'Button clicked',
+  ELEMENT_CLICKED = 'Element Clicked',
 }
 
 /**

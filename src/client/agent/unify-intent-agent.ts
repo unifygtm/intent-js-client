@@ -7,10 +7,12 @@ import { IdentifyActivity, PageActivity, TrackActivity } from '../activities';
 import { validateEmail } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
 import {
+  BUTTON_SELECTORS,
   DEFAULT_FORMS_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
   NAVATTIC_USER_EMAIL_KEY,
   NAVATTIC_USER_EMAIL_PROPERTY,
+  UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from './constants';
 import { DefaultEventData } from './types/default';
 import {
@@ -21,7 +23,7 @@ import {
 import {
   extractUnifyCapturePropertiesFromElement,
   getElementName,
-  isActionableButton,
+  isActionableElement,
   isDefaultFormEventData,
 } from './utils';
 
@@ -42,7 +44,7 @@ export class UnifyIntentAgent {
   private _historyMonitored: boolean = false;
   private _lastLocation?: Location;
 
-  private _isTrackingButtonClicks: boolean = false;
+  private _isTrackingClicks: boolean = false;
 
   constructor(intentContext: UnifyIntentContext) {
     this._intentContext = intentContext;
@@ -62,9 +64,7 @@ export class UnifyIntentAgent {
       this.startAutoIdentify();
     }
 
-    if (this._autoTrackOptions) {
-      this.startAutoTrack();
-    }
+    this.startAutoTrack();
   }
 
   /**
@@ -137,18 +137,14 @@ export class UnifyIntentAgent {
       this._autoTrackOptions = options;
     }
 
-    if (this._autoTrackOptions) {
-      if (this._autoTrackOptions.trackButtonClicks) {
-        this.startTrackingButtonClicks();
-      }
-    }
+    this.startTrackingClicks();
   };
 
   /**
    * Tells the Unify Intent Agent to stop continuously monitoring user actions.
    */
   public stopAutoTrack = () => {
-    this.stopTrackingButtonClicks();
+    this.stopTrackingClicks();
   };
 
   /**
@@ -203,20 +199,20 @@ export class UnifyIntentAgent {
    * Listens for click events in the Document and tracks them if they occurred
    * within an actionable button with a qualified label.
    */
-  private startTrackingButtonClicks = () => {
-    if (this._isTrackingButtonClicks) return;
+  private startTrackingClicks = () => {
+    if (this._isTrackingClicks) return;
 
     document.addEventListener('click', this.handleDocumentClick);
 
-    this._isTrackingButtonClicks = true;
+    this._isTrackingClicks = true;
   };
 
-  private stopTrackingButtonClicks = () => {
-    if (!this._isTrackingButtonClicks) return;
+  private stopTrackingClicks = () => {
+    if (!this._isTrackingClicks) return;
 
     document.removeEventListener('click', this.handleDocumentClick);
 
-    this._isTrackingButtonClicks = false;
+    this._isTrackingClicks = false;
   };
 
   private handleDocumentClick = (event: MouseEvent) => {
@@ -224,12 +220,16 @@ export class UnifyIntentAgent {
       const target = event.target as Element | null;
       if (!target) return;
 
-      const button = target.closest(
-        "button, [role='button'], input[type='button'], input[type='submit'], input[type='reset'], input[type='image']",
-      );
-      if (!button || !(button instanceof HTMLElement)) return;
+      const selectors = [
+        `[${UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME}]`,
+        ...(this._intentContext.clientConfig.autoTrackOptions
+          ?.clickTrackingSelectors ?? []),
+      ];
 
-      this.maybeTrackButtonClick(button);
+      const element = target.closest(selectors.join(', '));
+      if (!element || !(element instanceof HTMLElement)) return;
+
+      this.maybeTrackClick(element);
     } catch (error: unknown) {
       logUnifyError({
         message: `Error occurred in document click handler for auto-tracking: ${error}`,
@@ -432,19 +432,17 @@ export class UnifyIntentAgent {
     }
   };
 
-  private maybeTrackButtonClick = (button: HTMLElement) => {
-    if (!this._autoTrackOptions?.trackButtonClicks) return;
+  private maybeTrackClick = (element: HTMLElement) => {
+    if (!isActionableElement(element)) return;
 
-    if (!isActionableButton(button)) return;
+    const elementName = getElementName(element);
+    if (!elementName) return;
 
-    const buttonName = getElementName(button);
-    if (!buttonName) return;
-
-    const customProperties = extractUnifyCapturePropertiesFromElement(button);
+    const customProperties = extractUnifyCapturePropertiesFromElement(element);
 
     const trackActivity = new TrackActivity(this._intentContext, {
-      name: UnifyStandardTrackEvent.BUTTON_CLICKED,
-      properties: { ...customProperties, buttonName, wasAutoTracked: true },
+      name: UnifyStandardTrackEvent.ELEMENT_CLICKED,
+      properties: { ...customProperties, elementName, wasAutoTracked: true },
     });
     trackActivity.track();
   };
