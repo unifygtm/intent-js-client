@@ -1,7 +1,11 @@
 import { mock, mockReset } from 'jest-mock-extended';
 
 import { UnifyIntentClient } from '../../client';
-import { IdentifyActivity, PageActivity } from '../../client/activities';
+import {
+  IdentifyActivity,
+  PageActivity,
+  TrackActivity,
+} from '../../client/activities';
 import { IdentityManager, SessionManager } from '../../client/managers';
 import { UnifyIntentAgent } from '../../client/agent';
 import { TEST_WRITE_KEY } from '../mocks/data';
@@ -24,10 +28,12 @@ jest.mock('../../client/agent', () => ({
 
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
 const mockedPageActivity = mock(PageActivity.prototype);
+const mockedTrackActivity = mock(TrackActivity.prototype);
 jest.mock('../../client/activities', () => ({
   ...jest.requireActual('../../client/activities'),
   IdentifyActivity: jest.fn().mockImplementation(() => mockedIdentifyActivity),
   PageActivity: jest.fn().mockImplementation(() => mockedPageActivity),
+  TrackActivity: jest.fn().mockImplementation(() => mockedTrackActivity),
 }));
 
 describe('UnifyIntentClient', () => {
@@ -39,6 +45,7 @@ describe('UnifyIntentClient', () => {
     mockReset(mockedIntentAgent);
     mockReset(mockedPageActivity);
     mockReset(mockedIdentifyActivity);
+    mockReset(mockedTrackActivity);
   });
 
   it('clears methods in the queue', () => {
@@ -46,12 +53,15 @@ describe('UnifyIntentClient', () => {
     window.unify = [
       ['page', []],
       ['identify', ['solomon@unifygtm.com']],
+      ['track', ['Button clicked']],
     ];
     const unify = new UnifyIntentClient(TEST_WRITE_KEY);
     unify.mount();
 
     expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
     expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+    expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+
     expect(isIntentClient(window.unify)).toBeTruthy();
     expect(isIntentClient(window.unifyBrowser)).toBeTruthy();
 
@@ -64,19 +74,22 @@ describe('UnifyIntentClient', () => {
     window.unifyBrowser = [
       ['page', []],
       ['identify', ['solomon@unifygtm.com']],
+      ['track', ['Button clicked', { property: 'test' }]],
     ];
     const unify = new UnifyIntentClient(TEST_WRITE_KEY);
     unify.mount();
 
     expect(mockedPageActivity.track).toHaveBeenCalledTimes(1);
     expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+    expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+
     expect(isIntentClient(window.unify)).toBeTruthy();
     expect(isIntentClient(window.unifyBrowser)).toBeTruthy();
 
     unify.unmount();
   });
 
-  it('initializes an anonymous user ID and client session', () => {
+  it('initializes a visitor ID and client session', () => {
     const unify = new UnifyIntentClient(TEST_WRITE_KEY);
     unify.mount();
 
@@ -121,6 +134,19 @@ describe('UnifyIntentClient', () => {
     });
   });
 
+  describe('track', () => {
+    it('creates a new TrackActivity and tracks it', () => {
+      const unify = new UnifyIntentClient(TEST_WRITE_KEY);
+      unify.mount();
+
+      expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+      unify.track('Button clicked');
+      expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+
+      unify.unmount();
+    });
+  });
+
   describe('startAutoIdentify', () => {
     it('tells the Unify Intent Agent to start auto-identification', () => {
       const unify = new UnifyIntentClient(TEST_WRITE_KEY);
@@ -149,19 +175,50 @@ describe('UnifyIntentClient', () => {
     });
   });
 
+  describe('startAutoTrack', () => {
+    it('tells the Unify Intent Agent to start auto-tracking', () => {
+      const unify = new UnifyIntentClient(TEST_WRITE_KEY);
+      unify.mount();
+
+      expect(mockedIntentAgent.startAutoTrack).not.toHaveBeenCalled();
+      unify.startAutoTrack({ trackButtonClicks: true });
+      expect(mockedIntentAgent.startAutoTrack).toHaveBeenCalledTimes(1);
+
+      unify.unmount();
+    });
+  });
+
+  describe('stopAutoTrack', () => {
+    it('tells the Unify Intent Agent to stop auto-tracking', () => {
+      const unify = new UnifyIntentClient(TEST_WRITE_KEY, {
+        autoTrackOptions: { trackButtonClicks: true },
+      });
+      unify.mount();
+
+      expect(mockedIntentAgent.stopAutoTrack).not.toHaveBeenCalled();
+      unify.stopAutoTrack();
+      expect(mockedIntentAgent.stopAutoTrack).toHaveBeenCalledTimes(1);
+
+      unify.unmount();
+    });
+  });
+
   describe('unmount', () => {
     it('cleans up Unify intent agent', () => {
       const unify = new UnifyIntentClient(TEST_WRITE_KEY, {
         autoPage: true,
         autoIdentify: true,
+        autoTrackOptions: { trackButtonClicks: true },
       });
       unify.mount();
 
       expect(mockedIntentAgent.stopAutoPage).not.toHaveBeenCalled();
       expect(mockedIntentAgent.stopAutoIdentify).not.toHaveBeenCalled();
+      expect(mockedIntentAgent.stopAutoTrack).not.toHaveBeenCalled();
       unify.unmount();
       expect(mockedIntentAgent.stopAutoPage).toHaveBeenCalledTimes(1);
       expect(mockedIntentAgent.stopAutoIdentify).toHaveBeenCalledTimes(1);
+      expect(mockedIntentAgent.stopAutoTrack).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -1,18 +1,18 @@
 import {
   AnalyticsEventBase,
+  AutoTrackOptions,
   PageEventOptions,
   TrackEventData,
   UnifyIntentClientConfig,
   UnifyIntentContext,
 } from '../types';
-import { IdentifyActivity, PageActivity } from './activities';
+import { IdentifyActivity, PageActivity, TrackActivity } from './activities';
 import { IdentityManager, SessionManager } from './managers';
 import UnifyApiClient from './unify-api-client';
 import { UnifyIntentAgent } from './agent';
 import { isIntentClient, validateEmail } from './utils/helpers';
 import { logUnifyError } from './utils/logging';
 import { DEFAULT_SESSION_MINUTES_TO_EXPIRE } from './constants';
-import { TrackActivity } from './activities/track';
 
 declare global {
   interface Window {
@@ -88,7 +88,11 @@ export default class UnifyIntentClient {
     };
 
     // Initialize intent agent if specifed by config
-    if (this._config.autoPage || this._config.autoIdentify) {
+    if (
+      this._config.autoPage ||
+      this._config.autoIdentify ||
+      this._config.autoTrackOptions
+    ) {
       this._intentAgent = new UnifyIntentAgent(this._context);
     }
 
@@ -121,6 +125,10 @@ export default class UnifyIntentClient {
 
     if (this._config.autoIdentify) {
       this.stopAutoIdentify();
+    }
+
+    if (this._config.autoTrackOptions) {
+      this.stopAutoTrack();
     }
 
     this._mounted = false;
@@ -215,7 +223,7 @@ export default class UnifyIntentClient {
    */
   public track = (
     name: string,
-    properties: TrackEventData['properties'],
+    properties?: TrackEventData['properties'],
   ): void => {
     if (!this._mounted) return;
 
@@ -299,6 +307,42 @@ export default class UnifyIntentClient {
     if (!this._mounted) return;
 
     this._intentAgent?.stopAutoIdentify();
+  };
+
+  /**
+   * This function will instantiate an agent which continuously monitors
+   * user actions on the page to automatically fire track events for them.
+   *
+   * The corresponding `stopAutoTrack` can be used to temporarily
+   * stop the continuous monitoring.
+   *
+   * @param options - auto-track options to use. If `undefined`, the previously
+   *        specified auto-track options will be re-used.
+   */
+  public startAutoTrack = (options?: AutoTrackOptions) => {
+    if (!this._mounted) return;
+
+    if (options) {
+      this._config.autoTrackOptions = options;
+    }
+
+    if (!this._intentAgent) {
+      this._intentAgent = new UnifyIntentAgent(this._context);
+    }
+
+    this._intentAgent.startAutoTrack(options);
+  };
+
+  /**
+   * If continuous user action monitoring was previously enabled, this function
+   * is used to halt the monitoring.
+   *
+   * The corresponding `startAutoTrack` can be used to start it again.
+   */
+  public stopAutoTrack = () => {
+    if (!this._mounted) return;
+
+    this._intentAgent?.stopAutoTrack();
   };
 }
 

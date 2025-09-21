@@ -31,6 +31,9 @@ export const initBrowser = function () {
   new UnifyIntentClient(writeKey, {
     autoPage: true,
     autoIdentify: true,
+    autoTrackOptions: {
+      trackButtonClicks: true,
+    },
   }).mount();
 };
 

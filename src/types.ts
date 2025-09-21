@@ -21,6 +21,15 @@ export interface UnifyIntentClientConfig {
   autoIdentify?: boolean;
 
   /**
+   * These options can be specified to indicate that the Unify client
+   * should instantiate an agent which listens for common user actions
+   * such as button clicks and fires track events for these actions
+   * automatically.
+   * @default undefined
+   */
+  autoTrackOptions?: AutoTrackOptions;
+
+  /**
    * The amount of time in minutes that user sessions will persist even when
    * no activities are tracked for the user. Activities which update the
    * expiration time of sessions are `page`, `identify`, and `track` activities.
@@ -35,6 +44,23 @@ export interface UnifyIntentContext {
   apiClient: UnifyApiClient;
   sessionManager: SessionManager;
   identityManager: IdentityManager;
+}
+
+/**
+ * Options which can be used to automatically track common user actions,
+ * e.g. button clicks.
+ */
+export interface AutoTrackOptions {
+  /**
+   * Whether user button clicks should be auto-tracked. Includes `button`
+   * elements and other HTML elements with `role="button"`.
+   * @default false
+   */
+  trackButtonClicks?: boolean;
+}
+
+export enum UnifyStandardTrackEvent {
+  BUTTON_CLICKED = 'Button clicked',
 }
 
 /**
@@ -61,7 +87,7 @@ export interface UserAgentDataType {
 }
 
 // Export types from the OpenAPI spec
-export type ActivityContext = components['schemas']['ActivityContext'];
+export type ActivityContext = components['schemas']['EventContext'];
 export type AnalyticsEventType = components['schemas']['AnalyticsEventType'];
 export type AnalyticsEventBase = components['schemas']['AnalyticsEventBase'];
 export type CampaignParams = components['schemas']['CampaignParams'];
@@ -82,4 +108,4 @@ export type TrackEventData = Omit<
 >;
 export type PageProperties = components['schemas']['PageProperties'];
 export type Traits = components['schemas']['Traits'];
-export type UCountryCode = components['schemas']['UCountryCode'];
+export type UCountryCode = components['schemas']['UValues.UCountryCode'];

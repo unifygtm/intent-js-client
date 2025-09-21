@@ -7,11 +7,15 @@
 export interface paths {
   "/identify": {
     /** @description Send an "identify" event. */
-    post: operations["Identify_sendIdentify"];
+    post: operations["send_identify_event"];
   };
   "/page": {
     /** @description Send a "page" event. */
-    post: operations["Page_sendPage"];
+    post: operations["send_page_event"];
+  };
+  "/track": {
+    /** @description Send a "track" event. */
+    post: operations["send_track_event"];
   };
 }
 
@@ -19,65 +23,30 @@ export type webhooks = Record<string, never>;
 
 export interface components {
   schemas: {
-    /** @description Contextual information about the user who "produced" the event. */
-    ActivityContext: {
-      /** @description Name and version of the library used to send the activity. */
-      library?: {
-        name?: string;
-        version?: string;
-      };
-      /** @description IP address for the user who performed the activity. */
-      ip?: components["schemas"]["ipv4"] | components["schemas"]["ipv6"];
-      /** @description Locale string for the user who performed the activity. */
-      locale?: string;
-      /** @description User agent string for the device. */
-      userAgent?: string;
-      /** @description User agent data for the device. */
-      userAgentData?: {
-        brands?: {
-            brand?: string;
-            version?: string;
-          }[];
-        mobile?: boolean;
-        platform?: string;
-      };
-      /** @description Marketing campaign information. */
-      utm?: components["schemas"]["CampaignParams"];
-    };
     /** @description Properties that all analytics events share. */
     AnalyticsEventBase: {
-      /** @description Type of analytics event being sent. */
+      /** @description The type of analytics event being sent. */
       type: components["schemas"]["AnalyticsEventType"];
-      /** @description Persistent identifier (e.g., database ID) for the user. */
-      userId?: string;
-      /** @description Identifier for the user when a persistent ID is not available. */
-      anonymousUserId: string;
-      /** @description Unique identifier for the user session. */
+      /** @description Unique identifier for the visitor that triggered this event. */
+      visitorId: string;
+      /** @description Unique identifier for the session in which this event occurred. */
       sessionId: string;
       /**
        * Format: date-time
-       * @description Event timestamp of the activity.
+       * @description Timestamp of the event (in UTC).
        */
       timestamp: string;
       /**
        * Format: date-time
-       * @description Timestamp at which the request is sent.
+       * @description Timestamp at which the request is sent (in UTC).
        *
        * Typically, this value is nearly identical to `timestamp`. However in some
-       * situations there is latency between when the activity occurs and when it
-       * is sent to Unify.
+       * situations there is latency between when the event occurs and when it is
+       * sent to Unify.
        */
       sentAt?: string;
-      /** @description Contextual information about the user behind the activity. */
-      context: components["schemas"]["ActivityContext"];
-      /**
-       * @deprecated
-       * @description Fingerprint information attached to the request.
-       */
-      fingerprint?: {
-        visitorId?: string;
-        requestId?: string;
-      };
+      /** @description Contextual information about the client behind the event. */
+      context: components["schemas"]["EventContext"];
     };
     /**
      * @description Event type supported by the analytics API.
@@ -97,109 +66,176 @@ export interface components {
       /** @description Content of the campaign. */
       content?: string;
     };
-    /** @description Identify event. */
+    CreateOrUpdateUCompanyAttributes: {
+      /** @description Physical address of the company. */
+      address?: components["schemas"]["UValues.UAddress"];
+      /** @description Corporate phone number of the company. */
+      corporate_phone?: components["schemas"]["UValues.UPhoneNumber"];
+      /** @description Description of the company. */
+      description?: components["schemas"]["UValues.UText"];
+      /** @description Whether contacting this company is disallowed. */
+      do_not_contact?: components["schemas"]["UValues.UBoolean"];
+      /** @description Website domain of the company. */
+      domain: components["schemas"]["UValues.UUrl"];
+      /** @description Estimated employee count of the company. */
+      employee_count?: components["schemas"]["UValues.UInteger"];
+      /** @description Date when the company was founded. */
+      founded?: components["schemas"]["UValues.UDate"];
+      /** @description Industry the company operates in. */
+      industry?: components["schemas"]["UValues.UText"];
+      /** @description Source of the company record. */
+      lead_source?: components["schemas"]["UValues.UText"];
+      /**
+       * @description LinkedIn profile of the company.
+       *
+       * This is the full URL of the LinkedIn profile of the company. The value will
+       * always be standardized with an HTTPS prefix, "www" subdomain, and trailing
+       * slash.
+       */
+      linkedin_url?: components["schemas"]["UValues.UText"];
+      /** @description Name of the company. */
+      name?: components["schemas"]["UValues.UText"];
+      /** @description The user that owns the company record. */
+      record_owner?: components["schemas"]["UValues.UReference"];
+      /** @description Estimated revenue of the company. */
+      revenue?: components["schemas"]["UValues.UCurrency"];
+      /** @description Status of the company. */
+      status?: components["schemas"]["UValues.UText"];
+      /** @description Time zone the company is located in. */
+      time_zone?: components["schemas"]["UValues.UText"];
+    };
+    CreateOrUpdateUPersonAttributes: {
+      /** @description Physical address of the person. */
+      address?: components["schemas"]["UValues.UAddress"];
+      /** @description Corporate phone number of the person. */
+      corporate_phone?: components["schemas"]["UValues.UPhoneNumber"];
+      /** @description Whether calling this person is disallowed. */
+      do_not_call?: components["schemas"]["UValues.UBoolean"];
+      /** @description Whether emailing this person is disallowed. */
+      do_not_email?: components["schemas"]["UValues.UBoolean"];
+      /** @description Email address of the person. */
+      email: components["schemas"]["UValues.UEmail"];
+      /** @description Whether the person has opted out of email communications. */
+      email_opt_out?: components["schemas"]["UValues.UBoolean"];
+      /** @description Whether this person is a resident of the European Union. */
+      eu_resident?: components["schemas"]["UValues.UBoolean"];
+      /** @description First name of the person. */
+      first_name?: components["schemas"]["UValues.UText"];
+      /** @description Last name of the person. */
+      last_name?: components["schemas"]["UValues.UText"];
+      /** @description Source of the person record. */
+      lead_source?: components["schemas"]["UValues.UText"];
+      /**
+       * @description LinkedIn profile of the person.
+       *
+       * This is the full URL of the LinkedIn profile of the person. The value
+       * will always be standardized with an HTTPS prefix, "www" subdomain, and
+       * trailing slash.
+       */
+      linkedin_url?: components["schemas"]["UValues.UText"];
+      /** @description Mobile phone number of the person. */
+      mobile_phone?: components["schemas"]["UValues.UPhoneNumber"];
+      /** @description The user that owns the person record. */
+      record_owner?: components["schemas"]["UValues.UReference"];
+      /** @description Status of the person. */
+      status?: components["schemas"]["UValues.UText"];
+      /** @description Job title of the person. */
+      title?: components["schemas"]["UValues.UText"];
+      /** @description Work phone number of the person. */
+      work_phone?: components["schemas"]["UValues.UPhoneNumber"];
+    };
+    /** @description Contextual client information attached to an analytics event. */
+    EventContext: {
+      /** @description Name and version of the library used to send the event. */
+      library?: {
+        name?: string;
+        version?: string;
+      };
+      /** @description IP address for the client that triggered the event. */
+      ip?: components["schemas"]["ipv4"] | components["schemas"]["ipv6"];
+      /** @description Locale string for the client that triggered the event. */
+      locale?: string;
+      /** @description User agent string for the device. */
+      userAgent?: string;
+      /** @description User agent data for the device. */
+      userAgentData?: {
+        brands?: {
+            brand?: string;
+            version?: string;
+          }[];
+        mobile?: boolean;
+        platform?: string;
+      };
+      /** @description Marketing campaign information. */
+      utm?: components["schemas"]["CampaignParams"];
+    };
+    /** @description An identify event is used to send information about a visitor. */
     IdentifyEvent: {
       /**
-       * @description Type of analytics event being sent.
+       * @description The type of analytics event being sent.
        * @enum {string}
        */
       type: "identify";
-      /** @description Persistent identifier (e.g., database ID) for the user. */
-      userId?: string;
-      /** @description Identifier for the user when a persistent ID is not available. */
-      anonymousUserId: string;
-      /** @description Unique identifier for the user session. */
+      /** @description Unique identifier for the visitor that triggered this event. */
+      visitorId: string;
+      /** @description Unique identifier for the session in which this event occurred. */
       sessionId: string;
       /**
        * Format: date-time
-       * @description Event timestamp of the activity.
+       * @description Timestamp of the event (in UTC).
        */
       timestamp: string;
       /**
        * Format: date-time
-       * @description Timestamp at which the request is sent.
+       * @description Timestamp at which the request is sent (in UTC).
        *
        * Typically, this value is nearly identical to `timestamp`. However in some
-       * situations there is latency between when the activity occurs and when it
-       * is sent to Unify.
+       * situations there is latency between when the event occurs and when it is
+       * sent to Unify.
        */
       sentAt?: string;
-      /** @description Contextual information about the user behind the activity. */
-      context: components["schemas"]["ActivityContext"];
-      /**
-       * @deprecated
-       * @description Fingerprint information attached to the request.
-       */
-      fingerprint?: {
-        visitorId?: string;
-        requestId?: string;
-      };
+      /** @description Contextual information about the client behind the event. */
+      context: components["schemas"]["EventContext"];
       /** @deprecated */
       traits: components["schemas"]["Traits"];
       /** @description Information about the company associated with the visitor. */
-      company?: {
-        /** @description Name of the company. */
-        name?: string;
-        /** @description Website domain of the company. */
-        domain: string;
-        /** @description Physical address of the company. */
-        address?: components["schemas"]["UTypes.UAddress"];
-      };
+      company?: components["schemas"]["CreateOrUpdateUCompanyAttributes"];
       /** @description Information about the person associated with the visitor. */
-      person?: {
-        /** @description Email address of the person. */
-        email: string;
-        /** @description Physical address of the person. */
-        address?: components["schemas"]["UTypes.UAddress"];
-        /** @description First name of the person. */
-        firstName?: string;
-        /** @description Last name of the person. */
-        lastName?: string;
-      };
+      person?: components["schemas"]["CreateOrUpdateUPersonAttributes"];
     };
-    /** @description Page view event. */
+    /** @description A page view event represents a client visiting a page on a website. */
     PageEvent: {
       /**
-       * @description Type of analytics event being sent.
+       * @description The type of analytics event being sent.
        * @enum {string}
        */
       type: "page";
-      /** @description Persistent identifier (e.g., database ID) for the user. */
-      userId?: string;
-      /** @description Identifier for the user when a persistent ID is not available. */
-      anonymousUserId: string;
-      /** @description Unique identifier for the user session. */
+      /** @description Unique identifier for the visitor that triggered this event. */
+      visitorId: string;
+      /** @description Unique identifier for the session in which this event occurred. */
       sessionId: string;
       /**
        * Format: date-time
-       * @description Event timestamp of the activity.
+       * @description Timestamp of the event (in UTC).
        */
       timestamp: string;
       /**
        * Format: date-time
-       * @description Timestamp at which the request is sent.
+       * @description Timestamp at which the request is sent (in UTC).
        *
        * Typically, this value is nearly identical to `timestamp`. However in some
-       * situations there is latency between when the activity occurs and when it
-       * is sent to Unify.
+       * situations there is latency between when the event occurs and when it is
+       * sent to Unify.
        */
       sentAt?: string;
-      /** @description Contextual information about the user behind the activity. */
-      context: components["schemas"]["ActivityContext"];
-      /**
-       * @deprecated
-       * @description Fingerprint information attached to the request.
-       */
-      fingerprint?: {
-        visitorId?: string;
-        requestId?: string;
-      };
+      /** @description Contextual information about the client behind the event. */
+      context: components["schemas"]["EventContext"];
       /** @description Name of the page that was viewed. */
       name?: string;
       /** @description Details about the page that was viewed. */
       properties?: components["schemas"]["PageProperties"];
     };
-    /** @description Details about a page included in a `/page` request. */
+    /** @description Details about a page included in a page request. */
     PageProperties: {
       /** @description Path of the page (equivalent to `location.pathname`). */
       path?: string;
@@ -214,91 +250,53 @@ export interface components {
       /** @description URL of the page (equivalent to `location.href`). */
       url?: string;
     };
-    /** @description Track event. */
+    /** @description A track event represents a custom action or activity performed by a visitor. */
     TrackEvent: {
       /**
-       * @description Type of analytics event being sent.
+       * @description The type of analytics event being sent.
        * @enum {string}
        */
       type: "track";
-      /** @description Persistent identifier (e.g., database ID) for the user. */
-      userId?: string;
-      /** @description Identifier for the user when a persistent ID is not available. */
-      anonymousUserId: string;
-      /** @description Unique identifier for the user session. */
+      /** @description Unique identifier for the visitor that triggered this event. */
+      visitorId: string;
+      /** @description Unique identifier for the session in which this event occurred. */
       sessionId: string;
       /**
        * Format: date-time
-       * @description Event timestamp of the activity.
+       * @description Timestamp of the event (in UTC).
        */
       timestamp: string;
       /**
        * Format: date-time
-       * @description Timestamp at which the request is sent.
+       * @description Timestamp at which the request is sent (in UTC).
        *
        * Typically, this value is nearly identical to `timestamp`. However in some
-       * situations there is latency between when the activity occurs and when it
-       * is sent to Unify.
+       * situations there is latency between when the event occurs and when it is
+       * sent to Unify.
        */
       sentAt?: string;
-      /** @description Contextual information about the user behind the activity. */
-      context: components["schemas"]["ActivityContext"];
-      /**
-       * @deprecated
-       * @description Fingerprint information attached to the request.
-       */
-      fingerprint?: {
-        visitorId?: string;
-        requestId?: string;
-      };
+      /** @description Contextual information about the client behind the event. */
+      context: components["schemas"]["EventContext"];
+      /** @description Name of the event that was tracked. */
       name: string;
-      properties?: {
-        [key: string]: unknown;
+      /** @description Details about the event that was tracked. */
+      properties?: components["schemas"]["TrackProperties"];
+    };
+    /** @description Details about an event included in a track request. */
+    TrackProperties: {
+      /** @description Path of the page (equivalent to `location.pathname`). */
+      path?: string;
+      /** @description Query string parameters (equivalent to `location.search`). */
+      query?: {
+        [key: string]: string;
       };
-      /** @description Information about the company associated with the visitor. */
-      company?: {
-        /** @description Unique identifier for the record. */
-        id: components["schemas"]["uuid"];
-        /**
-         * Format: date-time
-         * @description Date and time the record was created.
-         */
-        createdAt: string;
-        /**
-         * Format: date-time
-         * @description Date and time the record was last updated.
-         */
-        updatedAt: string;
-        /** @description Name of the company. */
-        name?: string;
-        /** @description Website domain of the company. */
-        domain: string;
-        /** @description Physical address of the company. */
-        address?: components["schemas"]["UTypes.UAddress"];
-      };
-      /** @description Information about the person associated with the visitor. */
-      person?: {
-        /** @description Unique identifier for the record. */
-        id: components["schemas"]["uuid"];
-        /**
-         * Format: date-time
-         * @description Date and time the record was created.
-         */
-        createdAt: string;
-        /**
-         * Format: date-time
-         * @description Date and time the record was last updated.
-         */
-        updatedAt: string;
-        /** @description Email address of the person. */
-        email: string;
-        /** @description Physical address of the person. */
-        address?: components["schemas"]["UTypes.UAddress"];
-        /** @description First name of the person. */
-        firstName?: string;
-        /** @description Last name of the person. */
-        lastName?: string;
-      };
+      /** @description Referrer page's full URL (equivalent to `document.referrer`). */
+      referrer?: string;
+      /** @description Page title (equivalent to `document.title`). */
+      title?: string;
+      /** @description URL of the page (equivalent to `location.href`). */
+      url?: string;
+      [key: string]: unknown;
     };
     /** @description Traits for the identify request payload. */
     Traits: {
@@ -306,14 +304,12 @@ export interface components {
       email: string;
     };
     /**
-     * @description ISO 3166-1 alpha-2 country code.
-     * @enum {string}
+     * UAddress
+     * @description Composite object representing a physical address.
      */
-    UCountryCode: "AD" | "AE" | "AF" | "AG" | "AI" | "AL" | "AM" | "AO" | "AQ" | "AR" | "AS" | "AT" | "AU" | "AW" | "AX" | "AZ" | "BA" | "BB" | "BD" | "BE" | "BF" | "BG" | "BH" | "BI" | "BJ" | "BL" | "BM" | "BN" | "BO" | "BQ" | "BR" | "BS" | "BT" | "BV" | "BW" | "BY" | "BZ" | "CA" | "CC" | "CD" | "CF" | "CG" | "CH" | "CI" | "CK" | "CL" | "CM" | "CN" | "CO" | "CR" | "CU" | "CV" | "CW" | "CX" | "CY" | "CZ" | "DE" | "DJ" | "DK" | "DM" | "DO" | "DZ" | "EC" | "EE" | "EG" | "EH" | "ER" | "ES" | "ET" | "FI" | "FJ" | "FK" | "FM" | "FO" | "FR" | "GA" | "GB" | "GD" | "GE" | "GF" | "GG" | "GH" | "GI" | "GL" | "GM" | "GN" | "GP" | "GQ" | "GR" | "GS" | "GT" | "GU" | "GW" | "GY" | "HK" | "HM" | "HN" | "HR" | "HT" | "HU" | "ID" | "IE" | "IL" | "IM" | "IN" | "IO" | "IQ" | "IR" | "IS" | "IT" | "JE" | "JM" | "JO" | "JP" | "KE" | "KG" | "KH" | "KI" | "KM" | "KN" | "KP" | "KR" | "KW" | "KY" | "KZ" | "LA" | "LB" | "LC" | "LI" | "LK" | "LR" | "LS" | "LT" | "LU" | "LV" | "LY" | "MA" | "MC" | "MD" | "ME" | "MF" | "MG" | "MH" | "MK" | "ML" | "MM" | "MN" | "MO" | "MP" | "MQ" | "MR" | "MS" | "MT" | "MU" | "MV" | "MW" | "MX" | "MY" | "MZ" | "NA" | "NC" | "NE" | "NF" | "NG" | "NI" | "NL" | "NO" | "NP" | "NR" | "NU" | "NZ" | "OM" | "PA" | "PE" | "PF" | "PG" | "PH" | "PK" | "PL" | "PM" | "PN" | "PR" | "PS" | "PT" | "PW" | "PY" | "QA" | "RE" | "RO" | "RS" | "RU" | "RW" | "SA" | "SB" | "SC" | "SD" | "SE" | "SG" | "SH" | "SI" | "SJ" | "SK" | "SL" | "SM" | "SN" | "SO" | "SR" | "SS" | "ST" | "SV" | "SX" | "SY" | "SZ" | "TC" | "TD" | "TF" | "TG" | "TH" | "TJ" | "TK" | "TL" | "TM" | "TN" | "TO" | "TR" | "TT" | "TV" | "TW" | "TZ" | "UA" | "UG" | "UM" | "US" | "UY" | "UZ" | "VA" | "VC" | "VE" | "VG" | "VI" | "VN" | "VU" | "WF" | "WS" | "XK" | "YE" | "YT" | "ZA" | "ZM" | "ZW";
-    /** @description Composite object representing a physical address. */
-    "UTypes.UAddress": {
+    "UValues.UAddress": {
       /** @description Country code in ISO 3166-1 alpha-2 format. */
-      country?: components["schemas"]["UCountryCode"];
+      country?: components["schemas"]["UValues.UCountry"];
       /** @description State, province, region, or territory. */
       administrativeArea?: string;
       /** @description County or other secondary governmental division of an administrative area. */
@@ -331,6 +327,90 @@ export interface components {
       /** @description Apartment, suite, office number, or other secondary unit designator. */
       subPremise?: string;
     };
+    /**
+     * UBoolean
+     * @description Boolean value.
+     */
+    "UValues.UBoolean": boolean;
+    /**
+     * UCountry
+     * @description Composite object representing a country.
+     */
+    "UValues.UCountry": {
+      /** @description Country code. */
+      code: components["schemas"]["UValues.UCountryCode"];
+      /** @description Country name. */
+      name: string;
+    };
+    /**
+     * UCountryCode
+     * @description ISO 3166-1 alpha-2 country code.
+     * @enum {string}
+     */
+    "UValues.UCountryCode": "AD" | "AE" | "AF" | "AG" | "AI" | "AL" | "AM" | "AO" | "AQ" | "AR" | "AS" | "AT" | "AU" | "AW" | "AX" | "AZ" | "BA" | "BB" | "BD" | "BE" | "BF" | "BG" | "BH" | "BI" | "BJ" | "BL" | "BM" | "BN" | "BO" | "BQ" | "BR" | "BS" | "BT" | "BV" | "BW" | "BY" | "BZ" | "CA" | "CC" | "CD" | "CF" | "CG" | "CH" | "CI" | "CK" | "CL" | "CM" | "CN" | "CO" | "CR" | "CU" | "CV" | "CW" | "CX" | "CY" | "CZ" | "DE" | "DJ" | "DK" | "DM" | "DO" | "DZ" | "EC" | "EE" | "EG" | "EH" | "ER" | "ES" | "ET" | "FI" | "FJ" | "FK" | "FM" | "FO" | "FR" | "GA" | "GB" | "GD" | "GE" | "GF" | "GG" | "GH" | "GI" | "GL" | "GM" | "GN" | "GP" | "GQ" | "GR" | "GS" | "GT" | "GU" | "GW" | "GY" | "HK" | "HM" | "HN" | "HR" | "HT" | "HU" | "ID" | "IE" | "IL" | "IM" | "IN" | "IO" | "IQ" | "IR" | "IS" | "IT" | "JE" | "JM" | "JO" | "JP" | "KE" | "KG" | "KH" | "KI" | "KM" | "KN" | "KP" | "KR" | "KW" | "KY" | "KZ" | "LA" | "LB" | "LC" | "LI" | "LK" | "LR" | "LS" | "LT" | "LU" | "LV" | "LY" | "MA" | "MC" | "MD" | "ME" | "MF" | "MG" | "MH" | "MK" | "ML" | "MM" | "MN" | "MO" | "MP" | "MQ" | "MR" | "MS" | "MT" | "MU" | "MV" | "MW" | "MX" | "MY" | "MZ" | "NA" | "NC" | "NE" | "NF" | "NG" | "NI" | "NL" | "NO" | "NP" | "NR" | "NU" | "NZ" | "OM" | "PA" | "PE" | "PF" | "PG" | "PH" | "PK" | "PL" | "PM" | "PN" | "PR" | "PS" | "PT" | "PW" | "PY" | "QA" | "RE" | "RO" | "RS" | "RU" | "RW" | "SA" | "SB" | "SC" | "SD" | "SE" | "SG" | "SH" | "SI" | "SJ" | "SK" | "SL" | "SM" | "SN" | "SO" | "SR" | "SS" | "ST" | "SV" | "SX" | "SY" | "SZ" | "TC" | "TD" | "TF" | "TG" | "TH" | "TJ" | "TK" | "TL" | "TM" | "TN" | "TO" | "TR" | "TT" | "TV" | "TW" | "TZ" | "UA" | "UG" | "UM" | "US" | "UY" | "UZ" | "VA" | "VC" | "VE" | "VG" | "VI" | "VN" | "VU" | "WF" | "WS" | "XK" | "YE" | "YT" | "ZA" | "ZM" | "ZW";
+    /**
+     * UCurrency
+     * @description Composite object representing a currency value.
+     */
+    "UValues.UCurrency": {
+      /** @description Currency code. */
+      code: components["schemas"]["UValues.UCurrencyCode"];
+      /**
+       * Format: decimal
+       * @description Currency value.
+       */
+      value: number;
+    };
+    /**
+     * UCurrencyCode
+     * @description ISO 4217 currency code.
+     * @enum {string}
+     */
+    "UValues.UCurrencyCode": "AED" | "AFN" | "ALL" | "AMD" | "ANG" | "AOA" | "ARS" | "AUD" | "AWG" | "AZN" | "BAM" | "BBD" | "BDT" | "BGN" | "BHD" | "BIF" | "BMD" | "BND" | "BOB" | "BOV" | "BRL" | "BSD" | "BTN" | "BWP" | "BYR" | "BZD" | "CAD" | "CDF" | "CHE" | "CHF" | "CHW" | "CLF" | "CLP" | "CNY" | "COP" | "COU" | "CRC" | "CUC" | "CUP" | "CVE" | "CZK" | "DJF" | "DKK" | "DOP" | "DZD" | "EGP" | "ERN" | "ETB" | "EUR" | "FJD" | "FKP" | "GBP" | "GEL" | "GHS" | "GIP" | "GMD" | "GNF" | "GTQ" | "GYD" | "HKD" | "HNL" | "HRK" | "HTG" | "HUF" | "IDR" | "ILS" | "INR" | "IQD" | "IRR" | "ISK" | "JMD" | "JOD" | "JPY" | "KES" | "KGS" | "KHR" | "KMF" | "KPW" | "KRW" | "KWD" | "KYD" | "KZT" | "LAK" | "LBP" | "LKR" | "LRD" | "LSL" | "LTL" | "LVL" | "LYD" | "MAD" | "MDL" | "MGA" | "MKD" | "MMK" | "MNT" | "MOP" | "MRO" | "MUR" | "MVR" | "MWK" | "MXN" | "MXV" | "MYR" | "MZN" | "NAD" | "NGN" | "NIO" | "NOK" | "NPR" | "NZD" | "OMR" | "PAB" | "PEN" | "PGK" | "PHP" | "PKR" | "PLN" | "PYG" | "QAR" | "RON" | "RSD" | "RUB" | "RWF" | "SAR" | "SBD" | "SCR" | "SDG" | "SEK" | "SGD" | "SHP" | "SLL" | "SOS" | "SRD" | "SSP" | "STD" | "SYP" | "SZL" | "THB" | "TJS" | "TMT" | "TND" | "TOP" | "TRY" | "TTD" | "TWD" | "TZS" | "UAH" | "UGX" | "USD" | "USN" | "USS" | "UYI" | "UYU" | "UZS" | "VEF" | "VND" | "VUV" | "WST" | "XAF" | "XAG" | "XAU" | "XBA" | "XBB" | "XBC" | "XBD" | "XCD" | "XDR" | "XOF" | "XPD" | "XPF" | "XPT" | "XTS" | "XXX" | "YER" | "ZAR" | "ZMW";
+    /**
+     * UDate
+     * @description String value representing a date.
+     */
+    "UValues.UDate": string;
+    /**
+     * UEmail
+     * Format: email
+     * @description String value representing an email address.
+     */
+    "UValues.UEmail": string;
+    /**
+     * UInteger
+     * @description Integer value.
+     */
+    "UValues.UInteger": number;
+    /**
+     * UPhoneNumber
+     * @description String value representing a phone number.
+     */
+    "UValues.UPhoneNumber": string;
+    /**
+     * UReference
+     * @description Composite object representing a reference to another object.
+     */
+    "UValues.UReference": {
+      /** @description Object type. */
+      object: string;
+      /**
+       * Format: uuid
+       * @description Object ID.
+       */
+      id: string;
+    };
+    /**
+     * UText
+     * @description String value.
+     */
+    "UValues.UText": string;
+    /**
+     * UUrl
+     * @description String value representing a web URL or internet domain.
+     */
+    "UValues.UUrl": string;
     /** Format: ipv4 */
     ipv4: string;
     /** Format: ipv6 */
@@ -352,7 +432,7 @@ export type external = Record<string, never>;
 export interface operations {
 
   /** @description Send an "identify" event. */
-  Identify_sendIdentify: {
+  send_identify_event: {
     requestBody: {
       content: {
         "application/json": components["schemas"]["IdentifyEvent"];
@@ -374,10 +454,32 @@ export interface operations {
     };
   };
   /** @description Send a "page" event. */
-  Page_sendPage: {
+  send_page_event: {
     requestBody: {
       content: {
         "application/json": components["schemas"]["PageEvent"];
+      };
+    };
+    responses: {
+      /** @description The request has succeeded. */
+      200: {
+        content: never;
+      };
+      /** @description The request has been accepted for processing, but processing has not yet completed. */
+      202: {
+        content: never;
+      };
+      /** @description Access is unauthorized. */
+      401: {
+        content: never;
+      };
+    };
+  };
+  /** @description Send a "track" event. */
+  send_track_event: {
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TrackEvent"];
       };
     };
     responses: {

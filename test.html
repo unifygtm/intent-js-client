@@ -8,10 +8,12 @@
           'identify',
           'page',
           'track',
-          'startAutoPage',
-          'stopAutoPage',
           'startAutoIdentify',
           'stopAutoIdentify',
+          'startAutoPage',
+          'stopAutoPage',
+          'startAutoTrack',
+          'stopAutoTrack',
         ];
         function t(o) {
           return Object.assign(
@@ -42,6 +44,16 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <div id="root">
+      <div style="display: flex; align-items: center; gap: 16px">
+        <button>Simple track</button>
+        <button data-unify-capture-attr-custom="test">
+          Track custom attrs
+        </button>
+        <button data-unify-label="Custom Button Name">
+          Track custom label
+        </button>
+      </div>
+    </div>
   </body>
 </html>

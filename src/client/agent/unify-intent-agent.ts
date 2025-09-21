@@ -1,5 +1,9 @@
-import { UnifyIntentContext } from '../../types';
-import { IdentifyActivity, PageActivity } from '../activities';
+import {
+  AutoTrackOptions,
+  UnifyIntentContext,
+  UnifyStandardTrackEvent,
+} from '../../types';
+import { IdentifyActivity, PageActivity, TrackActivity } from '../activities';
 import { validateEmail } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
 import {
@@ -14,7 +18,12 @@ import {
   NavatticEventType,
   NavatticObject,
 } from './types/navattic';
-import { isDefaultFormEventData } from './utils';
+import {
+  extractUnifyCapturePropertiesFromElement,
+  getElementName,
+  isActionableButton,
+  isDefaultFormEventData,
+} from './utils';
 
 /**
  * This class acts as an agent to automatically monitor user
@@ -22,30 +31,39 @@ import { isDefaultFormEventData } from './utils';
  */
 export class UnifyIntentAgent {
   private readonly _intentContext: UnifyIntentContext;
-  private readonly _monitoredInputs: Set<HTMLInputElement>;
-  private readonly _submittedEmails: Set<string>;
+  private readonly _monitoredInputs: Set<HTMLInputElement> =
+    new Set<HTMLInputElement>();
+  private readonly _submittedEmails: Set<string> = new Set<string>();
 
   private _autoPage: boolean;
   private _autoIdentify: boolean;
-  private _historyMonitored: boolean;
+  private _autoTrackOptions?: AutoTrackOptions;
+
+  private _historyMonitored: boolean = false;
   private _lastLocation?: Location;
+
+  private _isTrackingButtonClicks: boolean = false;
 
   constructor(intentContext: UnifyIntentContext) {
     this._intentContext = intentContext;
-    this._monitoredInputs = new Set<HTMLInputElement>();
-    this._submittedEmails = new Set<string>();
+
     this._autoPage = intentContext.clientConfig.autoPage ?? false;
     this._autoIdentify = intentContext.clientConfig.autoIdentify ?? false;
-    this._historyMonitored = false;
+    this._autoTrackOptions = intentContext.clientConfig.autoTrackOptions;
 
-    // If auto-page is configured, make sure to track the initial page
     if (this._autoPage) {
       this.startAutoPage();
+
+      // Make sure to track the initial page
       this.maybeTrackPage();
     }
 
     if (this._autoIdentify) {
       this.startAutoIdentify();
+    }
+
+    if (this._autoTrackOptions) {
+      this.startAutoTrack();
     }
   }
 
@@ -108,6 +126,32 @@ export class UnifyIntentAgent {
   };
 
   /**
+   * Tells the Unify Intent Agent to start continuously tracking user actions
+   * based on the `AutoTrackOptions` in the client config.
+   *
+   * @param options - auto-track options to use. If `undefined`, the previously
+   *        specified auto-track options will be re-used.
+   */
+  public startAutoTrack = (options?: AutoTrackOptions) => {
+    if (options) {
+      this._autoTrackOptions = options;
+    }
+
+    if (this._autoTrackOptions) {
+      if (this._autoTrackOptions.trackButtonClicks) {
+        this.startTrackingButtonClicks();
+      }
+    }
+  };
+
+  /**
+   * Tells the Unify Intent Agent to stop continuously monitoring user actions.
+   */
+  public stopAutoTrack = () => {
+    this.stopTrackingButtonClicks();
+  };
+
+  /**
    * This function adds event listeners and overrides to various
    * history-related browser functions to automatically track when the
    * current page changes. This is important for tracking page changes
@@ -152,6 +196,44 @@ export class UnifyIntentAgent {
     if (!this._lastLocation || isNewPage(this._lastLocation, window.location)) {
       new PageActivity(this._intentContext).track();
       this._lastLocation = { ...window.location };
+    }
+  };
+
+  /**
+   * Listens for click events in the Document and tracks them if they occurred
+   * within an actionable button with a qualified label.
+   */
+  private startTrackingButtonClicks = () => {
+    if (this._isTrackingButtonClicks) return;
+
+    document.addEventListener('click', this.handleDocumentClick);
+
+    this._isTrackingButtonClicks = true;
+  };
+
+  private stopTrackingButtonClicks = () => {
+    if (!this._isTrackingButtonClicks) return;
+
+    document.removeEventListener('click', this.handleDocumentClick);
+
+    this._isTrackingButtonClicks = false;
+  };
+
+  private handleDocumentClick = (event: MouseEvent) => {
+    try {
+      const target = event.target as Element | null;
+      if (!target) return;
+
+      const button = target.closest(
+        "button, [role='button'], input[type='button'], input[type='submit'], input[type='reset'], input[type='image']",
+      );
+      if (!button || !(button instanceof HTMLElement)) return;
+
+      this.maybeTrackButtonClick(button);
+    } catch (error: unknown) {
+      logUnifyError({
+        message: `Error occurred in document click handler for auto-tracking: ${error}`,
+      });
     }
   };
 
@@ -348,6 +430,23 @@ export class UnifyIntentAgent {
       // Make sure we don't auto-identify this email again later
       this._submittedEmails.add(email);
     }
+  };
+
+  private maybeTrackButtonClick = (button: HTMLElement) => {
+    if (!this._autoTrackOptions?.trackButtonClicks) return;
+
+    if (!isActionableButton(button)) return;
+
+    const buttonName = getElementName(button);
+    if (!buttonName) return;
+
+    const customProperties = extractUnifyCapturePropertiesFromElement(button);
+
+    const trackActivity = new TrackActivity(this._intentContext, {
+      name: UnifyStandardTrackEvent.BUTTON_CLICKED,
+      properties: { ...customProperties, buttonName, wasAutoTracked: true },
+    });
+    trackActivity.track();
   };
 
   /**

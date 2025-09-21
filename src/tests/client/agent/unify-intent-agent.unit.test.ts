@@ -1,7 +1,11 @@
 import { mock, mockReset } from 'jest-mock-extended';
 import { v4 as uuidv4 } from 'uuid';
 
-import { IdentifyActivity, PageActivity } from '../../../client/activities';
+import {
+  IdentifyActivity,
+  PageActivity,
+  TrackActivity,
+} from '../../../client/activities';
 import { UnifyIntentAgent } from '../../../client/agent';
 import { UnifyIntentContext } from '../../../types';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
@@ -18,19 +22,43 @@ import {
   NavatticEventType,
   NavatticObject,
 } from '../../../client/agent/types/navattic';
+import {
+  extractUnifyCapturePropertiesFromElement,
+  getElementName,
+  isActionableButton,
+} from '../../../client/agent/utils';
 
 const mockedPageActivity = mock(PageActivity.prototype);
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
+const mockedTrackActivity = mock(TrackActivity.prototype);
 jest.mock('../../../client/activities', () => ({
   ...jest.requireActual('../../../client/activities'),
   PageActivity: jest.fn().mockImplementation(() => mockedPageActivity),
   IdentifyActivity: jest.fn().mockImplementation(() => mockedIdentifyActivity),
+  TrackActivity: jest.fn().mockImplementation(() => mockedTrackActivity),
 }));
+
+jest.mock('../../../client/agent/utils', () => ({
+  ...jest.requireActual('../../../client/agent/utils'),
+  isActionableButton: jest.fn(),
+  getElementName: jest.fn(),
+  extractUnifyCapturePropertiesFromElement: jest.fn(),
+}));
+
+const mockedIsActionableButton = jest.mocked(isActionableButton);
+const mockedGetElementName = jest.mocked(getElementName);
+const mockedExtractUnifyCapturePropertiesFromElement = jest.mocked(
+  extractUnifyCapturePropertiesFromElement,
+);
 
 interface InputElementData {
   id: string;
   type: HTMLInputElement['type'];
   value?: string;
+}
+
+interface ButtomElementData {
+  label: string;
 }
 
 function mockDocumentWithInputs(inputs: InputElementData[]) {
@@ -43,6 +71,20 @@ function mockDocumentWithInputs(inputs: InputElementData[]) {
             )}
         </div>
     `;
+}
+
+const MOCK_BUTTON_NAME = 'Button';
+
+function mockDocumentWithButton(button?: ButtomElementData) {
+  document.body.innerHTML = `
+        <div>
+          <button id="test-button">${button?.label ?? MOCK_BUTTON_NAME}</button>
+        </div>
+    `;
+}
+
+function getTestButton() {
+  return document.getElementById('test-button');
 }
 
 const MOCK_BUTTON_INPUT: InputElementData = {
@@ -83,6 +125,7 @@ describe('UnifyIntentAgent', () => {
     mockReset(mockContext.sessionManager);
     mockReset(mockedPageActivity);
     mockReset(mockedIdentifyActivity);
+    mockReset(mockedTrackActivity);
   });
 
   describe('startAutoPage', () => {
@@ -521,6 +564,118 @@ describe('UnifyIntentAgent', () => {
 
             expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(0);
             expect(agent.__getSubmittedEmails().size).toEqual(0);
+          });
+        });
+      });
+    });
+  });
+
+  describe('startAutoTrack', () => {
+    describe('auto-track buttons', () => {
+      beforeEach(() => {
+        mockDocumentWithButton();
+        mockedIsActionableButton.mockReturnValue(false);
+        mockedGetElementName.mockReturnValue(null);
+      });
+
+      describe('when button is actionable', () => {
+        beforeEach(() => {
+          mockedIsActionableButton.mockReturnValue(true);
+        });
+
+        describe('when button has valid name', () => {
+          beforeEach(() => {
+            mockedGetElementName.mockReturnValue(MOCK_BUTTON_NAME);
+          });
+
+          describe('when `trackButtonClicks` is `true`', () => {
+            it('tracks button clicks', () => {
+              const agent = new UnifyIntentAgent(
+                MockUnifyIntentContext({
+                  autoTrackOptions: { trackButtonClicks: true },
+                }),
+              );
+              agent.startAutoTrack();
+
+              getTestButton()?.dispatchEvent(
+                new MouseEvent('click', { bubbles: true }),
+              );
+
+              agent.stopAutoTrack();
+
+              expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+            });
+          });
+
+          describe('when `trackButtonClicks` is `false`', () => {
+            it('does not track button clicks', () => {
+              const agent = new UnifyIntentAgent(
+                MockUnifyIntentContext({
+                  autoTrackOptions: { trackButtonClicks: false },
+                }),
+              );
+              agent.startAutoTrack();
+
+              getTestButton()?.dispatchEvent(
+                new MouseEvent('click', { bubbles: true }),
+              );
+
+              agent.stopAutoTrack();
+
+              expect(mockedTrackActivity.track).toHaveBeenCalledTimes(0);
+            });
+          });
+        });
+
+        describe('when button does not have valid name', () => {
+          beforeEach(() => {
+            mockedGetElementName.mockReturnValue(null);
+          });
+
+          it('does not track button clicks', () => {
+            const agent = new UnifyIntentAgent(
+              MockUnifyIntentContext({
+                autoTrackOptions: { trackButtonClicks: true },
+              }),
+            );
+            agent.startAutoTrack();
+
+            getTestButton()?.dispatchEvent(
+              new MouseEvent('click', { bubbles: true }),
+            );
+
+            agent.stopAutoTrack();
+
+            expect(mockedTrackActivity.track).toHaveBeenCalledTimes(0);
+          });
+        });
+      });
+
+      describe('when button is not actionable', () => {
+        beforeEach(() => {
+          mockedIsActionableButton.mockReturnValue(false);
+        });
+
+        describe('when button has valid name', () => {
+          beforeEach(() => {
+            mockedGetElementName.mockReturnValue(MOCK_BUTTON_NAME);
+          });
+
+          it('does not track button clicks', () => {
+            const agent = new UnifyIntentAgent(
+              MockUnifyIntentContext({
+                autoTrackOptions: { trackButtonClicks: true },
+              }),
+            );
+            agent.startAutoTrack();
+
+            getTestButton()?.dispatchEvent(
+              new MouseEvent('click', { bubbles: true }),
+            );
+
+            agent.stopAutoTrack();
+
+            expect(mockedTrackActivity.track).toHaveBeenCalledTimes(0);
           });
         });
       });
