@@ -1,5 +1,17 @@
+import { UCompany, UPerson } from '../../types';
+import { getDomainForEmail, getDomainForUrl } from '../utils/helpers';
+import { logUnifyError } from '../utils/logging';
 import {
   DEFAULT_FORM_EVENT_TYPES,
+  NAVATTIC_COMPANY_DESCRIPTION_PROPERTY,
+  NAVATTIC_COMPANY_DOMAIN_PROPERTY,
+  NAVATTIC_COMPANY_EMPLOYEE_COUNT_PROPERTY,
+  NAVATTIC_COMPANY_LINKEDIN_URL_PROPERTY,
+  NAVATTIC_COMPANY_NAME_PROPERTY,
+  NAVATTIC_USER_EMAIL_PROPERTY,
+  NAVATTIC_USER_FIRST_NAME_PROPERTY,
+  NAVATTIC_USER_FULL_NAME_PROPERTY,
+  NAVATTIC_USER_LAST_NAME_PROPERTY,
   UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX,
   UNIFY_ELEMENT_EXCLUSION_DATA_ATTR,
   UNIFY_ELEMENT_LABEL_DATA_ATTR,
@@ -10,6 +22,12 @@ import {
   DefaultFormPageSubmittedEventData,
   DefaultFormPageSubmittedV2EventData,
 } from './types/default';
+import {
+  NavatticDefaultCustomPropertyName,
+  NavatticEventData,
+  NavatticEventDataProperty,
+  NavatticObject,
+} from './types/navattic';
 
 export function isDefaultFormEventData(
   data: DefaultEventData,
@@ -76,6 +94,185 @@ export function extractUnifyCapturePropertiesFromElement(
   });
 
   return result;
+}
+
+export function getUAttributesForDefaultEventData(
+  data: DefaultEventData,
+): { person?: UPerson; company?: UCompany } | undefined {
+  if (!isDefaultFormEventData(data)) return undefined;
+
+  try {
+    const { email, attributes } = data.payload;
+
+    const person: UPerson = {
+      email,
+      ...(attributes && {
+        ...(attributes.first_name && { first_name: attributes.first_name }),
+        ...(attributes.last_name && { first_name: attributes.last_name }),
+        ...(attributes.phone && { mobile_phone: attributes.phone }),
+        ...(attributes.title && { title: attributes.title }),
+      }),
+    };
+
+    const domain = attributes?.website
+      ? getDomainForUrl(attributes.website)
+      : null;
+
+    let company: UCompany | undefined;
+    if (domain && domain === getDomainForEmail(email)) {
+      const employeeCount =
+        attributes && !isNaN(Number(attributes.head_count))
+          ? Number(attributes.head_count)
+          : undefined;
+
+      company = {
+        domain,
+        ...(attributes && {
+          ...(attributes.company && { name: attributes.company }),
+          ...(attributes.industry_group && {
+            industry: attributes.industry_group,
+          }),
+          ...(employeeCount && { employee_count: employeeCount }),
+        }),
+      };
+    }
+
+    return { person, ...(company && { company }) };
+  } catch (error: unknown) {
+    logUnifyError({
+      message: `Error occurred while parsing attributes from Default event payload: ${error}`,
+    });
+    return undefined;
+  }
+}
+
+export function getUAttributesForNavatticEventData(
+  data: NavatticEventData,
+): { person?: UPerson; company?: UCompany } | undefined {
+  try {
+    const eventDataProperties = data.properties ?? [];
+    const email = getNavatticProperty(
+      NavatticDefaultCustomPropertyName.Email,
+      NavatticObject.END_USER,
+      eventDataProperties,
+    );
+
+    if (!email) return undefined;
+
+    const fullName = getNavatticProperty(
+      NavatticDefaultCustomPropertyName.FullName,
+      NavatticObject.END_USER,
+      eventDataProperties,
+    );
+    const firstName = fullName
+      ? fullName.split(' ')[0]
+      : getNavatticProperty(
+          NavatticDefaultCustomPropertyName.FirstName,
+          NavatticObject.END_USER,
+          eventDataProperties,
+        );
+    const lastName = fullName
+      ? fullName.split(' ')[1]
+      : getNavatticProperty(
+          NavatticDefaultCustomPropertyName.LastName,
+          NavatticObject.END_USER,
+          eventDataProperties,
+        );
+
+    const phone = getNavatticProperty(
+      NavatticDefaultCustomPropertyName.Phone,
+      NavatticObject.END_USER,
+      eventDataProperties,
+    );
+
+    const person: UPerson = {
+      email,
+      ...(firstName && { first_name: firstName }),
+      ...(lastName && { last_name: lastName }),
+      ...(phone && { mobile_phone: phone }),
+    };
+
+    const rawDomain = getNavatticProperty(
+      NavatticDefaultCustomPropertyName.CompanyDomain,
+      NavatticObject.COMPANY_ACCOUNT,
+      eventDataProperties,
+    );
+    const domain = rawDomain ? getDomainForUrl(rawDomain) : null;
+
+    let company: UCompany | undefined;
+    if (domain && domain === getDomainForEmail(email)) {
+      const companyName =
+        getNavatticProperty(
+          NavatticDefaultCustomPropertyName.CompanyName,
+          NavatticObject.COMPANY_ACCOUNT,
+          eventDataProperties,
+        ) ?? undefined;
+
+      const companyDescription =
+        getNavatticProperty(
+          NavatticDefaultCustomPropertyName.CompanyDescription,
+          NavatticObject.COMPANY_ACCOUNT,
+          eventDataProperties,
+        ) ?? undefined;
+
+      const companyLinkedInUrl =
+        getNavatticProperty(
+          NavatticDefaultCustomPropertyName.CompanyLinkedin,
+          NavatticObject.COMPANY_ACCOUNT,
+          eventDataProperties,
+        ) ?? undefined;
+
+      const companyIndustry = getNavatticProperty(
+        NavatticDefaultCustomPropertyName.CompanyIndustry,
+        NavatticObject.COMPANY_ACCOUNT,
+        eventDataProperties,
+      );
+
+      const companyFounded = getNavatticProperty(
+        NavatticDefaultCustomPropertyName.CompanyFoundedYear,
+        NavatticObject.COMPANY_ACCOUNT,
+        eventDataProperties,
+      );
+
+      const companyRawEmployeeCount =
+        getNavatticProperty(
+          NavatticDefaultCustomPropertyName.CompanyEmployeeCount,
+          NavatticObject.COMPANY_ACCOUNT,
+          eventDataProperties,
+        ) ?? undefined;
+      const companyEmployeeCount = !isNaN(Number(companyRawEmployeeCount))
+        ? Number(companyRawEmployeeCount)
+        : undefined;
+
+      company = {
+        domain,
+        ...(companyName && { name: companyName }),
+        ...(companyDescription && { description: companyDescription }),
+        ...(companyLinkedInUrl && { linkedin_url: companyLinkedInUrl }),
+        ...(companyIndustry && { industry: companyIndustry }),
+        ...(companyFounded && { founded: companyFounded }),
+        ...(companyEmployeeCount && { employee_count: companyEmployeeCount }),
+      };
+    }
+
+    return { person, ...(company && { company }) };
+  } catch (error: unknown) {
+    logUnifyError({
+      message: `Error occurred while parsing attributes from Navattic event payload: ${error}`,
+    });
+    return undefined;
+  }
+}
+
+function getNavatticProperty(
+  name: NavatticDefaultCustomPropertyName,
+  source: NavatticObject,
+  properties: NavatticEventDataProperty[],
+): string | null {
+  return (
+    properties.find(({ object, name: n }) => object === source && n === name)
+      ?.value ?? null
+  );
 }
 
 /**

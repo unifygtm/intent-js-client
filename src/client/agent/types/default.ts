@@ -89,7 +89,7 @@ export interface DefaultFormEventPayload {
   /**
    * Lead attribute data from the user responses.
    */
-  attributes: DefaultLeadAttributes;
+  attributes?: DefaultLeadAttributes;
 }
 
 export interface DefaultSchedulerDisplayedEventPayload {

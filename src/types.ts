@@ -139,7 +139,7 @@ export type TrackEventProperties = Pick<TrackEventData, 'properties'>;
 
 export type UCompany =
   components['schemas']['CreateOrUpdateUCompanyAttributes'];
-export type UPerson = components['schemas']['CreateOrUpdateUCompanyAttributes'];
+export type UPerson = components['schemas']['CreateOrUpdateUPersonAttributes'];
 
 export type UAddress = components['schemas']['UValues.UAddress'];
 export type UBoolean = components['schemas']['UValues.UBoolean'];

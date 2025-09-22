@@ -56,4 +56,14 @@ export const DEFAULT_FORM_EVENT_TYPES: DefaultEventType[] = [
 ];
 
 export const NAVATTIC_USER_EMAIL_KEY = 'user.email';
+
 export const NAVATTIC_USER_EMAIL_PROPERTY = 'email';
+export const NAVATTIC_USER_FULL_NAME_PROPERTY = 'fullName';
+export const NAVATTIC_USER_FIRST_NAME_PROPERTY = 'firstName';
+export const NAVATTIC_USER_LAST_NAME_PROPERTY = 'lastName';
+
+export const NAVATTIC_COMPANY_DOMAIN_PROPERTY = 'domain';
+export const NAVATTIC_COMPANY_NAME_PROPERTY = 'name';
+export const NAVATTIC_COMPANY_DESCRIPTION_PROPERTY = 'description';
+export const NAVATTIC_COMPANY_LINKEDIN_URL_PROPERTY = 'linkedInUrl';
+export const NAVATTIC_COMPANY_EMPLOYEE_COUNT_PROPERTY = 'employeeCount';

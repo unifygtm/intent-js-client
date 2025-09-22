@@ -1,7 +1,9 @@
 import {
   AutoTrackOptions,
+  UCompany,
   UnifyIntentContext,
   UnifyStandardTrackEvent,
+  UPerson,
 } from '../../types';
 import { IdentifyActivity, PageActivity, TrackActivity } from '../activities';
 import { validateEmail } from '../utils/helpers';
@@ -9,19 +11,16 @@ import { logUnifyError } from '../utils/logging';
 import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
-  NAVATTIC_USER_EMAIL_KEY,
   NAVATTIC_USER_EMAIL_PROPERTY,
   UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from './constants';
 import { DefaultEventData } from './types/default';
-import {
-  NavatticEventData,
-  NavatticEventType,
-  NavatticObject,
-} from './types/navattic';
+import { NavatticEventData, NavatticObject } from './types/navattic';
 import {
   extractUnifyCapturePropertiesFromElement,
   getElementName,
+  getUAttributesForDefaultEventData,
+  getUAttributesForNavatticEventData,
   isActionableElement,
   isDefaultFormEventData,
 } from './utils';
@@ -337,8 +336,12 @@ export class UnifyIntentAgent {
 
     if (isDefaultFormEventData(event.data)) {
       const email = event.data.payload.email;
+
       if (email) {
-        this.maybeIdentifyInputEmail(email);
+        this.maybeIdentifyInputEmail(
+          email,
+          getUAttributesForDefaultEventData(event.data),
+        );
       }
     }
   };
@@ -353,38 +356,18 @@ export class UnifyIntentAgent {
   ) => {
     if (!this._autoIdentify) return;
 
-    if (event.data.type === NavatticEventType.IDENTIFY_USER) {
-      // Prefer user-supplied email address over other forms of identification
-      const emailFromForm = event.data.eventAttributes.FORM?.[
-        NAVATTIC_USER_EMAIL_KEY
-      ] as string | undefined;
+    const eventDataProperties = event.data?.properties ?? [];
+    const email = eventDataProperties.find(
+      ({ object, name }) =>
+        object === NavatticObject.END_USER &&
+        name === NAVATTIC_USER_EMAIL_PROPERTY,
+    );
 
-      // If there is a user email, identify the user
-      if (emailFromForm) {
-        this.maybeIdentifyInputEmail(emailFromForm);
-      }
-      // Check if email is available from other sources of user attributes
-      else {
-        const email = Object.values(event.data.eventAttributes).find(
-          (attributes) => NAVATTIC_USER_EMAIL_KEY in attributes,
-        )?.[NAVATTIC_USER_EMAIL_KEY] as string | undefined;
-
-        // If there is a user email, identify the user
-        if (email) {
-          this.maybeIdentifyInputEmail(email);
-        }
-      }
-    } else {
-      const eventDataProperties = event.data.properties ?? [];
-      const endUserEmailProperty = eventDataProperties.find(
-        ({ object, name }) =>
-          object === NavatticObject.END_USER &&
-          name === NAVATTIC_USER_EMAIL_PROPERTY,
+    if (email) {
+      this.maybeIdentifyInputEmail(
+        email.value,
+        getUAttributesForNavatticEventData(event.data),
       );
-
-      if (endUserEmailProperty) {
-        this.maybeIdentifyInputEmail(endUserEmailProperty.value);
-      }
     }
   };
 
@@ -421,7 +404,10 @@ export class UnifyIntentAgent {
    *
    * @param event - the event object from a monitored input blur or keydown event
    */
-  private maybeIdentifyInputEmail = (email: string) => {
+  private maybeIdentifyInputEmail = (
+    email: string,
+    options?: { person?: UPerson; company?: UCompany },
+  ) => {
     if (!this._autoIdentify) return;
 
     if (email) {
@@ -434,6 +420,8 @@ export class UnifyIntentAgent {
       // Log an identify event
       const identifyAction = new IdentifyActivity(this._intentContext, {
         email,
+        person: options?.person,
+        company: options?.company,
       });
       identifyAction.track();
 

@@ -418,11 +418,13 @@ describe('UnifyIntentAgent', () => {
             origin: NAVATTIC_IFRAME_ORIGIN,
             data: {
               type: NavatticEventType.IDENTIFY_USER,
-              eventAttributes: {
-                [NavatticAttributeSource.FORM]: {
-                  [NAVATTIC_USER_EMAIL_KEY]: 'solomon@unifygtm.com',
+              properties: [
+                {
+                  name: NAVATTIC_USER_EMAIL_PROPERTY,
+                  object: NavatticObject.END_USER,
+                  value: 'solomon@unifygtm.com',
                 },
-              },
+              ],
             },
           };
         });
@@ -431,8 +433,7 @@ describe('UnifyIntentAgent', () => {
           agent = new UnifyIntentAgent(mockContext);
           agent.startAutoIdentify();
 
-          navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
-            {};
+          navatticDemoEvent.data.properties = [];
           window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
 
           expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
@@ -443,56 +444,10 @@ describe('UnifyIntentAgent', () => {
           agent = new UnifyIntentAgent(mockContext);
           agent.startAutoIdentify();
 
-          navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
-            {
-              [NAVATTIC_USER_EMAIL_KEY]: 'solomon@unifygtm.com',
-            };
           window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
 
           expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
           expect(agent.__getSubmittedEmails().size).toEqual(1);
-        });
-
-        it('prefers user email from FORM data source over others', () => {
-          agent = new UnifyIntentAgent(mockContext);
-          agent.startAutoIdentify();
-
-          navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
-            {
-              [NAVATTIC_USER_EMAIL_KEY]: 'solomon-form@unifygtm.com',
-            };
-          navatticDemoEvent.data.eventAttributes[
-            NavatticAttributeSource.ENRICHMENT
-          ] = {
-            [NAVATTIC_USER_EMAIL_KEY]: 'solomon-enrichment@unifygtm.com',
-          };
-          window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
-
-          expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
-          expect(agent.__getSubmittedEmails().size).toEqual(1);
-          expect(
-            agent.__getSubmittedEmails().entries().next().value?.[0],
-          ).toEqual('solomon-form@unifygtm.com');
-        });
-
-        it('gets user email from other sources if FORM not available', () => {
-          agent = new UnifyIntentAgent(mockContext);
-          agent.startAutoIdentify();
-
-          navatticDemoEvent.data.eventAttributes[NavatticAttributeSource.FORM] =
-            {};
-          navatticDemoEvent.data.eventAttributes[
-            NavatticAttributeSource.ENRICHMENT
-          ] = {
-            [NAVATTIC_USER_EMAIL_KEY]: 'solomon-enrichment@unifygtm.com',
-          };
-          window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
-
-          expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
-          expect(agent.__getSubmittedEmails().size).toEqual(1);
-          expect(
-            agent.__getSubmittedEmails().entries().next().value?.[0],
-          ).toEqual('solomon-enrichment@unifygtm.com');
         });
 
         describe('other event types', () => {
