@@ -99,7 +99,7 @@ export function getUAttributesForDefaultEventData(
       email,
       ...(attributes && {
         ...(attributes.first_name && { first_name: attributes.first_name }),
-        ...(attributes.last_name && { first_name: attributes.last_name }),
+        ...(attributes.last_name && { last_name: attributes.last_name }),
         ...(attributes.phone && { mobile_phone: attributes.phone }),
         ...(attributes.title && { title: attributes.title }),
       }),
