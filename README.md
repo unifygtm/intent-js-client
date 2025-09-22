@@ -2,6 +2,16 @@
 
 JavaScript client for interacting with the Unify Intent API in the browser.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Cookies](#cookies)
+- [Usage](#usage)
+  - [Page Events](#page-view-events)
+  - [Identify Events](#identify-events)
+  - [Track Events](#track-events)
+- [Configuration](#configuration)
+
 ## Installation
 
 There are two ways to install the Unify Intent JS Client for two different use cases. **You should only use one of these**.
