@@ -51,6 +51,11 @@ export interface UnifyIntentContext {
  * e.g. button clicks.
  */
 export interface AutoTrackOptions {
+  /**
+   * An optional list of CSS selectors which can be used to automatically
+   * track click events for elements on the page which match one or more
+   * of the selectors.
+   */
   clickTrackingSelectors?: string[];
 }
 

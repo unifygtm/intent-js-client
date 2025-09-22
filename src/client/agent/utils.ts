@@ -1,6 +1,6 @@
 import {
   DEFAULT_FORM_EVENT_TYPES,
-  UNIFY_CAPTURE_ATTRIBUTES_DATA_ATTR_PREFIX,
+  UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX,
   UNIFY_ELEMENT_EXCLUSION_DATA_ATTR,
   UNIFY_ELEMENT_LABEL_DATA_ATTR,
 } from './constants';
@@ -63,10 +63,8 @@ export function extractUnifyCapturePropertiesFromElement(
 
   const result: Record<string, string> = {};
   Object.entries(element.dataset).forEach(([key, value]) => {
-    if (key.startsWith(UNIFY_CAPTURE_ATTRIBUTES_DATA_ATTR_PREFIX) && value) {
-      const effectiveKey = key.slice(
-        UNIFY_CAPTURE_ATTRIBUTES_DATA_ATTR_PREFIX.length,
-      );
+    if (key.startsWith(UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX) && value) {
+      const effectiveKey = key.slice(UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX.length);
       if (effectiveKey) {
         result[
           `${effectiveKey.charAt(0).toLowerCase()}${effectiveKey.slice(1)}`

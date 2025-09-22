@@ -1,5 +1,5 @@
 import {
-  UNIFY_CAPTURE_ATTRIBUTES_DATA_ATTR_PREFIX,
+  UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX,
   UNIFY_ELEMENT_EXCLUSION_DATA_ATTR,
   UNIFY_ELEMENT_LABEL_DATA_ATTR,
 } from '../../../client/agent/constants';
@@ -141,8 +141,8 @@ describe('Unify Intent Agent utils', () => {
     });
 
     it('returns extra attributes when there are any', () => {
-      button.dataset['unifyCaptureAttrCustomProperty'] = 'custom';
-      button.dataset['unifyCaptureAttrAnotherProperty'] = 'another';
+      button.dataset['unifyAttrCustomProperty'] = 'custom';
+      button.dataset['unifyAttrAnotherProperty'] = 'another';
       expect(extractUnifyCapturePropertiesFromElement(button)).toEqual({
         customProperty: 'custom',
         anotherProperty: 'another',

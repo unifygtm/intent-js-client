@@ -18,8 +18,7 @@ When you include this tag in your HTML, you will immediately be able to access t
 
 This method is typically used to install the client in e.g. frontend application code such as a Single Page App (SPA) (as opposed to on a static marketing website).
 
-> [!NOTE]
-> See [@unifygtm/intent-react](https://www.npmjs.com/package/@unifygtm/intent-react) if you are using React.
+**NOTE:**: See [@unifygtm/intent-react](https://www.npmjs.com/package/@unifygtm/intent-react) if you are using React.
 
 You can install the client package directly using your preferred package manager:
 
@@ -54,8 +53,7 @@ const unify = new UnifyIntentClient(writeKey, config);
 unify.mount();
 ```
 
-> [!NOTE]
-> The `mount` method on the client is used to initialize it once it is in a browser context. If your application uses server side rendering, you should be sure not to call `mount()` until the code is running in a browser context.
+**NOTE:** The `mount` method on the client is used to initialize it once it is in a browser context. If your application uses server side rendering, you should be sure not to call `mount()` until the code is running in a browser context.
 
 Once the client is initialized and mounted it will be immediately ready for use. See [Usage](#usage) below for how to use the client after installing. If you wish to cleanup the side effects created by initializing the client (e.g. event listeners), you can do so with the `unmount` method. Here is an example of mounting and unmounting the client in React code:
 
@@ -83,8 +81,7 @@ const TestComponent = () => {
 
 ## Cookies
 
-> [!NOTE]
-> This section only applies to intent client versions `1.4.0` and up. If you install the intent client with the website tag, you automatically get access to the latest client version. Versions older than this use obfuscated cookie names. If for some reason you need access to these then you can reach out to the Unify team for support.
+**NOTE:** This section only applies to intent client versions `1.4.0` and up. If you install the intent client with the website tag, you automatically get access to the latest client version. Versions older than this use obfuscated cookie names. If for some reason you need access to these then you can reach out to the Unify team for support.
 
 When the intent client mounts, it places two values in the user's cookies:
 
@@ -193,6 +190,75 @@ const currentUser = getCurrentUser();
 unify.identify(currentUser.emailAddress);
 ```
 
+### Track Events
+
+Certain user actions are valuable indicators of buying intent. You can use `track` events to log these events along with custom properties for each event that you can then use within Unify to filter your visitors and take action accordingly.
+
+There are three ways to fire track events with the Unify intent client:
+
+1. Custom HTML data attributes
+2. Manually via the client `track` method
+3. Automatically with CSS selectors
+
+#### HTML data attributes
+
+You can leverage various data attributes in the HTML of your site or application to automatically track click events for elements you care about:
+
+`data-unify-track-clicks`
+This attribute indicates that the intent client should automatically fire a track event when the element is clicked. The client will make a best effort at determining a label to use for the element, but if it cannot determine one then an event will _not_ be fired. If an element you would like to track does not contain any text to be used as a name, you can leverage the `data-unify-label` attribute (see below).
+
+`data-unify-label`
+This attribute can be used to override the default name (or provide a name which is otherwise missing) for an element that is tracked by the client.
+
+`data-unify-attr-`
+By default, only the name of the element is included in the `properties` of auto-tracked events. You can specify additional properties to include using this prefix. For example, setting `data-unify-attr-custom-property="100"` will result in the `properties` of the track event including `customProperty: "100"`.
+
+#### Manual tracking
+
+You can also manually trigger a track event with the `track` method on the client:
+
+```TypeScript
+const unify = new UnifyIntentClient('YOUR_PUBLIC_API_KEY');
+unify.mount();
+
+// Only the event name is required - we recommend spaces between capitalized words
+unify.track('See More Button Clicked');
+
+// You can also specify custom properties to include
+unify.track('Modal Opened', { modalName: 'Contact Sales Modal' });
+```
+
+The `track` method accepts two arguments:
+
+1. A string `name` (required) - this is used to identify the event downstream within Unify.
+2. An object of keys and string values `properties` (optional) - this is used to specify custom properties associated with the event which can be used for filtering and identification downstream within Unify.
+
+#### Automatic tracking
+
+The Unify intent client is capable of automatically monitoring elements that match a list of CSS selectors specified by you in the `UnifyIntentClientConfig`'s `autoTrackOptions.clickTrackingSelectors`. When an element matching one of these selectors is clicked by the user, the client will automatically fire a `track` event for it with the event name `Element Clicked`. You can use the `data-unify-label` to customize the name of the element in the event `properties` and the `data-unify-attr-` prefix to add custom `properties`. See [HTML data attributes](#html-data-attributes) for more info.
+
+If you would like to exclude a specific element from tracking which matches your specified CSS selectors list, you can do so with the `data-unify-exclude` attribute.
+
+This behavior can be enabled or disabled programmatically via the `startAutoTrack` and `stopAutoTrack` methods on the client:
+
+```TypeScript
+// Initialize the client and tell it to automatically track clicks for all elements with class="button"
+const unify = new UnifyIntentClient(
+  'YOUR_PUBLIC_API_KEY',
+  { autoTrackOptions: { clickTrackingSelectors: ['.button'] } },
+);
+unify.mount();
+
+// Tell the client to stop monitoring buttons for now
+unify.stopAutoTrack();
+
+// Tell the client to start monitoring buttons again
+unify.startAutoTrack();
+
+// OR tell the client to start monitoring something else
+unify.startAutoTrack({ clickTrackingSelectors: ['.custom-button'] });
+```
+
 ## Configuration
 
 The following configuration options can be passed when initializing the client:
@@ -201,5 +267,7 @@ The following configuration options can be passed when initializing the client:
   - **Default**: `true` if the client is installed via the Unify JavaScript tag, `false` if installed via a package manager
 - `autoIdentify` - Tells the client to automatically monitor text and email input elements on the page for changes. When the current user enters a valid email address into an input, the client will log an `identify` event for that email address.
   - **Default**: `true` if the client is installed via the Unify JavaScript tag, `false` if installed via a package manager
+- `autoTrackOptions` - Options to customize the auto-tracking of user actions such as click events:
+  - `clickTrackingSelectors` - Optional list of CSS selectors to customize which elements the client will automatically fire a `track` event for when clicked.
 - `sessionDurationMinutes` - Length in minutes that user sessions will persist when no activities are tracked. Activities include `page`, `identify,` and `track` activities.
   - **Default**: `30`

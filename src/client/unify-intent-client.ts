@@ -88,13 +88,7 @@ export default class UnifyIntentClient {
     };
 
     // Initialize intent agent if specifed by config
-    if (
-      this._config.autoPage ||
-      this._config.autoIdentify ||
-      this._config.autoTrackOptions
-    ) {
-      this._intentAgent = new UnifyIntentAgent(this._context);
-    }
+    this._intentAgent = new UnifyIntentAgent(this._context);
 
     // We set `mounted` to `true` before flushing the queue since the
     // methdods which can be called require that.
@@ -127,9 +121,7 @@ export default class UnifyIntentClient {
       this.stopAutoIdentify();
     }
 
-    if (this._config.autoTrackOptions) {
-      this.stopAutoTrack();
-    }
+    this.stopAutoTrack();
 
     this._mounted = false;
     window.unify = undefined;
