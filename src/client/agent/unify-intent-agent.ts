@@ -11,11 +11,14 @@ import { logUnifyError } from '../utils/logging';
 import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
-  NAVATTIC_USER_EMAIL_PROPERTY,
   UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from './constants';
 import { DefaultEventData } from './types/default';
-import { NavatticEventData, NavatticObject } from './types/navattic';
+import {
+  NavatticDefaultCustomPropertyName,
+  NavatticEventData,
+  NavatticObject,
+} from './types/navattic';
 import {
   extractUnifyCapturePropertiesFromElement,
   getElementName,
@@ -360,7 +363,7 @@ export class UnifyIntentAgent {
     const email = eventDataProperties.find(
       ({ object, name }) =>
         object === NavatticObject.END_USER &&
-        name === NAVATTIC_USER_EMAIL_PROPERTY,
+        name === NavatticDefaultCustomPropertyName.Email,
     );
 
     if (email) {

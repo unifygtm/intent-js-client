@@ -12,14 +12,13 @@ import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
-  NAVATTIC_USER_EMAIL_KEY,
-  NAVATTIC_USER_EMAIL_PROPERTY,
   UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from '../../../client/agent/constants';
 import { DefaultEventType } from '../../../client/agent/types/default';
 import {
   NavatticAttributeSource,
   NavatticCaptureMethod,
+  NavatticDefaultCustomPropertyName,
   NavatticEventType,
   NavatticObject,
 } from '../../../client/agent/types/navattic';
@@ -420,7 +419,7 @@ describe('UnifyIntentAgent', () => {
               type: NavatticEventType.IDENTIFY_USER,
               properties: [
                 {
-                  name: NAVATTIC_USER_EMAIL_PROPERTY,
+                  name: NavatticDefaultCustomPropertyName.Email,
                   object: NavatticObject.END_USER,
                   value: 'solomon@unifygtm.com',
                 },
@@ -470,7 +469,7 @@ describe('UnifyIntentAgent', () => {
                 captureMethod: NavatticCaptureMethod.DEMO,
                 object: NavatticObject.END_USER,
                 source: NavatticAttributeSource.REDUCER,
-                name: NAVATTIC_USER_EMAIL_PROPERTY,
+                name: NavatticDefaultCustomPropertyName.Email,
                 value: 'solomon@unifygtm.com',
               },
             ];
