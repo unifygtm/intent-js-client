@@ -6,6 +6,7 @@ import {
   UPerson,
 } from '../../types';
 import { UNIFY_INTENT_V1_URL } from '../constants';
+import { getDomainForEmail, getDomainForUrl } from '../utils/helpers';
 import Activity from './activity';
 
 export const UNIFY_INTENT_IDENTIFY_URL = `${UNIFY_INTENT_V1_URL}/identify`;
@@ -40,12 +41,23 @@ export class IdentifyActivity extends Activity<IdentifyEventData> {
     return UNIFY_INTENT_IDENTIFY_URL;
   }
 
-  protected getActivityData = (): IdentifyEventData => ({
-    type: 'identify',
-    person: {
-      ...this._person,
-      email: this._email,
-    },
-    company: this._company,
-  });
+  protected getActivityData = (): IdentifyEventData => {
+    const companyDomain =
+      this._company && getDomainForUrl(this._company?.domain);
+    const emailDomain = getDomainForEmail(this._email);
+
+    const company: UCompany | undefined =
+      companyDomain && companyDomain === emailDomain
+        ? this._company
+        : undefined;
+
+    return {
+      type: 'identify',
+      person: {
+        ...this._person,
+        email: this._email,
+      },
+      ...(company && { company: this._company }),
+    };
+  };
 }
