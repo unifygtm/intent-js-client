@@ -197,7 +197,7 @@ export interface components {
       /** @description Contextual information about the client behind the event. */
       context: components["schemas"]["EventContext"];
       /** @deprecated */
-      traits: components["schemas"]["Traits"];
+      traits?: components["schemas"]["Traits"];
       /** @description Information about the company associated with the visitor. */
       company?: components["schemas"]["CreateOrUpdateUCompanyAttributes"];
       /** @description Information about the person associated with the visitor. */

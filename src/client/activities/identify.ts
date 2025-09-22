@@ -42,9 +42,6 @@ export class IdentifyActivity extends Activity<IdentifyEventData> {
 
   protected getActivityData = (): IdentifyEventData => ({
     type: 'identify',
-    traits: {
-      email: this._email,
-    },
     person: {
       ...this._person,
       email: this._email,

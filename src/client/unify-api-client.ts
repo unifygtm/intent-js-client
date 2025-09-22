@@ -15,17 +15,15 @@ export default class UnifyApiClient {
     payload: TRequest,
   ) => {
     const requestBody = JSON.stringify(payload);
-    const authHeader = this.getAuthString(this._writeKey);
 
     // Try to use the fetch API
     if (fetch) {
       fetch(url, {
         method: 'POST',
         body: requestBody,
-        credentials: 'include',
         headers: {
           'Content-type': 'application/json; charset=UTF-8',
-          Authorization: this.getAuthString(this._writeKey),
+          'X-Write-Key': this._writeKey,
         },
         keepalive: true,
       }).catch(() => undefined);
@@ -34,7 +32,7 @@ export default class UnifyApiClient {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', url, true);
       xhr.setRequestHeader('Content-type', 'application/json; charset=UTF-8');
-      xhr.setRequestHeader('Authorization', authHeader);
+      xhr.setRequestHeader('X-Write-Key', this._writeKey);
       xhr.send(requestBody);
     }
   };

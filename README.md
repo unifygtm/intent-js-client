@@ -28,7 +28,7 @@ When you include this tag in your HTML, you will immediately be able to access t
 
 This method is typically used to install the client in e.g. frontend application code such as a Single Page App (SPA) (as opposed to on a static marketing website).
 
-**NOTE:**: See [@unifygtm/intent-react](https://www.npmjs.com/package/@unifygtm/intent-react) if you are using React.
+**NOTE:** See [@unifygtm/intent-react](https://www.npmjs.com/package/@unifygtm/intent-react) if you are using React.
 
 You can install the client package directly using your preferred package manager:
 
@@ -224,22 +224,9 @@ Certain user actions are valuable indicators of buying intent. You can use `trac
 
 There are three ways to fire track events with the Unify intent client:
 
-1. Custom HTML data attributes (see [here](#html-data-attributes))
-2. Manually via the client `track` method (see [here](#manual-tracking))
-3. Automatically with CSS selectors (see [here](#automatic-tracking))
-
-#### HTML data attributes
-
-You can leverage various data attributes in the HTML of your site or application to automatically track click events for elements you care about:
-
-`data-unify-track-clicks`
-This attribute indicates that the intent client should automatically fire a track event when the element is clicked. The client will make a best effort at determining a label to use for the element, but if it cannot determine one then an event will _not_ be fired. If an element you would like to track does not contain any text to be used as a name, you can leverage the `data-unify-label` attribute (see below).
-
-`data-unify-label`
-This attribute can be used to override the default name (or provide a name which is otherwise missing) for an element that is tracked by the client.
-
-`data-unify-attr-`
-By default, only the name of the element is included in the `properties` of auto-tracked events. You can specify additional properties to include using this prefix. For example, setting `data-unify-attr-custom-property="100"` will result in the `properties` of the track event including `customProperty: "100"`.
+1. Manually via the client `track` method (see [here](#manual-tracking))
+2. Automatically with CSS selectors (see [here](#automatic-tracking))
+3. Custom HTML data attributes (see [here](#html-data-attributes))
 
 #### Manual tracking
 
@@ -286,6 +273,19 @@ unify.startAutoTrack();
 // OR tell the client to start monitoring something else
 unify.startAutoTrack({ clickTrackingSelectors: ['.custom-button'] });
 ```
+
+#### HTML data attributes
+
+You can leverage various data attributes in the HTML of your site or application to automatically track click events for elements you care about:
+
+`data-unify-track-clicks`
+This attribute indicates that the intent client should automatically fire a track event when the element is clicked. The client will make a best effort at determining a label to use for the element, but if it cannot determine one then an event will _not_ be fired. If an element you would like to track does not contain any text to be used as a name, you can leverage the `data-unify-label` attribute (see below).
+
+`data-unify-label`
+This attribute can be used to override the default name (or provide a name which is otherwise missing) for an element that is tracked by the client.
+
+`data-unify-attr-`
+By default, only the name of the element is included in the `properties` of auto-tracked events. You can specify additional properties to include using this prefix. For example, setting `data-unify-attr-custom-property="100"` will result in the `properties` of the track event including `customProperty: "100"`.
 
 ## Configuration
 

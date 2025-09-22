@@ -67,8 +67,6 @@ abstract class Activity<TActivityData extends object> {
     return {
       type: this.getActivityType(),
       visitorId,
-      // @ts-ignore this field is deprecated but include it for now
-      anonymousUserId: visitorId,
       sessionId:
         this._intentContext.sessionManager.getOrCreateSession().sessionId,
       context: getActivityContext(),
