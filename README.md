@@ -112,8 +112,8 @@ Website page views are an indicator of buyer intent. You can log this informatio
 
 There are two ways to collect page data with the Unify intent client:
 
-1. Automatic monitoring of the current page
-2. Manually via the client `page` method
+1. Automatic monitoring of the current page (see [here](#automatic-page-monitoring))
+2. Manually via the client `page` method (see [here](#manual-page-logging))
 
 Utilizing both of these methods when appropriate is recommended to take full advantage of intent data within Unify.
 
@@ -159,8 +159,8 @@ All intent data collected for users by Unify is anonymous by default. When inten
 
 There are two ways to collect identity data with the Unify intent client:
 
-1. Automatic monitoring of email input elements
-2. Manually via the client `identify` method
+1. Automatic monitoring of email input elements (see [here](#automatic-input-monitoring))
+2. Manually via the client `identify` method (see [here](#manual-identification))
 
 Utilizing both of these methods when appropriate is recommended to take full advantage of intent data within Unify.
 
@@ -206,9 +206,9 @@ Certain user actions are valuable indicators of buying intent. You can use `trac
 
 There are three ways to fire track events with the Unify intent client:
 
-1. Custom HTML data attributes
-2. Manually via the client `track` method
-3. Automatically with CSS selectors
+1. Custom HTML data attributes (see [here](#html-data-attributes))
+2. Manually via the client `track` method (see [here](#manual-tracking))
+3. Automatically with CSS selectors (see [here](#automatic-tracking))
 
 #### HTML data attributes
 
