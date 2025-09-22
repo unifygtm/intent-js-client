@@ -22,7 +22,7 @@ export class PageActivity extends Activity<PageEventData> {
   }
 
   protected getActivityType(): AnalyticsEventType {
-    return 'page' as PageEventData['type'];
+    return 'page';
   }
 
   protected getActivityURL(): string {
@@ -30,7 +30,7 @@ export class PageActivity extends Activity<PageEventData> {
   }
 
   protected getActivityData = (): PageEventData => ({
-    type: 'page' as PageEventData['type'],
+    type: 'page',
     properties: getCurrentPageProperties(this._options?.pathname),
   });
 }

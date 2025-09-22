@@ -21,12 +21,14 @@ export function isDefaultFormEventData(
 }
 
 export function isActionableElement(element: Element): boolean {
+  if (!(element instanceof HTMLElement)) return false;
+
   if (isElementHidden(element)) return false;
 
-  const isDisabled =
-    (element as HTMLButtonElement | HTMLInputElement).disabled === true ||
-    element.getAttribute('aria-disabled') === 'true';
-  if (isDisabled) return false;
+  // `<button disabled>`, `<fieldset disabled>`, `<input disabled>`, etc.
+  if (element.matches(':disabled')) return false;
+
+  if (element.getAttribute('aria-disabled') === 'true') return false;
 
   if (elementHasDataAttr(element, UNIFY_ELEMENT_EXCLUSION_DATA_ATTR))
     return false;

@@ -41,21 +41,7 @@ describe('TrackActivity', () => {
         .calls[0][1] as TrackEventData;
       expect(data.type).toEqual('track');
       expect(data.name).toEqual('Test Event');
-      expect(data.properties).toEqual({ customProperty: 'Test' });
-    });
-
-    it('tracks a track activity when no properties provided', () => {
-      const activity = new TrackActivity(mockContext, { name: 'Test Event' });
-      activity.track();
-      expect(mockContext.apiClient.post).toHaveBeenCalledWith(
-        UNIFY_INTENT_TRACK_URL,
-        anyObject(),
-      );
-      const data = mockContext.apiClient.post.mock
-        .calls[0][1] as TrackEventData;
-      expect(data.type).toEqual('track');
-      expect(data.name).toEqual('Test Event');
-      expect(data.properties).toBeUndefined();
+      expect(data.properties?.customProperty).toEqual('Test');
     });
   });
 });

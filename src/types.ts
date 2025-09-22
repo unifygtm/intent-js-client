@@ -4,6 +4,9 @@ import { IdentityManager, SessionManager } from './client/managers';
 import UnifyApiClient from './client/unify-api-client';
 import { components } from './spec';
 
+/**
+ * Configuration options for the Unify Intent Client.
+ */
 export interface UnifyIntentClientConfig {
   /**
    * This option can be specified to indicate that the Unify client
@@ -38,6 +41,9 @@ export interface UnifyIntentClientConfig {
   sessionDurationMinutes?: number;
 }
 
+/**
+ * Shared context used in many parts of the Unify Intent Client.
+ */
 export interface UnifyIntentContext {
   writeKey: string;
   clientConfig: UnifyIntentClientConfig;
@@ -59,6 +65,11 @@ export interface AutoTrackOptions {
   clickTrackingSelectors?: string[];
 }
 
+/**
+ * Standard track event types.
+ *
+ * TODO: Eventually this will be defined in the API spec.
+ */
 export enum UnifyStandardTrackEvent {
   ELEMENT_CLICKED = 'Element Clicked',
 }
@@ -86,26 +97,60 @@ export interface UserAgentDataType {
   userAgentData?: NavigatorUAData;
 }
 
-// Export types from the OpenAPI spec
+/**
+ * =====================================================
+ * The types below are re-exported from the OpenAPI spec
+ * =====================================================
+ */
+
+/**
+ * Context automatically included with each event fired by the Unify Intent Client.
+ */
 export type ActivityContext = components['schemas']['EventContext'];
-export type AnalyticsEventType = components['schemas']['AnalyticsEventType'];
-export type AnalyticsEventBase = components['schemas']['AnalyticsEventBase'];
+
+export type PageProperties = components['schemas']['PageProperties'];
 export type CampaignParams = components['schemas']['CampaignParams'];
+
+/**
+ * Event types supported by the Unify Intent Client.
+ */
+export type AnalyticsEventType = components['schemas']['AnalyticsEventType'];
+
+export type AnalyticsEventBase = components['schemas']['AnalyticsEventBase'];
+
 export type IdentifyEvent = components['schemas']['IdentifyEvent'];
 export type IdentifyEventData = Omit<
   components['schemas']['IdentifyEvent'],
   keyof Omit<AnalyticsEventBase, 'type'>
 >;
+
 export type PageEvent = components['schemas']['PageEvent'];
 export type PageEventData = Omit<
   components['schemas']['PageEvent'],
   keyof Omit<AnalyticsEventBase, 'type'>
 >;
+
 export type TrackEvent = components['schemas']['TrackEvent'];
 export type TrackEventData = Omit<
   components['schemas']['TrackEvent'],
   keyof Omit<AnalyticsEventBase, 'type'>
 >;
-export type PageProperties = components['schemas']['PageProperties'];
-export type Traits = components['schemas']['Traits'];
+export type TrackEventProperties = Pick<TrackEventData, 'properties'>;
+
+export type UCompany =
+  components['schemas']['CreateOrUpdateUCompanyAttributes'];
+export type UPerson = components['schemas']['CreateOrUpdateUCompanyAttributes'];
+
+export type UAddress = components['schemas']['UValues.UAddress'];
+export type UBoolean = components['schemas']['UValues.UBoolean'];
+export type UCountry = components['schemas']['UValues.UCountry'];
 export type UCountryCode = components['schemas']['UValues.UCountryCode'];
+export type UCurrency = components['schemas']['UValues.UCurrency'];
+export type UCurrencyCode = components['schemas']['UValues.UCurrencyCode'];
+export type UDate = components['schemas']['UValues.UDate'];
+export type UEmail = components['schemas']['UValues.UEmail'];
+export type UInteger = components['schemas']['UValues.UInteger'];
+export type UPhoneNumber = components['schemas']['UValues.UPhoneNumber'];
+export type UReference = components['schemas']['UValues.UReference'];
+export type UText = components['schemas']['UValues.UPhoneNumber'];
+export type UUrl = components['schemas']['UValues.UUrl'];

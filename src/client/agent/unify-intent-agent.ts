@@ -7,7 +7,6 @@ import { IdentifyActivity, PageActivity, TrackActivity } from '../activities';
 import { validateEmail } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
 import {
-  BUTTON_SELECTORS,
   DEFAULT_FORMS_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
   NAVATTIC_USER_EMAIL_KEY,
@@ -39,7 +38,7 @@ export class UnifyIntentAgent {
 
   private _autoPage: boolean;
   private _autoIdentify: boolean;
-  private _autoTrackOptions?: AutoTrackOptions;
+  private _autoTrackOptions: AutoTrackOptions;
 
   private _historyMonitored: boolean = false;
   private _lastLocation?: Location;
@@ -51,7 +50,7 @@ export class UnifyIntentAgent {
 
     this._autoPage = intentContext.clientConfig.autoPage ?? false;
     this._autoIdentify = intentContext.clientConfig.autoIdentify ?? false;
-    this._autoTrackOptions = intentContext.clientConfig.autoTrackOptions;
+    this._autoTrackOptions = { ...intentContext.clientConfig.autoTrackOptions };
 
     if (this._autoPage) {
       this.startAutoPage();
@@ -207,6 +206,10 @@ export class UnifyIntentAgent {
     this._isTrackingClicks = true;
   };
 
+  /**
+   * Stops tracking click events in the document if the intent client is
+   * currently tracking them.
+   */
   private stopTrackingClicks = () => {
     if (!this._isTrackingClicks) return;
 
@@ -215,6 +218,14 @@ export class UnifyIntentAgent {
     this._isTrackingClicks = false;
   };
 
+  /**
+   * Document click handler function which implements auto-tracking of clicks
+   * on relevant elements. By default, will log track clicks with the
+   * click-tracking data attributes, but will also include elements that match
+   * the click-tracking CSS selectors if specified.
+   *
+   * @param event - the Document click event
+   */
   private handleDocumentClick = (event: MouseEvent) => {
     try {
       const target = event.target as Element | null;
@@ -222,8 +233,7 @@ export class UnifyIntentAgent {
 
       const selectors = [
         `[${UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME}]`,
-        ...(this._intentContext.clientConfig.autoTrackOptions
-          ?.clickTrackingSelectors ?? []),
+        ...(this._autoTrackOptions.clickTrackingSelectors ?? []),
       ];
 
       const element = target.closest(selectors.join(', '));

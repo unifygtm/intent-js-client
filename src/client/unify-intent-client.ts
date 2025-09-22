@@ -1,10 +1,13 @@
-import {
+import type {
   AnalyticsEventBase,
   AutoTrackOptions,
   PageEventOptions,
   TrackEventData,
+  TrackEventProperties,
+  UCompany,
   UnifyIntentClientConfig,
   UnifyIntentContext,
+  UPerson,
 } from '../types';
 import { IdentifyActivity, PageActivity, TrackActivity } from './activities';
 import { IdentityManager, SessionManager } from './managers';
@@ -132,8 +135,7 @@ export default class UnifyIntentClient {
    * This function logs a page view for the current page or the page
    * specified in options to the Unify Intent API.
    *
-   * @param options - options which can be used to customize the page
-   *        event which is logged. See `PageEventOptions` for details.
+   * @param options - options which can be used to customize the page event which is logged. See `PageEventOptions` for details.
    */
   public page = (options?: PageEventOptions) => {
     if (!this._mounted) return;
@@ -147,10 +149,8 @@ export default class UnifyIntentClient {
    * This is useful if you want to send the payload to a proxy server to
    * perform the tracking server-side.
    *
-   * @param options - options which can be used to customize the page
-   *        event which is tracked. See `PageEventOptions` for details.
-   * @returns if the client is mounted, the request payload to track a page
-   *          event, otherwise returns `undefined`
+   * @param options - options which can be used to customize the page event which is tracked. See `PageEventOptions` for details.
+   * @returns if the client is mounted, the request payload to track a page event, otherwise returns `undefined`
    */
   public getPagePayload = (options?: PageEventOptions) => {
     if (!this._mounted) return;
@@ -165,15 +165,21 @@ export default class UnifyIntentClient {
    * with the current user's session and all related activities.
    *
    * @param email - the email address to log an identify event for
+   * @param options - object containing Person or Company data to associate with the identified visitor. If the Person or Company already exists in Unify, they will be updated, otherwise they will be created.
    * @returns `true` if the email was valid and logged, otherwise `false`
    */
-  public identify = (email: string): boolean => {
+  public identify = (
+    email: string,
+    options?: { person?: UPerson; company?: UCompany },
+  ): boolean => {
     if (!this._mounted) return false;
 
     const validatedEmail = validateEmail(email);
     if (validatedEmail) {
       const action = new IdentifyActivity(this._context, {
         email: validatedEmail,
+        person: options?.person,
+        company: options?.company,
       });
       action.track();
 
@@ -189,17 +195,21 @@ export default class UnifyIntentClient {
    * perform the tracking server-side.
    *
    * @param email - the email address to log an identify event for
-   * @returns if the client is mounted and `email` is a valid email address,
-   *          the request payload to track an identify event, otherwise
-   *          returns `undefined`
+   * @param options - object containing Person or Company data to associate with the identified visitor. If the Person or Company already exists in Unify, they will be updated, otherwise they will be created.
+   * @returns if the client is mounted and `email` is a valid email address, the request payload to track an identify event, otherwise returns `undefined`
    */
-  public getIdentifyPayload = (email: string) => {
+  public getIdentifyPayload = (
+    email: string,
+    options?: { person?: UPerson; company?: UCompany },
+  ) => {
     if (!this._mounted) return false;
 
     const validatedEmail = validateEmail(email);
     if (validatedEmail) {
       const action = new IdentifyActivity(this._context, {
         email: validatedEmail,
+        person: options?.person,
+        company: options?.company,
       });
       return action.getTrackPayload();
     }
@@ -213,10 +223,7 @@ export default class UnifyIntentClient {
    * @param name - the name of the event to track, e.g. "Demo Button Clicked"
    * @param properties - optional properties to associate with the event
    */
-  public track = (
-    name: string,
-    properties?: TrackEventData['properties'],
-  ): void => {
+  public track = (name: string, properties?: TrackEventProperties): void => {
     if (!this._mounted) return;
 
     const action = new TrackActivity(this._context, { name, properties });
@@ -230,12 +237,11 @@ export default class UnifyIntentClient {
    *
    * @param name - the name of the event to track, e.g. "Demo Button Clicked"
    * @param properties - optional properties to associate with the event
-   * @returns if the client is mounted, the request payload for a track event,
-   *          otherwise `undefined`
+   * @returns if the client is mounted, the request payload for a track event, otherwise `undefined`
    */
   public getTrackPayload = (
     name: string,
-    properties: TrackEventData['properties'],
+    properties: TrackEventProperties,
   ): (AnalyticsEventBase & TrackEventData) | undefined => {
     if (!this._mounted) return;
 

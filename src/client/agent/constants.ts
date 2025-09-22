@@ -46,15 +46,6 @@ export const UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX = 'unifyAttr';
  */
 export const UNIFY_ELEMENT_EXCLUSION_DATA_ATTR = 'unifyExclude';
 
-export const BUTTON_SELECTORS = [
-  'button',
-  "[role='button']",
-  "input[type='button']",
-  "input[type='submit']",
-  "input[type='reset']",
-  "input[type='image']",
-];
-
 export const DEFAULT_FORMS_IFRAME_ORIGIN = 'https://forms.default.com';
 export const NAVATTIC_IFRAME_ORIGIN = 'https://capture.navattic.com';
 

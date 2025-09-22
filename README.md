@@ -189,6 +189,8 @@ unify.startAutoIdentify();
 
 You can also manually trigger an identify event with the `identify` method on the client. This is useful when users log-in with OAuth or SSO, for example, because they do not enter their email into an input on the page.
 
+When using this method, you can also optionally specify a set of Person or Company attributes to upsert and associate with the identified user. This is done in the form of an optional second argument to `identify`.
+
 ```TypeScript
 const unify = new UnifyIntentClient('YOUR_PUBLIC_API_KEY');
 unify.mount();
@@ -198,6 +200,22 @@ const currentUser = getCurrentUser();
 
 // Identify the current user
 unify.identify(currentUser.emailAddress);
+
+// OR identify the current user and upsert the associated Company/Person in Unify
+unify.identify(
+  currentUser.emailAddress,
+  {
+    person: {
+      email: currentUser.emailAddress,
+      first_name: currentUser.firstName,
+      last_name: currentUser.lastName,
+    },
+    company: {
+      domain: currentUser.organization.domain,
+      name: currentUser.organization.name,
+    }
+  }
+)
 ```
 
 ### Track Events

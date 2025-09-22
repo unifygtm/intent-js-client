@@ -4,6 +4,7 @@ import {
   UnifyIntentContext,
 } from '../../types';
 import { UNIFY_INTENT_V1_URL } from '../constants';
+import { getCurrentPageProperties } from '../utils/helpers';
 import Activity from './activity';
 
 export const UNIFY_INTENT_TRACK_URL = `${UNIFY_INTENT_V1_URL}/track`;
@@ -25,7 +26,7 @@ export class TrackActivity extends Activity<TrackEventData> {
   }
 
   protected getActivityType(): AnalyticsEventType {
-    return 'track' as TrackEventData['type'];
+    return 'track';
   }
 
   protected getActivityURL(): string {
@@ -33,8 +34,11 @@ export class TrackActivity extends Activity<TrackEventData> {
   }
 
   protected getActivityData = (): TrackEventData => ({
-    type: 'track' as TrackEventData['type'],
+    type: 'track',
     name: this._name,
-    properties: this._properties,
+    properties: {
+      ...getCurrentPageProperties(),
+      ...this._properties,
+    },
   });
 }
