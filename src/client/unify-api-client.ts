@@ -36,8 +36,4 @@ export default class UnifyApiClient {
       xhr.send(requestBody);
     }
   };
-
-  private getAuthString(writeKey: string): string {
-    return `Basic ${encode(writeKey + ':')}`;
-  }
 }

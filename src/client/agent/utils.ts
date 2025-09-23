@@ -1,4 +1,5 @@
 import { UCompany, UPerson } from '../../types';
+import UnifyApiClient from '../unify-api-client';
 import { getDomainForEmail, getDomainForUrl } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
 import {
@@ -89,6 +90,7 @@ export function extractUnifyCapturePropertiesFromElement(
 
 export function getUAttributesForDefaultEventData(
   data: DefaultEventData,
+  apiClient?: UnifyApiClient,
 ): { person?: UPerson; company?: UCompany } | undefined {
   if (!isDefaultFormEventData(data)) return undefined;
 
@@ -132,6 +134,8 @@ export function getUAttributesForDefaultEventData(
   } catch (error: unknown) {
     logUnifyError({
       message: `Error occurred while parsing attributes from Default event payload: ${error}`,
+      error: error as Error,
+      apiClient,
     });
     return undefined;
   }
@@ -139,6 +143,7 @@ export function getUAttributesForDefaultEventData(
 
 export function getUAttributesForNavatticEventData(
   data: NavatticEventData,
+  apiClient?: UnifyApiClient,
 ): { person?: UPerson; company?: UCompany } | undefined {
   try {
     const eventDataProperties = data.properties ?? [];
@@ -250,6 +255,8 @@ export function getUAttributesForNavatticEventData(
   } catch (error: unknown) {
     logUnifyError({
       message: `Error occurred while parsing attributes from Navattic event payload: ${error}`,
+      error: error as Error,
+      apiClient,
     });
     return undefined;
   }

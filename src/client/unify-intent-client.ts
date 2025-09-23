@@ -59,51 +59,55 @@ export default class UnifyIntentClient {
     // The client should never be initialized outside a global window context
     if (typeof window === 'undefined') return;
 
-    // The client should never be instantiated more than once
-    if (isIntentClient(window.unify) || isIntentClient(window.unifyBrowser)) {
-      logUnifyError({
-        message:
-          'UnifyIntentClient already exists on window, a new one will not be created.',
+    try {
+      // The client should never be instantiated more than once
+      if (isIntentClient(window.unify) || isIntentClient(window.unifyBrowser)) {
+        logUnifyError({
+          message:
+            'UnifyIntentClient already exists on window, a new one will not be created.',
+        });
+        return;
+      }
+
+      // Initialize API client
+      const apiClient = new UnifyApiClient(this._writeKey);
+
+      // Initialize user session
+      const sessionManager = new SessionManager(this._writeKey, {
+        durationMinutes: this._config.sessionDurationMinutes,
       });
-      return;
+      sessionManager.getOrCreateSession();
+
+      // Create visitor ID if needed
+      const identityManager = new IdentityManager(this._writeKey);
+      identityManager.getOrCreateVisitorId();
+
+      // Initialize context
+      this._context = {
+        writeKey: this._writeKey,
+        clientConfig: this._config,
+        apiClient,
+        sessionManager,
+        identityManager,
+      };
+
+      // Initialize intent agent if specifed by config
+      this._intentAgent = new UnifyIntentAgent(this._context);
+
+      // We set `mounted` to `true` before flushing the queue since the
+      // methdods which can be called require that.
+      this._mounted = true;
+
+      // When the client is loaded from CDN, it's possible that method
+      // calls have been queued on `window.unify`
+      flushUnifyQueue(this, apiClient);
+
+      // Set unify object on window to prevent multiple instantiations
+      window.unify = this;
+      window.unifyBrowser = this;
+    } catch (error: unknown) {
+      this.logError('Error occurred in mount', error);
     }
-
-    // Initialize API client
-    const apiClient = new UnifyApiClient(this._writeKey);
-
-    // Initialize user session
-    const sessionManager = new SessionManager(this._writeKey, {
-      durationMinutes: this._config.sessionDurationMinutes,
-    });
-    sessionManager.getOrCreateSession();
-
-    // Create visitor ID if needed
-    const identityManager = new IdentityManager(this._writeKey);
-    identityManager.getOrCreateVisitorId();
-
-    // Initialize context
-    this._context = {
-      writeKey: this._writeKey,
-      clientConfig: this._config,
-      apiClient,
-      sessionManager,
-      identityManager,
-    };
-
-    // Initialize intent agent if specifed by config
-    this._intentAgent = new UnifyIntentAgent(this._context);
-
-    // We set `mounted` to `true` before flushing the queue since the
-    // methdods which can be called require that.
-    this._mounted = true;
-
-    // When the client is loaded from CDN, it's possible that method
-    // calls have been queued on `window.unify`
-    flushUnifyQueue(this);
-
-    // Set unify object on window to prevent multiple instantiations
-    window.unify = this;
-    window.unifyBrowser = this;
   };
 
   /**
@@ -116,19 +120,23 @@ export default class UnifyIntentClient {
     // If window no longer exists at this point, there is nothing to unmount
     if (typeof window === 'undefined') return;
 
-    if (this._config.autoPage) {
-      this.stopAutoPage();
+    try {
+      if (this._config.autoPage) {
+        this.stopAutoPage();
+      }
+
+      if (this._config.autoIdentify) {
+        this.stopAutoIdentify();
+      }
+
+      this.stopAutoTrack();
+
+      this._mounted = false;
+      window.unify = undefined;
+      window.unifyBrowser = undefined;
+    } catch (error: unknown) {
+      this.logError('Error occurred in unmount', error);
     }
-
-    if (this._config.autoIdentify) {
-      this.stopAutoIdentify();
-    }
-
-    this.stopAutoTrack();
-
-    this._mounted = false;
-    window.unify = undefined;
-    window.unifyBrowser = undefined;
   };
 
   /**
@@ -140,8 +148,12 @@ export default class UnifyIntentClient {
   public page = (options?: PageEventOptions) => {
     if (!this._mounted) return;
 
-    const action = new PageActivity(this._context, options);
-    action.track();
+    try {
+      const action = new PageActivity(this._context, options);
+      action.track();
+    } catch (error: unknown) {
+      this.logError('Error occurred in page', error);
+    }
   };
 
   /**
@@ -155,8 +167,12 @@ export default class UnifyIntentClient {
   public getPagePayload = (options?: PageEventOptions) => {
     if (!this._mounted) return;
 
-    const action = new PageActivity(this._context, options);
-    return action.getTrackPayload();
+    try {
+      const action = new PageActivity(this._context, options);
+      return action.getTrackPayload();
+    } catch (error: unknown) {
+      this.logError('Error occurred in getPagePayload', error);
+    }
   };
 
   /**
@@ -174,16 +190,20 @@ export default class UnifyIntentClient {
   ): boolean => {
     if (!this._mounted) return false;
 
-    const validatedEmail = validateEmail(email);
-    if (validatedEmail) {
-      const action = new IdentifyActivity(this._context, {
-        email: validatedEmail,
-        person: options?.person,
-        company: options?.company,
-      });
-      action.track();
+    try {
+      const validatedEmail = validateEmail(email);
+      if (validatedEmail) {
+        const action = new IdentifyActivity(this._context, {
+          email: validatedEmail,
+          person: options?.person,
+          company: options?.company,
+        });
+        action.track();
 
-      return true;
+        return true;
+      }
+    } catch (error: unknown) {
+      this.logError('Error occurred in identify', error);
     }
 
     return false;
@@ -204,14 +224,18 @@ export default class UnifyIntentClient {
   ) => {
     if (!this._mounted) return false;
 
-    const validatedEmail = validateEmail(email);
-    if (validatedEmail) {
-      const action = new IdentifyActivity(this._context, {
-        email: validatedEmail,
-        person: options?.person,
-        company: options?.company,
-      });
-      return action.getTrackPayload();
+    try {
+      const validatedEmail = validateEmail(email);
+      if (validatedEmail) {
+        const action = new IdentifyActivity(this._context, {
+          email: validatedEmail,
+          person: options?.person,
+          company: options?.company,
+        });
+        return action.getTrackPayload();
+      }
+    } catch (error: unknown) {
+      this.logError('Error occurred in getIdentifyPayload', error);
     }
   };
 
@@ -226,8 +250,12 @@ export default class UnifyIntentClient {
   public track = (name: string, properties?: TrackEventProperties): void => {
     if (!this._mounted) return;
 
-    const action = new TrackActivity(this._context, { name, properties });
-    action.track();
+    try {
+      const action = new TrackActivity(this._context, { name, properties });
+      action.track();
+    } catch (error: unknown) {
+      this.logError('Error occurred in track', error);
+    }
   };
 
   /**
@@ -245,8 +273,12 @@ export default class UnifyIntentClient {
   ): (AnalyticsEventBase & TrackEventData) | undefined => {
     if (!this._mounted) return;
 
-    const action = new TrackActivity(this._context, { name, properties });
-    return action.getTrackPayload();
+    try {
+      const action = new TrackActivity(this._context, { name, properties });
+      return action.getTrackPayload();
+    } catch (error: unknown) {
+      this.logError('Error occurred in getTrackPayload', error);
+    }
   };
 
   /**
@@ -259,11 +291,15 @@ export default class UnifyIntentClient {
   public startAutoPage = () => {
     if (!this._mounted) return;
 
-    if (!this._intentAgent) {
-      this._intentAgent = new UnifyIntentAgent(this._context);
-    }
+    try {
+      if (!this._intentAgent) {
+        this._intentAgent = new UnifyIntentAgent(this._context);
+      }
 
-    this._intentAgent.startAutoPage();
+      this._intentAgent.startAutoPage();
+    } catch (error: unknown) {
+      this.logError('Error occurred in startAutoPage', error);
+    }
   };
 
   /**
@@ -275,7 +311,11 @@ export default class UnifyIntentClient {
   public stopAutoPage = () => {
     if (!this._mounted) return;
 
-    this._intentAgent?.stopAutoPage();
+    try {
+      this._intentAgent?.stopAutoPage();
+    } catch (error: unknown) {
+      this.logError('Error occurred in stopAutoPage', error);
+    }
   };
 
   /**
@@ -288,11 +328,15 @@ export default class UnifyIntentClient {
   public startAutoIdentify = () => {
     if (!this._mounted) return;
 
-    if (!this._intentAgent) {
-      this._intentAgent = new UnifyIntentAgent(this._context);
-    }
+    try {
+      if (!this._intentAgent) {
+        this._intentAgent = new UnifyIntentAgent(this._context);
+      }
 
-    this._intentAgent.startAutoIdentify();
+      this._intentAgent.startAutoIdentify();
+    } catch (error: unknown) {
+      this.logError('Error occurred in startAutoIdentify', error);
+    }
   };
 
   /**
@@ -304,7 +348,11 @@ export default class UnifyIntentClient {
   public stopAutoIdentify = () => {
     if (!this._mounted) return;
 
-    this._intentAgent?.stopAutoIdentify();
+    try {
+      this._intentAgent?.stopAutoIdentify();
+    } catch (error: unknown) {
+      this.logError('Error occurred in stopAutoIdentify', error);
+    }
   };
 
   /**
@@ -320,15 +368,19 @@ export default class UnifyIntentClient {
   public startAutoTrack = (options?: AutoTrackOptions) => {
     if (!this._mounted) return;
 
-    if (options) {
-      this._config.autoTrackOptions = options;
-    }
+    try {
+      if (options) {
+        this._config.autoTrackOptions = options;
+      }
 
-    if (!this._intentAgent) {
-      this._intentAgent = new UnifyIntentAgent(this._context);
-    }
+      if (!this._intentAgent) {
+        this._intentAgent = new UnifyIntentAgent(this._context);
+      }
 
-    this._intentAgent.startAutoTrack(options);
+      this._intentAgent.startAutoTrack(options);
+    } catch (error: unknown) {
+      this.logError('Error occurred in startAutoTrack', error);
+    }
   };
 
   /**
@@ -340,7 +392,19 @@ export default class UnifyIntentClient {
   public stopAutoTrack = () => {
     if (!this._mounted) return;
 
-    this._intentAgent?.stopAutoTrack();
+    try {
+      this._intentAgent?.stopAutoTrack();
+    } catch (error: unknown) {
+      this.logError('Error occurred in stopAutoTrack', error);
+    }
+  };
+
+  private logError = (message: string, error: unknown) => {
+    logUnifyError({
+      message: `UnifyIntentClient: ${message}`,
+      error: error as Error,
+      apiClient: this._context.apiClient,
+    });
   };
 }
 
@@ -362,7 +426,7 @@ export default class UnifyIntentClient {
  *
  * @param unify - the `UnifyIntentClient` to apply method calls to
  */
-function flushUnifyQueue(unify: UnifyIntentClient) {
+function flushUnifyQueue(unify: UnifyIntentClient, apiClient: UnifyApiClient) {
   const queue: [string, unknown[]][] = Array.isArray(window.unify)
     ? [...window.unify]
     : Array.isArray(window.unifyBrowser)
@@ -382,7 +446,11 @@ function flushUnifyQueue(unify: UnifyIntentClient) {
       } catch (error: any) {
         // Swallow errors so client is not potentially affected, this
         // should ideally never happen.
-        logUnifyError({ message: error?.message });
+        logUnifyError({
+          message: `Error occurred while flushing queue: ${error?.message}`,
+          error: error as Error,
+          apiClient,
+        });
       }
     }
   });
