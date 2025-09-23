@@ -1,5 +1,3 @@
-import { encode } from 'js-base64';
-
 /**
  * Basic API client class for making requests to the Unify Intent API.
  */

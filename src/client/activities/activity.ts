@@ -60,19 +60,14 @@ abstract class Activity<TActivityData extends object> {
    *
    * @returns the base activity data to log
    */
-  private getBaseActivityPayload = (): AnalyticsEventBase => {
-    const visitorId =
-      this._intentContext.identityManager.getOrCreateVisitorId();
-
-    return {
-      type: this.getActivityType(),
-      visitorId,
-      sessionId:
-        this._intentContext.sessionManager.getOrCreateSession().sessionId,
-      context: getActivityContext(),
-      timestamp: new Date().toISOString(),
-    };
-  };
+  private getBaseActivityPayload = (): AnalyticsEventBase => ({
+    type: this.getActivityType(),
+    visitorId: this._intentContext.identityManager.getOrCreateVisitorId(),
+    sessionId:
+      this._intentContext.sessionManager.getOrCreateSession().sessionId,
+    context: getActivityContext(),
+    timestamp: new Date().toISOString(),
+  });
 }
 
 export default Activity;
