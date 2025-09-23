@@ -138,5 +138,5 @@ export function getDomainForUrl(url: string): string | null {
 }
 
 export function getDomainForEmail(email: string): string | null {
-  return email.split('@')[1];
+  return email.split('@').at(1) ?? null;
 }
