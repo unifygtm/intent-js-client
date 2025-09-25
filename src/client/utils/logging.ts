@@ -2,7 +2,8 @@ import { version } from '../../../package.json';
 
 import UnifyApiClient from '../unify-api-client';
 
-const UNIFY_LOGGER_URL = 'https://api.unifyintent.com/logs';
+const UNIFY_LOGGER_URL =
+  'https://api.unifyintent.com/analytics/v1/_internal/logs';
 
 /**
  * This function is used to log all errors which occur in the
