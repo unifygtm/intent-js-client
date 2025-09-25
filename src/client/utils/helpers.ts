@@ -95,7 +95,10 @@ export function getLocationHrefWithCustomPath({
  */
 export const getCurrentUserAgentData = (): UserAgentDataType => ({
   userAgent: window.navigator.userAgent,
-  userAgentData: window.navigator.userAgentData,
+  userAgentData:
+    typeof navigator.userAgentData !== 'undefined'
+      ? navigator.userAgentData
+      : undefined,
 });
 
 /**
