@@ -40,6 +40,8 @@ export function isActionableElement(element: Element): boolean {
 
   if (element.getAttribute('aria-disabled') === 'true') return false;
 
+  if (element.classList.contains('disabled')) return false;
+
   if (elementHasDataAttr(element, UNIFY_ELEMENT_EXCLUSION_DATA_ATTR))
     return false;
 
