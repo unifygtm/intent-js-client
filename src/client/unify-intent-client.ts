@@ -1,9 +1,15 @@
-import {
+import type {
+  AnalyticsEventBase,
+  AutoTrackOptions,
   PageEventOptions,
+  TrackEventData,
+  TrackEventProperties,
+  UCompany,
   UnifyIntentClientConfig,
   UnifyIntentContext,
+  UPerson,
 } from '../types';
-import { IdentifyActivity, PageActivity } from './activities';
+import { IdentifyActivity, PageActivity, TrackActivity } from './activities';
 import { IdentityManager, SessionManager } from './managers';
 import UnifyApiClient from './unify-api-client';
 import { UnifyIntentAgent } from './agent';
@@ -53,53 +59,55 @@ export default class UnifyIntentClient {
     // The client should never be initialized outside a global window context
     if (typeof window === 'undefined') return;
 
-    // The client should never be instantiated more than once
-    if (isIntentClient(window.unify) || isIntentClient(window.unifyBrowser)) {
-      logUnifyError({
-        message:
-          'UnifyIntentClient already exists on window, a new one will not be created.',
+    try {
+      // The client should never be instantiated more than once
+      if (isIntentClient(window.unify) || isIntentClient(window.unifyBrowser)) {
+        logUnifyError({
+          message:
+            'UnifyIntentClient already exists on window, a new one will not be created.',
+        });
+        return;
+      }
+
+      // Initialize API client
+      const apiClient = new UnifyApiClient(this._writeKey);
+
+      // Initialize user session
+      const sessionManager = new SessionManager(this._writeKey, {
+        durationMinutes: this._config.sessionDurationMinutes,
       });
-      return;
-    }
+      sessionManager.getOrCreateSession();
 
-    // Initialize API client
-    const apiClient = new UnifyApiClient(this._writeKey);
+      // Create visitor ID if needed
+      const identityManager = new IdentityManager(this._writeKey);
+      identityManager.getOrCreateVisitorId();
 
-    // Initialize user session
-    const sessionManager = new SessionManager(this._writeKey, {
-      durationMinutes: this._config.sessionDurationMinutes,
-    });
-    sessionManager.getOrCreateSession();
+      // Initialize context
+      this._context = {
+        writeKey: this._writeKey,
+        clientConfig: this._config,
+        apiClient,
+        sessionManager,
+        identityManager,
+      };
 
-    // Create visitor ID if needed
-    const identityManager = new IdentityManager(this._writeKey);
-    identityManager.getOrCreateVisitorId();
-
-    // Initialize context
-    this._context = {
-      writeKey: this._writeKey,
-      clientConfig: this._config,
-      apiClient,
-      sessionManager,
-      identityManager,
-    };
-
-    // Initialize intent agent if specifed by config
-    if (this._config.autoPage || this._config.autoIdentify) {
+      // Initialize intent agent if specifed by config
       this._intentAgent = new UnifyIntentAgent(this._context);
+
+      // We set `mounted` to `true` before flushing the queue since the
+      // methdods which can be called require that.
+      this._mounted = true;
+
+      // When the client is loaded from CDN, it's possible that method
+      // calls have been queued on `window.unify`
+      flushUnifyQueue(this, apiClient);
+
+      // Set unify object on window to prevent multiple instantiations
+      window.unify = this;
+      window.unifyBrowser = this;
+    } catch (error: unknown) {
+      this.logError('Error occurred in mount', error);
     }
-
-    // We set `mounted` to `true` before flushing the queue since the
-    // methdods which can be called require that.
-    this._mounted = true;
-
-    // When the client is loaded from CDN, it's possible that method
-    // calls have been queued on `window.unify`
-    flushUnifyQueue(this);
-
-    // Set unify object on window to prevent multiple instantiations
-    window.unify = this;
-    window.unifyBrowser = this;
   };
 
   /**
@@ -112,31 +120,40 @@ export default class UnifyIntentClient {
     // If window no longer exists at this point, there is nothing to unmount
     if (typeof window === 'undefined') return;
 
-    if (this._config.autoPage) {
-      this.stopAutoPage();
-    }
+    try {
+      if (this._config.autoPage) {
+        this.stopAutoPage();
+      }
 
-    if (this._config.autoIdentify) {
-      this.stopAutoIdentify();
-    }
+      if (this._config.autoIdentify) {
+        this.stopAutoIdentify();
+      }
 
-    this._mounted = false;
-    window.unify = undefined;
-    window.unifyBrowser = undefined;
+      this.stopAutoTrack();
+
+      this._mounted = false;
+      window.unify = undefined;
+      window.unifyBrowser = undefined;
+    } catch (error: unknown) {
+      this.logError('Error occurred in unmount', error);
+    }
   };
 
   /**
    * This function logs a page view for the current page or the page
    * specified in options to the Unify Intent API.
    *
-   * @param options - options which can be used to customize the page
-   *        event which is logged. See `PageEventOptions` for details.
+   * @param options - options which can be used to customize the page event which is logged. See `PageEventOptions` for details.
    */
   public page = (options?: PageEventOptions) => {
     if (!this._mounted) return;
 
-    const action = new PageActivity(this._context, options);
-    action.track();
+    try {
+      const action = new PageActivity(this._context, options);
+      action.track();
+    } catch (error: unknown) {
+      this.logError('Error occurred in page', error);
+    }
   };
 
   /**
@@ -144,16 +161,18 @@ export default class UnifyIntentClient {
    * This is useful if you want to send the payload to a proxy server to
    * perform the tracking server-side.
    *
-   * @param options - options which can be used to customize the page
-   *        event which is tracked. See `PageEventOptions` for details.
-   * @returns if the client is mounted, the request payload to track a page
-   *          event, otherwise returns `undefined`
+   * @param options - options which can be used to customize the page event which is tracked. See `PageEventOptions` for details.
+   * @returns if the client is mounted, the request payload to track a page event, otherwise returns `undefined`
    */
   public getPagePayload = (options?: PageEventOptions) => {
     if (!this._mounted) return;
 
-    const action = new PageActivity(this._context, options);
-    return action.getTrackPayload();
+    try {
+      const action = new PageActivity(this._context, options);
+      return action.getTrackPayload();
+    } catch (error: unknown) {
+      this.logError('Error occurred in getPagePayload', error);
+    }
   };
 
   /**
@@ -162,19 +181,29 @@ export default class UnifyIntentClient {
    * with the current user's session and all related activities.
    *
    * @param email - the email address to log an identify event for
+   * @param options - object containing Person or Company data to associate with the identified visitor. If the Person or Company already exists in Unify, they will be updated, otherwise they will be created.
    * @returns `true` if the email was valid and logged, otherwise `false`
    */
-  public identify = (email: string): boolean => {
+  public identify = (
+    email: string,
+    options?: { person?: UPerson; company?: UCompany },
+  ): boolean => {
     if (!this._mounted) return false;
 
-    const validatedEmail = validateEmail(email);
-    if (validatedEmail) {
-      const action = new IdentifyActivity(this._context, {
-        email: validatedEmail,
-      });
-      action.track();
+    try {
+      const validatedEmail = validateEmail(email);
+      if (validatedEmail) {
+        const action = new IdentifyActivity(this._context, {
+          email: validatedEmail,
+          person: options?.person,
+          company: options?.company,
+        });
+        action.track();
 
-      return true;
+        return true;
+      }
+    } catch (error: unknown) {
+      this.logError('Error occurred in identify', error);
     }
 
     return false;
@@ -186,19 +215,69 @@ export default class UnifyIntentClient {
    * perform the tracking server-side.
    *
    * @param email - the email address to log an identify event for
-   * @returns if the client is mounted and `email` is a valid email address,
-   *          the request payload to track an identify event, otherwise
-   *          returns `undefined`
+   * @param options - object containing Person or Company data to associate with the identified visitor. If the Person or Company already exists in Unify, they will be updated, otherwise they will be created.
+   * @returns if the client is mounted and `email` is a valid email address, the request payload to track an identify event, otherwise returns `undefined`
    */
-  public getIdentifyPayload = (email: string) => {
+  public getIdentifyPayload = (
+    email: string,
+    options?: { person?: UPerson; company?: UCompany },
+  ) => {
     if (!this._mounted) return false;
 
-    const validatedEmail = validateEmail(email);
-    if (validatedEmail) {
-      const action = new IdentifyActivity(this._context, {
-        email: validatedEmail,
-      });
+    try {
+      const validatedEmail = validateEmail(email);
+      if (validatedEmail) {
+        const action = new IdentifyActivity(this._context, {
+          email: validatedEmail,
+          person: options?.person,
+          company: options?.company,
+        });
+        return action.getTrackPayload();
+      }
+    } catch (error: unknown) {
+      this.logError('Error occurred in getIdentifyPayload', error);
+    }
+  };
+
+  /**
+   * This function logs a track event with the given name and properties
+   * to the Unify Intent API. Unify will associate this event
+   * with the current user's session and all related activities.
+   *
+   * @param name - the name of the event to track, e.g. "Demo Button Clicked"
+   * @param properties - optional properties to associate with the event
+   */
+  public track = (name: string, properties?: TrackEventProperties): void => {
+    if (!this._mounted) return;
+
+    try {
+      const action = new TrackActivity(this._context, { name, properties });
+      action.track();
+    } catch (error: unknown) {
+      this.logError('Error occurred in track', error);
+    }
+  };
+
+  /**
+   * This function returns the request payload for a single track event.
+   * This is useful if you want to send the payload to a proxy server to
+   * perform the tracking server-side.
+   *
+   * @param name - the name of the event to track, e.g. "Demo Button Clicked"
+   * @param properties - optional properties to associate with the event
+   * @returns if the client is mounted, the request payload for a track event, otherwise `undefined`
+   */
+  public getTrackPayload = (
+    name: string,
+    properties: TrackEventProperties,
+  ): (AnalyticsEventBase & TrackEventData) | undefined => {
+    if (!this._mounted) return;
+
+    try {
+      const action = new TrackActivity(this._context, { name, properties });
       return action.getTrackPayload();
+    } catch (error: unknown) {
+      this.logError('Error occurred in getTrackPayload', error);
     }
   };
 
@@ -212,11 +291,15 @@ export default class UnifyIntentClient {
   public startAutoPage = () => {
     if (!this._mounted) return;
 
-    if (!this._intentAgent) {
-      this._intentAgent = new UnifyIntentAgent(this._context);
-    }
+    try {
+      if (!this._intentAgent) {
+        this._intentAgent = new UnifyIntentAgent(this._context);
+      }
 
-    this._intentAgent.startAutoPage();
+      this._intentAgent.startAutoPage();
+    } catch (error: unknown) {
+      this.logError('Error occurred in startAutoPage', error);
+    }
   };
 
   /**
@@ -228,7 +311,11 @@ export default class UnifyIntentClient {
   public stopAutoPage = () => {
     if (!this._mounted) return;
 
-    this._intentAgent?.stopAutoPage();
+    try {
+      this._intentAgent?.stopAutoPage();
+    } catch (error: unknown) {
+      this.logError('Error occurred in stopAutoPage', error);
+    }
   };
 
   /**
@@ -241,11 +328,15 @@ export default class UnifyIntentClient {
   public startAutoIdentify = () => {
     if (!this._mounted) return;
 
-    if (!this._intentAgent) {
-      this._intentAgent = new UnifyIntentAgent(this._context);
-    }
+    try {
+      if (!this._intentAgent) {
+        this._intentAgent = new UnifyIntentAgent(this._context);
+      }
 
-    this._intentAgent.startAutoIdentify();
+      this._intentAgent.startAutoIdentify();
+    } catch (error: unknown) {
+      this.logError('Error occurred in startAutoIdentify', error);
+    }
   };
 
   /**
@@ -257,7 +348,63 @@ export default class UnifyIntentClient {
   public stopAutoIdentify = () => {
     if (!this._mounted) return;
 
-    this._intentAgent?.stopAutoIdentify();
+    try {
+      this._intentAgent?.stopAutoIdentify();
+    } catch (error: unknown) {
+      this.logError('Error occurred in stopAutoIdentify', error);
+    }
+  };
+
+  /**
+   * This function will instantiate an agent which continuously monitors
+   * user actions on the page to automatically fire track events for them.
+   *
+   * The corresponding `stopAutoTrack` can be used to temporarily
+   * stop the continuous monitoring.
+   *
+   * @param options - auto-track options to use. If `undefined`, the previously
+   *        specified auto-track options will be re-used.
+   */
+  public startAutoTrack = (options?: AutoTrackOptions) => {
+    if (!this._mounted) return;
+
+    try {
+      if (options) {
+        this._config.autoTrackOptions = options;
+      }
+
+      if (!this._intentAgent) {
+        this._intentAgent = new UnifyIntentAgent(this._context);
+      }
+
+      this._intentAgent.startAutoTrack(options);
+    } catch (error: unknown) {
+      this.logError('Error occurred in startAutoTrack', error);
+    }
+  };
+
+  /**
+   * If continuous user action monitoring was previously enabled, this function
+   * is used to halt the monitoring.
+   *
+   * The corresponding `startAutoTrack` can be used to start it again.
+   */
+  public stopAutoTrack = () => {
+    if (!this._mounted) return;
+
+    try {
+      this._intentAgent?.stopAutoTrack();
+    } catch (error: unknown) {
+      this.logError('Error occurred in stopAutoTrack', error);
+    }
+  };
+
+  private logError = (message: string, error: unknown) => {
+    logUnifyError({
+      message: `UnifyIntentClient: ${message}`,
+      error: error as Error,
+      apiClient: this._context.apiClient,
+    });
   };
 }
 
@@ -279,7 +426,7 @@ export default class UnifyIntentClient {
  *
  * @param unify - the `UnifyIntentClient` to apply method calls to
  */
-function flushUnifyQueue(unify: UnifyIntentClient) {
+function flushUnifyQueue(unify: UnifyIntentClient, apiClient: UnifyApiClient) {
   const queue: [string, unknown[]][] = Array.isArray(window.unify)
     ? [...window.unify]
     : Array.isArray(window.unifyBrowser)
@@ -299,7 +446,11 @@ function flushUnifyQueue(unify: UnifyIntentClient) {
       } catch (error: any) {
         // Swallow errors so client is not potentially affected, this
         // should ideally never happen.
-        logUnifyError({ message: error?.message });
+        logUnifyError({
+          message: `Error occurred while flushing queue: ${error?.message}`,
+          error: error as Error,
+          apiClient,
+        });
       }
     }
   });

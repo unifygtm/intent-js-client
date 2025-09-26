@@ -4,6 +4,9 @@ import { IdentityManager, SessionManager } from './client/managers';
 import UnifyApiClient from './client/unify-api-client';
 import { components } from './spec';
 
+/**
+ * Configuration options for the Unify Intent Client.
+ */
 export interface UnifyIntentClientConfig {
   /**
    * This option can be specified to indicate that the Unify client
@@ -21,6 +24,15 @@ export interface UnifyIntentClientConfig {
   autoIdentify?: boolean;
 
   /**
+   * These options can be specified to indicate that the Unify client
+   * should instantiate an agent which listens for common user actions
+   * such as button clicks and fires track events for these actions
+   * automatically.
+   * @default undefined
+   */
+  autoTrackOptions?: AutoTrackOptions;
+
+  /**
    * The amount of time in minutes that user sessions will persist even when
    * no activities are tracked for the user. Activities which update the
    * expiration time of sessions are `page`, `identify`, and `track` activities.
@@ -29,12 +41,37 @@ export interface UnifyIntentClientConfig {
   sessionDurationMinutes?: number;
 }
 
+/**
+ * Shared context used in many parts of the Unify Intent Client.
+ */
 export interface UnifyIntentContext {
   writeKey: string;
   clientConfig: UnifyIntentClientConfig;
   apiClient: UnifyApiClient;
   sessionManager: SessionManager;
   identityManager: IdentityManager;
+}
+
+/**
+ * Options which can be used to automatically track common user actions,
+ * e.g. button clicks.
+ */
+export interface AutoTrackOptions {
+  /**
+   * An optional list of CSS selectors which can be used to automatically
+   * track click events for elements on the page which match one or more
+   * of the selectors.
+   */
+  clickTrackingSelectors?: string[];
+}
+
+/**
+ * Standard track event types.
+ *
+ * TODO: Eventually this will be defined in the API spec.
+ */
+export enum UnifyStandardTrackEvent {
+  ELEMENT_CLICKED = 'Element Clicked',
 }
 
 /**
@@ -60,21 +97,60 @@ export interface UserAgentDataType {
   userAgentData?: NavigatorUAData;
 }
 
-// Export types from the OpenAPI spec
-export type ActivityContext = components['schemas']['ActivityContext'];
-export type AnalyticsEventType = components['schemas']['AnalyticsEventType'];
-export type AnalyticsEventBase = components['schemas']['AnalyticsEventBase'];
+/**
+ * =====================================================
+ * The types below are re-exported from the OpenAPI spec
+ * =====================================================
+ */
+
+/**
+ * Context automatically included with each event fired by the Unify Intent Client.
+ */
+export type ActivityContext = components['schemas']['EventContext'];
+
+export type PageProperties = components['schemas']['PageProperties'];
 export type CampaignParams = components['schemas']['CampaignParams'];
+
+/**
+ * Event types supported by the Unify Intent Client.
+ */
+export type AnalyticsEventType = components['schemas']['AnalyticsEventType'];
+
+export type AnalyticsEventBase = components['schemas']['AnalyticsEventBase'];
+
 export type IdentifyEvent = components['schemas']['IdentifyEvent'];
 export type IdentifyEventData = Omit<
   components['schemas']['IdentifyEvent'],
   keyof Omit<AnalyticsEventBase, 'type'>
 >;
+
 export type PageEvent = components['schemas']['PageEvent'];
 export type PageEventData = Omit<
   components['schemas']['PageEvent'],
   keyof Omit<AnalyticsEventBase, 'type'>
 >;
-export type PageProperties = components['schemas']['PageProperties'];
-export type Traits = components['schemas']['Traits'];
-export type UCountryCode = components['schemas']['UCountryCode'];
+
+export type TrackEvent = components['schemas']['TrackEvent'];
+export type TrackEventData = Omit<
+  components['schemas']['TrackEvent'],
+  keyof Omit<AnalyticsEventBase, 'type'>
+>;
+export type TrackEventProperties = Pick<TrackEventData, 'properties'>;
+
+export type UCompany =
+  components['schemas']['CreateOrUpdateUCompanyAttributes'];
+export type UPerson = components['schemas']['CreateOrUpdateUPersonAttributes'];
+
+export type UAddress = components['schemas']['UValues.UAddress'];
+export type UBoolean = components['schemas']['UValues.UBoolean'];
+export type UCountry = components['schemas']['UValues.UCountry'];
+export type UCountryCode = components['schemas']['UValues.UCountryCode'];
+export type UCurrency = components['schemas']['UValues.UCurrency'];
+export type UCurrencyCode = components['schemas']['UValues.UCurrencyCode'];
+export type UDate = components['schemas']['UValues.UDate'];
+export type UEmail = components['schemas']['UValues.UEmail'];
+export type UInteger = components['schemas']['UValues.UInteger'];
+export type UPhoneNumber = components['schemas']['UValues.UPhoneNumber'];
+export type UReference = components['schemas']['UValues.UReference'];
+export type UText = components['schemas']['UValues.UPhoneNumber'];
+export type UUrl = components['schemas']['UValues.UUrl'];

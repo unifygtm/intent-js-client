@@ -62,7 +62,7 @@ abstract class Activity<TActivityData extends object> {
    */
   private getBaseActivityPayload = (): AnalyticsEventBase => ({
     type: this.getActivityType(),
-    anonymousUserId: this._intentContext.identityManager.getOrCreateVisitorId(),
+    visitorId: this._intentContext.identityManager.getOrCreateVisitorId(),
     sessionId:
       this._intentContext.sessionManager.getOrCreateSession().sessionId,
     context: getActivityContext(),

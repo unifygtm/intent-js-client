@@ -1,20 +1,32 @@
-import { UnifyIntentContext } from '../../types';
-import { IdentifyActivity, PageActivity } from '../activities';
+import {
+  AutoTrackOptions,
+  UCompany,
+  UnifyIntentContext,
+  UnifyStandardTrackEvent,
+  UPerson,
+} from '../../types';
+import { IdentifyActivity, PageActivity, TrackActivity } from '../activities';
 import { validateEmail } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
 import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
-  NAVATTIC_USER_EMAIL_KEY,
-  NAVATTIC_USER_EMAIL_PROPERTY,
+  UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from './constants';
 import { DefaultEventData } from './types/default';
 import {
+  NavatticDefaultCustomPropertyName,
   NavatticEventData,
-  NavatticEventType,
   NavatticObject,
 } from './types/navattic';
-import { isDefaultFormEventData } from './utils';
+import {
+  extractUnifyCapturePropertiesFromElement,
+  getElementName,
+  getUAttributesForDefaultEventData,
+  getUAttributesForNavatticEventData,
+  isActionableElement,
+  isDefaultFormEventData,
+} from './utils';
 
 /**
  * This class acts as an agent to automatically monitor user
@@ -22,31 +34,38 @@ import { isDefaultFormEventData } from './utils';
  */
 export class UnifyIntentAgent {
   private readonly _intentContext: UnifyIntentContext;
-  private readonly _monitoredInputs: Set<HTMLInputElement>;
-  private readonly _submittedEmails: Set<string>;
+  private readonly _monitoredInputs: Set<HTMLInputElement> =
+    new Set<HTMLInputElement>();
+  private readonly _submittedEmails: Set<string> = new Set<string>();
 
   private _autoPage: boolean;
   private _autoIdentify: boolean;
-  private _historyMonitored: boolean;
+  private _autoTrackOptions: AutoTrackOptions;
+
+  private _historyMonitored: boolean = false;
   private _lastLocation?: Location;
+
+  private _isTrackingClicks: boolean = false;
 
   constructor(intentContext: UnifyIntentContext) {
     this._intentContext = intentContext;
-    this._monitoredInputs = new Set<HTMLInputElement>();
-    this._submittedEmails = new Set<string>();
+
     this._autoPage = intentContext.clientConfig.autoPage ?? false;
     this._autoIdentify = intentContext.clientConfig.autoIdentify ?? false;
-    this._historyMonitored = false;
+    this._autoTrackOptions = { ...intentContext.clientConfig.autoTrackOptions };
 
-    // If auto-page is configured, make sure to track the initial page
     if (this._autoPage) {
       this.startAutoPage();
+
+      // Make sure to track the initial page
       this.maybeTrackPage();
     }
 
     if (this._autoIdentify) {
       this.startAutoIdentify();
     }
+
+    this.startAutoTrack();
   }
 
   /**
@@ -108,6 +127,28 @@ export class UnifyIntentAgent {
   };
 
   /**
+   * Tells the Unify Intent Agent to start continuously tracking user actions
+   * based on the `AutoTrackOptions` in the client config.
+   *
+   * @param options - auto-track options to use. If `undefined`, the previously
+   *        specified auto-track options will be re-used.
+   */
+  public startAutoTrack = (options?: AutoTrackOptions) => {
+    if (options) {
+      this._autoTrackOptions = options;
+    }
+
+    this.startTrackingClicks();
+  };
+
+  /**
+   * Tells the Unify Intent Agent to stop continuously monitoring user actions.
+   */
+  public stopAutoTrack = () => {
+    this.stopTrackingClicks();
+  };
+
+  /**
    * This function adds event listeners and overrides to various
    * history-related browser functions to automatically track when the
    * current page changes. This is important for tracking page changes
@@ -115,31 +156,35 @@ export class UnifyIntentAgent {
    * be instantiated a single time.
    */
   private monitorHistory = () => {
-    // `pushState` is usually triggered to navigate to a new page
-    const pushState = history.pushState;
-    history.pushState = (...args) => {
-      // Update history
-      pushState.apply(history, args);
+    try {
+      // `pushState` is usually triggered to navigate to a new page
+      const pushState = history.pushState;
+      history.pushState = (...args) => {
+        // Update history
+        pushState.apply(history, args);
 
-      // Track page if valid page change
-      this.maybeTrackPage();
-    };
+        // Track page if valid page change
+        this.maybeTrackPage();
+      };
 
-    // Sometimes `replaceState` is used to navigate to a new page, but
-    // sometimes it is used to e.g. update query params
-    const replaceState = history.replaceState;
-    history.replaceState = (...args) => {
-      // Update history
-      replaceState.apply(history, args);
+      // Sometimes `replaceState` is used to navigate to a new page, but
+      // sometimes it is used to e.g. update query params
+      const replaceState = history.replaceState;
+      history.replaceState = (...args) => {
+        // Update history
+        replaceState.apply(history, args);
 
-      // Track page if valid page change
-      this.maybeTrackPage();
-    };
+        // Track page if valid page change
+        this.maybeTrackPage();
+      };
 
-    // `popstate` is triggered when the user clicks the back button
-    window.addEventListener('popstate', this.maybeTrackPage);
+      // `popstate` is triggered when the user clicks the back button
+      window.addEventListener('popstate', this.maybeTrackPage);
 
-    this._historyMonitored = true;
+      this._historyMonitored = true;
+    } catch (error: unknown) {
+      this.logError('Error occurred in monitorHistory', error);
+    }
   };
 
   /**
@@ -149,9 +194,67 @@ export class UnifyIntentAgent {
   private maybeTrackPage = () => {
     if (!this._autoPage) return;
 
-    if (!this._lastLocation || isNewPage(this._lastLocation, window.location)) {
-      new PageActivity(this._intentContext).track();
-      this._lastLocation = { ...window.location };
+    try {
+      if (
+        !this._lastLocation ||
+        isNewPage(this._lastLocation, window.location)
+      ) {
+        new PageActivity(this._intentContext).track();
+        this._lastLocation = { ...window.location };
+      }
+    } catch (error: unknown) {
+      this.logError('Error occurred in maybeTrackPage', error);
+    }
+  };
+
+  /**
+   * Listens for click events in the Document and tracks them if they occurred
+   * within an actionable button with a qualified label.
+   */
+  private startTrackingClicks = () => {
+    if (this._isTrackingClicks) return;
+
+    document.addEventListener('click', this.handleDocumentClick);
+
+    this._isTrackingClicks = true;
+  };
+
+  /**
+   * Stops tracking click events in the document if the intent client is
+   * currently tracking them.
+   */
+  private stopTrackingClicks = () => {
+    if (!this._isTrackingClicks) return;
+
+    document.removeEventListener('click', this.handleDocumentClick);
+
+    this._isTrackingClicks = false;
+  };
+
+  /**
+   * Document click handler function which implements auto-tracking of clicks
+   * on relevant elements. By default, will log track clicks with the
+   * click-tracking data attributes, but will also include elements that match
+   * the click-tracking CSS selectors if specified.
+   *
+   * @param event - the Document click event
+   */
+  private handleDocumentClick = (event: MouseEvent) => {
+    try {
+      const target = event.target as Element | null;
+      if (!target) return;
+
+      const selectors = [
+        `[${UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME}]`,
+        ...(this._autoTrackOptions.clickTrackingSelectors ?? []),
+      ];
+
+      const element = target.closest(selectors.join(', '));
+      if (!element || !(element instanceof HTMLElement)) return;
+
+      this.maybeTrackClick(element);
+    } catch (error: unknown) {
+      this.logError('Error occurred in handleDocumentClick', error);
     }
   };
 
@@ -162,25 +265,29 @@ export class UnifyIntentAgent {
   private refreshMonitoredInputs = () => {
     if (!this._autoIdentify) return;
 
-    // Discard input elements no longer in the DOM
-    this._monitoredInputs.forEach((input) => {
-      if (!input.isConnected) {
-        this._monitoredInputs.delete(input);
-      }
-    });
+    try {
+      // Discard input elements no longer in the DOM
+      this._monitoredInputs.forEach((input) => {
+        if (!input.isConnected) {
+          this._monitoredInputs.delete(input);
+        }
+      });
 
-    // Get all candidate input elements
-    const inputs = Array.from(document.getElementsByTagName('input')).filter(
-      (input) =>
-        !this._monitoredInputs.has(input) && isCandidateIdentityInput(input),
-    );
+      // Get all candidate input elements
+      const inputs = Array.from(document.getElementsByTagName('input')).filter(
+        (input) =>
+          !this._monitoredInputs.has(input) && isCandidateIdentityInput(input),
+      );
 
-    // Setup event listeners to monitor the input elements
-    inputs.forEach((input) => {
-      input.addEventListener('blur', this.handleInputBlur);
-      input.addEventListener('keydown', this.handleInputKeydown);
-      this._monitoredInputs.add(input);
-    });
+      // Setup event listeners to monitor the input elements
+      inputs.forEach((input) => {
+        input.addEventListener('blur', this.handleInputBlur);
+        input.addEventListener('keydown', this.handleInputKeydown);
+        this._monitoredInputs.add(input);
+      });
+    } catch (error: unknown) {
+      this.logError('Error occurred in refreshMonitoredInputs', error);
+    }
   };
 
   /**
@@ -226,10 +333,8 @@ export class UnifyIntentAgent {
           break;
         }
       }
-    } catch (error: any) {
-      logUnifyError({
-        message: `Error occurred while handling message from third-party (${thirdParty}): ${error.message}`,
-      });
+    } catch (error: unknown) {
+      this.logError('Error occurred in handleThirdPartyMessage', error);
     }
   };
 
@@ -243,11 +348,22 @@ export class UnifyIntentAgent {
   ) => {
     if (!this._autoIdentify) return;
 
-    if (isDefaultFormEventData(event.data)) {
-      const email = event.data.payload.email;
-      if (email) {
-        this.maybeIdentifyInputEmail(email);
+    try {
+      if (isDefaultFormEventData(event.data)) {
+        const email = event.data.payload.email;
+
+        if (email) {
+          this.maybeIdentifyInputEmail(
+            email,
+            getUAttributesForDefaultEventData(
+              event.data,
+              this._intentContext.apiClient,
+            ),
+          );
+        }
       }
+    } catch (error: unknown) {
+      this.logError('Error occurred in handleDefaultFormMessage', error);
     }
   };
 
@@ -261,38 +377,25 @@ export class UnifyIntentAgent {
   ) => {
     if (!this._autoIdentify) return;
 
-    if (event.data.type === NavatticEventType.IDENTIFY_USER) {
-      // Prefer user-supplied email address over other forms of identification
-      const emailFromForm = event.data.eventAttributes.FORM?.[
-        NAVATTIC_USER_EMAIL_KEY
-      ] as string | undefined;
-
-      // If there is a user email, identify the user
-      if (emailFromForm) {
-        this.maybeIdentifyInputEmail(emailFromForm);
-      }
-      // Check if email is available from other sources of user attributes
-      else {
-        const email = Object.values(event.data.eventAttributes).find(
-          (attributes) => NAVATTIC_USER_EMAIL_KEY in attributes,
-        )?.[NAVATTIC_USER_EMAIL_KEY] as string | undefined;
-
-        // If there is a user email, identify the user
-        if (email) {
-          this.maybeIdentifyInputEmail(email);
-        }
-      }
-    } else {
-      const eventDataProperties = event.data.properties ?? [];
-      const endUserEmailProperty = eventDataProperties.find(
+    try {
+      const eventDataProperties = event.data?.properties ?? [];
+      const email = eventDataProperties.find(
         ({ object, name }) =>
           object === NavatticObject.END_USER &&
-          name === NAVATTIC_USER_EMAIL_PROPERTY,
+          name === NavatticDefaultCustomPropertyName.Email,
       );
 
-      if (endUserEmailProperty) {
-        this.maybeIdentifyInputEmail(endUserEmailProperty.value);
+      if (email) {
+        this.maybeIdentifyInputEmail(
+          email.value,
+          getUAttributesForNavatticEventData(
+            event.data,
+            this._intentContext.apiClient,
+          ),
+        );
       }
+    } catch (error: unknown) {
+      this.logError('Error occurred in handleNavatticDemoMessage', error);
     }
   };
 
@@ -304,8 +407,12 @@ export class UnifyIntentAgent {
   private handleInputBlur = (event: FocusEvent) => {
     if (!this._autoIdentify) return;
 
-    if (event.target instanceof HTMLInputElement) {
-      this.maybeIdentifyInputEmail(event.target.value);
+    try {
+      if (event.target instanceof HTMLInputElement) {
+        this.maybeIdentifyInputEmail(event.target.value);
+      }
+    } catch (error: unknown) {
+      this.logError('Error occurred in handleInputBlur', error);
     }
   };
 
@@ -318,8 +425,12 @@ export class UnifyIntentAgent {
   private handleInputKeydown = (event: KeyboardEvent) => {
     if (!this._autoIdentify) return;
 
-    if (event.key === 'Enter' && event.target instanceof HTMLInputElement) {
-      this.maybeIdentifyInputEmail(event.target.value);
+    try {
+      if (event.key === 'Enter' && event.target instanceof HTMLInputElement) {
+        this.maybeIdentifyInputEmail(event.target.value);
+      }
+    } catch (error: unknown) {
+      this.logError('Error occurred in handleInputKeyDown', error);
     }
   };
 
@@ -329,25 +440,62 @@ export class UnifyIntentAgent {
    *
    * @param event - the event object from a monitored input blur or keydown event
    */
-  private maybeIdentifyInputEmail = (email: string) => {
+  private maybeIdentifyInputEmail = (
+    email: string,
+    options?: { person?: UPerson; company?: UCompany },
+  ) => {
     if (!this._autoIdentify) return;
 
-    if (email) {
-      // Validate that the input is a valid email address and has not already
-      // been submitted for an identify action.
-      if (!validateEmail(email) || this._submittedEmails.has(email)) {
-        return;
+    try {
+      if (email) {
+        // Validate that the input is a valid email address and has not already
+        // been submitted for an identify action.
+        if (!validateEmail(email) || this._submittedEmails.has(email)) {
+          return;
+        }
+
+        // Log an identify event
+        const identifyAction = new IdentifyActivity(this._intentContext, {
+          email,
+          person: options?.person,
+          company: options?.company,
+        });
+        identifyAction.track();
+
+        // Make sure we don't auto-identify this email again later
+        this._submittedEmails.add(email);
       }
-
-      // Log an identify event
-      const identifyAction = new IdentifyActivity(this._intentContext, {
-        email,
-      });
-      identifyAction.track();
-
-      // Make sure we don't auto-identify this email again later
-      this._submittedEmails.add(email);
+    } catch (error: unknown) {
+      this.logError('Error occurred in maybeIdentifyInputEmail', error);
     }
+  };
+
+  private maybeTrackClick = (element: HTMLElement) => {
+    try {
+      if (!isActionableElement(element)) return;
+
+      const elementName = getElementName(element);
+      if (!elementName) return;
+
+      const customProperties =
+        extractUnifyCapturePropertiesFromElement(element);
+
+      const trackActivity = new TrackActivity(this._intentContext, {
+        name: UnifyStandardTrackEvent.ELEMENT_CLICKED,
+        properties: { ...customProperties, elementName, wasAutoTracked: true },
+      });
+      trackActivity.track();
+    } catch (error: unknown) {
+      this.logError('Error occurred in maybeTrackClick', error);
+    }
+  };
+
+  private logError = (message: string, error: unknown) => {
+    logUnifyError({
+      message: `UnifyIntentAgent: ${message}`,
+      error: error as Error,
+      apiClient: this._intentContext.apiClient,
+    });
   };
 
   /**

@@ -95,7 +95,10 @@ export function getLocationHrefWithCustomPath({
  */
 export const getCurrentUserAgentData = (): UserAgentDataType => ({
   userAgent: window.navigator.userAgent,
-  userAgentData: window.navigator.userAgentData,
+  userAgentData:
+    typeof navigator.userAgentData !== 'undefined'
+      ? navigator.userAgentData
+      : undefined,
 });
 
 /**
@@ -127,3 +130,16 @@ export const parseUrlQueryParams = (url: string): Record<string, string> => {
 
   return queryParams;
 };
+
+export function getDomainForUrl(url: string): string | null {
+  try {
+    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+    return urlObj.hostname;
+  } catch {
+    return null;
+  }
+}
+
+export function getDomainForEmail(email: string): string | null {
+  return email.split('@').at(1) ?? null;
+}

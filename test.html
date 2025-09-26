@@ -7,10 +7,13 @@
         var e = [
           'identify',
           'page',
-          'startAutoPage',
-          'stopAutoPage',
+          'track',
           'startAutoIdentify',
           'stopAutoIdentify',
+          'startAutoPage',
+          'stopAutoPage',
+          'startAutoTrack',
+          'stopAutoTrack',
         ];
         function t(o) {
           return Object.assign(
@@ -41,6 +44,17 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
+    <div id="root">
+      <div style="display: flex; align-items: center; gap: 16px">
+        <button data-unify-track-clicks>Simple track</button>
+        <button data-unify-track-clicks data-unify-attr-custom="test">
+          Track custom attrs
+        </button>
+        <button data-unify-track-clicks data-unify-label="Custom Button Name">
+          Track custom label
+        </button>
+        <button>Should not track</button>
+      </div>
+    </div>
   </body>
 </html>

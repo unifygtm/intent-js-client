@@ -27,9 +27,16 @@ describe('IdentifyActivity', () => {
       );
     });
 
-    it('tracks an identify activity with user traits', () => {
+    it('tracks an identify activity with person and company payloads', () => {
       const identify = new IdentifyActivity(mockContext, {
         email: 'solomon@unifygtm.com',
+        person: {
+          email: 'solomon@unifygtm.com',
+        },
+        company: {
+          domain: 'unifygtm.com',
+          name: 'Unify',
+        },
       });
       identify.track();
       expect(mockContext.apiClient.post).toHaveBeenCalledWith(
@@ -39,7 +46,31 @@ describe('IdentifyActivity', () => {
       const data = mockContext.apiClient.post.mock
         .calls[0][1] as IdentifyEventData;
       expect(data.type).toEqual('identify');
-      expect(data.traits.email).toEqual('solomon@unifygtm.com');
+      expect(data.person?.email).toEqual('solomon@unifygtm.com');
+      expect(data.company?.domain).toEqual('unifygtm.com');
+    });
+
+    it('only includes the company in the payload if domain matches email', () => {
+      const identify = new IdentifyActivity(mockContext, {
+        email: 'solomon@unifygtm.com',
+        person: {
+          email: 'solomon@unifygtm.com',
+        },
+        company: {
+          domain: 'somethingelse.com',
+          name: 'Unify',
+        },
+      });
+      identify.track();
+      expect(mockContext.apiClient.post).toHaveBeenCalledWith(
+        UNIFY_INTENT_IDENTIFY_URL,
+        anyObject(),
+      );
+      const data = mockContext.apiClient.post.mock
+        .calls[0][1] as IdentifyEventData;
+      expect(data.type).toEqual('identify');
+      expect(data.person?.email).toEqual('solomon@unifygtm.com');
+      expect(data.company).toBeUndefined();
     });
   });
 });
