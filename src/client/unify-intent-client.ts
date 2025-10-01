@@ -51,6 +51,15 @@ export default class UnifyIntentClient {
   }
 
   /**
+   * Getter to check if the intent client is currently mounted or not.
+   *
+   * @returns `true` if the client is mounted, otherwise `false`
+   */
+  public isMounted = () => {
+    return this._mounted;
+  };
+
+  /**
    * This function initializes the `UnifyIntentClient` for use. It should only
    * be called once the global `window` object exists. If using the client in
    * React, for example, this would take place inside a `useEffect` hook.
