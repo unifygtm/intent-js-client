@@ -110,6 +110,26 @@ describe('UnifyIntentClient', () => {
 
       unify.unmount();
     });
+
+    describe('when client is not mounted', () => {
+      it('buffers an event until it is mounted', () => {
+        const unify = new UnifyIntentClient(TEST_WRITE_KEY, {
+          autoPage: false,
+        });
+
+        expect(mockedPageActivity.track).not.toHaveBeenCalled();
+        unify.page();
+        unify.page({ pathname: '/hello' });
+        expect(mockedPageActivity.track).not.toHaveBeenCalled();
+
+        expect(unify.__getEventBuffers().page.length).toEqual(2);
+        unify.mount();
+        expect(mockedPageActivity.track).toHaveBeenCalledTimes(2);
+        expect(unify.__getEventBuffers().page.length).toEqual(0);
+
+        unify.unmount();
+      });
+    });
   });
 
   describe('identify', () => {
@@ -132,6 +152,28 @@ describe('UnifyIntentClient', () => {
 
       unify.unmount();
     });
+
+    describe('when client is not mounted', () => {
+      it('buffers an event until it is mounted', () => {
+        const unify = new UnifyIntentClient(TEST_WRITE_KEY, {
+          autoIdentify: false,
+        });
+
+        expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
+        unify.identify('solomon@unifygtm.com');
+        unify.identify('solomon2@unifygtm.com', {
+          person: { email: 'solomon2@unifygtm.com' },
+        });
+        expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
+
+        expect(unify.__getEventBuffers().identify.length).toEqual(2);
+        unify.mount();
+        expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(2);
+        expect(unify.__getEventBuffers().identify.length).toEqual(0);
+
+        unify.unmount();
+      });
+    });
   });
 
   describe('track', () => {
@@ -144,6 +186,26 @@ describe('UnifyIntentClient', () => {
       expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
 
       unify.unmount();
+    });
+
+    describe('when client is not mounted', () => {
+      it('buffers an event until it is mounted', () => {
+        const unify = new UnifyIntentClient(TEST_WRITE_KEY);
+
+        expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+        unify.track('Button clicked');
+        unify.track('Button clicked', {
+          properties: { customProperty: 'true' },
+        });
+        expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+
+        expect(unify.__getEventBuffers().track.length).toEqual(2);
+        unify.mount();
+        expect(mockedTrackActivity.track).toHaveBeenCalledTimes(2);
+        expect(unify.__getEventBuffers().track.length).toEqual(0);
+
+        unify.unmount();
+      });
     });
   });
 

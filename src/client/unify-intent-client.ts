@@ -30,6 +30,20 @@ export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
   sessionDurationMinutes: DEFAULT_SESSION_MINUTES_TO_EXPIRE,
 };
 
+type EventBuffers = {
+  identify: [string, { person?: UPerson; company?: UCompany } | undefined][];
+  page: [PageEventOptions | undefined][];
+  track: [string, TrackEventProperties | undefined][];
+};
+
+function getEmptyBuffers(): EventBuffers {
+  return {
+    identify: [],
+    page: [],
+    track: [],
+  };
+}
+
 /**
  * This class is used to leverage the Unify Intent API to log user
  * analytics like page views, sessions, identity, and actions.
@@ -41,6 +55,8 @@ export default class UnifyIntentClient {
   private _mounted: boolean = false;
   private _context!: UnifyIntentContext;
   private _intentAgent?: UnifyIntentAgent;
+
+  private _eventBuffers: EventBuffers = getEmptyBuffers();
 
   constructor(
     writeKey: string,
@@ -111,6 +127,14 @@ export default class UnifyIntentClient {
       // calls have been queued on `window.unify`
       flushUnifyQueue(this, apiClient);
 
+      // Fire any buffered events from before the client was mounted
+      this._eventBuffers.identify.forEach((args) => this.identify(...args));
+      this._eventBuffers.page.forEach((args) => this.page(...args));
+      this._eventBuffers.track.forEach((args) => this.track(...args));
+
+      // Reset buffered events
+      this._eventBuffers = getEmptyBuffers();
+
       // Set unify object on window to prevent multiple instantiations
       window.unify = this;
       window.unifyBrowser = this;
@@ -155,7 +179,10 @@ export default class UnifyIntentClient {
    * @param options - options which can be used to customize the page event which is logged. See `PageEventOptions` for details.
    */
   public page = (options?: PageEventOptions) => {
-    if (!this._mounted) return;
+    if (!this._mounted) {
+      this._eventBuffers.page.push([options]);
+      return;
+    }
 
     try {
       const action = new PageActivity(this._context, options);
@@ -197,11 +224,14 @@ export default class UnifyIntentClient {
     email: string,
     options?: { person?: UPerson; company?: UCompany },
   ): boolean => {
-    if (!this._mounted) return false;
-
     try {
       const validatedEmail = validateEmail(email);
       if (validatedEmail) {
+        if (!this._mounted) {
+          this._eventBuffers.identify.push([email, options]);
+          return true;
+        }
+
         const action = new IdentifyActivity(this._context, {
           email: validatedEmail,
           person: options?.person,
@@ -257,7 +287,10 @@ export default class UnifyIntentClient {
    * @param properties - optional properties to associate with the event
    */
   public track = (name: string, properties?: TrackEventProperties): void => {
-    if (!this._mounted) return;
+    if (!this._mounted) {
+      this._eventBuffers.track.push([name, properties]);
+      return;
+    }
 
     try {
       const action = new TrackActivity(this._context, { name, properties });
@@ -415,6 +448,11 @@ export default class UnifyIntentClient {
       apiClient: this._context.apiClient,
     });
   };
+
+  /**
+   * DO NOT USE: These methods are exposed only for testing purposes.
+   */
+  __getEventBuffers = () => this._eventBuffers;
 }
 
 /**
