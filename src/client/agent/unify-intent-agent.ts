@@ -1,5 +1,7 @@
 import {
   AutoTrackOptions,
+  DefaultTrackEvent,
+  NavatticTrackEvent,
   UCompany,
   UnifyIntentContext,
   UnifyStandardTrackEvent,
@@ -14,10 +16,9 @@ import {
   UNIFY_CLICK_EVENT_NAME_DATA_ATTR,
   UNIFY_CLICK_EVENT_NAME_DATA_ATTR_SELECTOR_NAME,
   UNIFY_TRACK_CLICK_DATA_ATTR,
-  PRODUCT_DEMO_NAVATTIC_PROVIDER_NAME,
   UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from './constants';
-import { DefaultEventData } from './types/default';
+import { DefaultEventData, DefaultEventType } from './types/default';
 import {
   NavatticDefaultCustomPropertyName,
   NavatticEventData,
@@ -465,10 +466,8 @@ export class UnifyIntentAgent {
   private handleDefaultFormMessage = (
     event: MessageEvent<DefaultEventData>,
   ) => {
-    if (!this._autoIdentify) return;
-
     try {
-      if (isDefaultFormEventData(event.data)) {
+      if (this._autoIdentify && isDefaultFormEventData(event.data)) {
         const email = event.data.payload.email;
 
         if (email) {
@@ -479,6 +478,89 @@ export class UnifyIntentAgent {
               this._intentContext.apiClient,
             ),
           );
+        }
+      }
+
+      if (this._autoTrackOptions.defaultForms) {
+        const {
+          [DefaultTrackEvent.DEFAULT_FORM_COMPLETED]: formCompleted,
+          [DefaultTrackEvent.DEFAULT_FORM_PAGE_SUBMITTED]: formPageSubmitted,
+          [DefaultTrackEvent.DEFAULT_MEETING_BOOKED]: meetingBooked,
+          [DefaultTrackEvent.DEFAULT_SCHEDULER_CLOSED]: schedulerClosed,
+          [DefaultTrackEvent.DEFAULT_SCHEDULER_DISPLAYED]: schedulerDisplayed,
+        } = this._autoTrackOptions.defaultForms;
+
+        if (
+          formCompleted &&
+          event.data.event === DefaultEventType.FORM_COMPLETED
+        ) {
+          const formCompletedActivity = new TrackActivity(this._intentContext, {
+            name: DefaultTrackEvent.DEFAULT_FORM_COMPLETED,
+            properties: {
+              form: event.data.payload.formName,
+              formId: event.data.payload.formId.toString(),
+              wasAutoTracked: true,
+            },
+          });
+          formCompletedActivity.track();
+        } else if (
+          (formPageSubmitted &&
+            event.data.event === DefaultEventType.FORM_PAGE_SUBMITTED) ||
+          event.data.event === DefaultEventType.FORM_PAGE_SUBMITTED_V2
+        ) {
+          const formPageSubmittedActivity = new TrackActivity(
+            this._intentContext,
+            {
+              name: DefaultTrackEvent.DEFAULT_FORM_PAGE_SUBMITTED,
+              properties: {
+                form: event.data.payload.formName,
+                formId: event.data.payload.formId.toString(),
+                pageNumber: event.data.payload.pageNumber.toString(),
+                wasAutoTracked: true,
+              },
+            },
+          );
+          formPageSubmittedActivity.track();
+        } else if (
+          meetingBooked &&
+          event.data.event === DefaultEventType.MEETING_BOOKED
+        ) {
+          const meetingBookedActivity = new TrackActivity(this._intentContext, {
+            name: DefaultTrackEvent.DEFAULT_MEETING_BOOKED,
+            properties: {
+              wasAutoTracked: true,
+            },
+          });
+          meetingBookedActivity.track();
+        } else if (
+          schedulerClosed &&
+          event.data.event === DefaultEventType.SCHEDULER_CLOSED
+        ) {
+          const schedulerClosedActivity = new TrackActivity(
+            this._intentContext,
+            {
+              name: DefaultTrackEvent.DEFAULT_SCHEDULER_CLOSED,
+              properties: {
+                wasAutoTracked: true,
+              },
+            },
+          );
+          schedulerClosedActivity.track();
+        } else if (
+          schedulerDisplayed &&
+          event.data.event === DefaultEventType.SCHEDULER_DISPLAYED
+        ) {
+          const schedulerDisplayedActivity = new TrackActivity(
+            this._intentContext,
+            {
+              name: DefaultTrackEvent.DEFAULT_SCHEDULER_DISPLAYED,
+              properties: {
+                formId: event.data.payload.formId.toString(),
+                wasAutoTracked: true,
+              },
+            },
+          );
+          schedulerDisplayedActivity.track();
         }
       }
     } catch (error: unknown) {
@@ -516,16 +598,18 @@ export class UnifyIntentAgent {
       }
 
       // Optionally auto-track eligible events from Navattic demo
-      if (this._autoTrackOptions.navatticProductDemo) {
-        const { startFlow, viewStep, completeFlow } =
-          this._autoTrackOptions.navatticProductDemo;
+      if (this._autoTrackOptions.navatticProductDemos) {
+        const {
+          [NavatticTrackEvent.NAVATTIC_DEMO_STARTED]: startFlow,
+          [NavatticTrackEvent.NAVATTIC_DEMO_STEP_VIEWED]: viewStep,
+          [NavatticTrackEvent.NAVATTIC_DEMO_COMPLETED]: completeFlow,
+        } = this._autoTrackOptions.navatticProductDemos;
 
         // User has just started a product demo
         if (startFlow && event.data.type === NavatticEventType.START_FLOW) {
           const startedDemoActivity = new TrackActivity(this._intentContext, {
-            name: UnifyStandardTrackEvent.PRODUCT_DEMO_STARTED,
+            name: NavatticTrackEvent.NAVATTIC_DEMO_STARTED,
             properties: {
-              provider: PRODUCT_DEMO_NAVATTIC_PROVIDER_NAME,
               demo: event.data.flow.name,
               wasAutoTracked: true,
             },
@@ -535,9 +619,8 @@ export class UnifyIntentAgent {
         // User viewed a step of a product demo
         else if (viewStep && event.data.type === NavatticEventType.VIEW_STEP) {
           const viewedStepActivity = new TrackActivity(this._intentContext, {
-            name: UnifyStandardTrackEvent.PRODUCT_DEMO_STEP_VIEWED,
+            name: NavatticTrackEvent.NAVATTIC_DEMO_STEP_VIEWED,
             properties: {
-              provider: PRODUCT_DEMO_NAVATTIC_PROVIDER_NAME,
               demo: event.data.flow.name,
               step: event.data.step.name,
               wasAutoTracked: true,
@@ -551,9 +634,8 @@ export class UnifyIntentAgent {
           event.data.type === NavatticEventType.COMPLETE_FLOW
         ) {
           const completedDemoActivity = new TrackActivity(this._intentContext, {
-            name: UnifyStandardTrackEvent.PRODUCT_DEMO_COMPLETED,
+            name: NavatticTrackEvent.NAVATTIC_DEMO_COMPLETED,
             properties: {
-              provider: PRODUCT_DEMO_NAVATTIC_PROVIDER_NAME,
               demo: event.data.flow.name,
               wasAutoTracked: true,
             },

@@ -82,22 +82,14 @@ export interface AutoTrackOptions {
    *
    * https://docs.navattic.com/tracking/navattic-js/subscribe-to-events#navattic-events
    */
-  navatticProductDemo?: {
-    /**
-     * Should the `START_FLOW` event be tracked?
-     */
-    startFlow?: boolean;
+  navatticProductDemos?: Partial<Record<NavatticTrackEvent, boolean>>;
 
-    /**
-     * Should the `VIEW_STEP` event be tracked?
-     */
-    viewStep?: boolean;
-
-    /**
-     * Should the `COMPLETE_FLOW` event be tracked?
-     */
-    completeFlow?: boolean;
-  };
+  /**
+   * Options to auto-track eligible Default form events:
+   *
+   * https://docs.default.com/article/google-tag-manager#event-triggers
+   */
+  defaultForms?: Partial<Record<DefaultTrackEvent, boolean>>;
 }
 
 /**
@@ -107,9 +99,26 @@ export interface AutoTrackOptions {
  */
 export enum UnifyStandardTrackEvent {
   ELEMENT_CLICKED = 'Element Clicked',
-  PRODUCT_DEMO_COMPLETED = 'Product Demo Completed',
-  PRODUCT_DEMO_STARTED = 'Product Demo Started',
-  PRODUCT_DEMO_STEP_VIEWED = 'Product Demo Step Viewed',
+}
+
+/**
+ * Auto-tracked events for Default forms.
+ */
+export enum DefaultTrackEvent {
+  DEFAULT_FORM_COMPLETED = 'Default Form Completed',
+  DEFAULT_FORM_PAGE_SUBMITTED = 'Default Form Page Submitted',
+  DEFAULT_MEETING_BOOKED = 'Default Meeting Booked',
+  DEFAULT_SCHEDULER_CLOSED = 'Default Scheduler Closed',
+  DEFAULT_SCHEDULER_DISPLAYED = 'Default Scheduler Displayed',
+}
+
+/**
+ * Auto-tracked events for Navattic product demos.
+ */
+export enum NavatticTrackEvent {
+  NAVATTIC_DEMO_COMPLETED = 'Navattic Demo Completed',
+  NAVATTIC_DEMO_STARTED = 'Navattic Demo Started',
+  NAVATTIC_DEMO_STEP_VIEWED = 'Navattic Demo Step Viewed',
 }
 
 /**

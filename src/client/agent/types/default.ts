@@ -7,6 +7,7 @@ export enum DefaultEventType {
   FORM_PAGE_SUBMITTED_V2 = 'default.form_page_submitted',
   MEETING_BOOKED = 'default.meeting_booked',
   SCHEDULER_DISPLAYED = 'default.scheduler_displayed',
+  SCHEDULER_CLOSED = 'default.scheduler_closed',
 }
 
 /**
@@ -17,7 +18,8 @@ export type DefaultEventData =
   | DefaultFormPageSubmittedEventData
   | DefaultFormPageSubmittedV2EventData
   | DefaultMeetingBookedEventData
-  | DefaultSchedulerDisplayedEventData;
+  | DefaultSchedulerDisplayedEventData
+  | DefaultSchedulerClosedEventData;
 
 /**
  * Event emitted when a form is completed.
@@ -53,6 +55,14 @@ export interface DefaultMeetingBookedEventData {
 export interface DefaultSchedulerDisplayedEventData {
   event: DefaultEventType.SCHEDULER_DISPLAYED;
   payload: DefaultSchedulerDisplayedEventPayload;
+}
+
+/**
+ * Event emitted when the meeting scheduler is closed by a user.
+ */
+export interface DefaultSchedulerClosedEventData {
+  event: DefaultEventType.SCHEDULER_CLOSED;
+  payload: DefaultSchedulerClosedEventPayload;
 }
 
 export interface DefaultFormEventPayload {
@@ -107,6 +117,13 @@ export interface DefaultSchedulerDisplayedEventPayload {
    * The date and time that the scheduler was displayed at.
    */
   displayedAt: string;
+}
+
+export interface DefaultSchedulerClosedEventPayload {
+  /**
+   * The URL that the user was redirected to after closing.
+   */
+  redirectUrl: string;
 }
 
 export interface DefaultMeetingBookedEventPayload {

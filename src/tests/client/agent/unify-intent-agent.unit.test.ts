@@ -7,7 +7,11 @@ import {
   TrackActivity,
 } from '../../../client/activities';
 import { UnifyIntentAgent } from '../../../client/agent';
-import { UnifyIntentContext } from '../../../types';
+import {
+  DefaultTrackEvent,
+  NavatticTrackEvent,
+  UnifyIntentContext,
+} from '../../../types';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
@@ -28,6 +32,11 @@ import {
   isActionableElement,
 } from '../../../client/agent/utils';
 import {
+  getMockDefaultFormCompletedEvent,
+  getMockDefaultFormMeetingBookedEvent,
+  getMockDefaultFormPageSubmittedEvent,
+  getMockDefaultFormSchedulerClosedEvent,
+  getMockDefaultFormSchedulerDisplayedEvent,
   getMockNavatticCompleteFlowEvent,
   getMockNavatticStartFlowEvent,
   getMockNavatticViewStepEvent,
@@ -385,235 +394,6 @@ describe('UnifyIntentAgent', () => {
         expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
       });
     });
-
-    describe('third-party integration handlers', () => {
-      describe('Default form messages', () => {
-        let defaultFormEvent: MessageEventInit = {
-          origin: DEFAULT_FORMS_IFRAME_ORIGIN,
-          data: {
-            event: DefaultEventType.FORM_PAGE_SUBMITTED,
-            payload: { formId: 1234 },
-          },
-        };
-
-        it('does not log an identify event without email from the event data', () => {
-          agent = new UnifyIntentAgent(mockContext);
-          agent.startAutoIdentify();
-
-          defaultFormEvent.data.payload.email = null;
-          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
-
-          expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
-          expect(agent.__getSubmittedEmails().size).toEqual(0);
-        });
-
-        it('logs an identify event when email included in data', () => {
-          agent = new UnifyIntentAgent(mockContext);
-          agent.startAutoIdentify();
-
-          defaultFormEvent.data.payload.email = 'solomon@unifygtm.com';
-          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
-
-          expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
-          expect(agent.__getSubmittedEmails().size).toEqual(1);
-        });
-      });
-
-      describe('Navattic demo messages', () => {
-        let navatticDemoEvent: MessageEventInit;
-
-        beforeEach(() => {
-          navatticDemoEvent = {
-            origin: NAVATTIC_IFRAME_ORIGIN,
-            data: {
-              type: NavatticEventType.IDENTIFY_USER,
-              properties: [
-                {
-                  name: NavatticDefaultCustomPropertyName.Email,
-                  object: NavatticObject.END_USER,
-                  value: 'solomon@unifygtm.com',
-                },
-              ],
-            },
-          };
-        });
-
-        it('does not log an identify event without email from the event data', () => {
-          agent = new UnifyIntentAgent(mockContext);
-          agent.startAutoIdentify();
-
-          navatticDemoEvent.data.properties = [];
-          window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
-
-          expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
-          expect(agent.__getSubmittedEmails().size).toEqual(0);
-        });
-
-        it('logs an identify event when email included in data', () => {
-          agent = new UnifyIntentAgent(mockContext);
-          agent.startAutoIdentify();
-
-          window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
-
-          expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
-          expect(agent.__getSubmittedEmails().size).toEqual(1);
-        });
-
-        describe('other event types', () => {
-          beforeEach(() => {
-            navatticDemoEvent = getMockNavatticViewStepEvent();
-          });
-
-          it('logs an identify event when email in properties', () => {
-            agent = new UnifyIntentAgent(mockContext);
-            agent.startAutoIdentify();
-
-            navatticDemoEvent.data.properties = [
-              {
-                captureMethod: NavatticCaptureMethod.DEMO,
-                object: NavatticObject.END_USER,
-                source: NavatticAttributeSource.REDUCER,
-                name: NavatticDefaultCustomPropertyName.Email,
-                value: 'solomon@unifygtm.com',
-              },
-            ];
-            window.dispatchEvent(
-              new MessageEvent('message', navatticDemoEvent),
-            );
-
-            expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
-            expect(agent.__getSubmittedEmails().size).toEqual(1);
-            expect(
-              agent.__getSubmittedEmails().entries().next().value?.[0],
-            ).toEqual('solomon@unifygtm.com');
-          });
-
-          it('does not log an identify event when email not in properties', () => {
-            agent = new UnifyIntentAgent(mockContext);
-            agent.startAutoIdentify();
-
-            navatticDemoEvent.data.properties = [];
-            window.dispatchEvent(
-              new MessageEvent('message', navatticDemoEvent),
-            );
-
-            expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(0);
-            expect(agent.__getSubmittedEmails().size).toEqual(0);
-          });
-
-          describe('START_FLOW event types', () => {
-            beforeEach(() => {
-              navatticDemoEvent = getMockNavatticStartFlowEvent();
-            });
-
-            it('tracks Navattic demos started when enabled', () => {
-              mockReset(mockedTrackActivity.track);
-              agent = new UnifyIntentAgent(mockContext);
-
-              window.dispatchEvent(
-                new MessageEvent('message', navatticDemoEvent),
-              );
-
-              expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
-            });
-
-            it('does not track Navattic demos started when not enabled', () => {
-              mockReset(mockedTrackActivity.track);
-              agent = new UnifyIntentAgent({
-                ...mockContext,
-                clientConfig: {
-                  ...mockContext.clientConfig,
-                  autoTrackOptions: {
-                    ...mockContext.clientConfig.autoTrackOptions,
-                    navatticProductDemo: { startFlow: false },
-                  },
-                },
-              });
-
-              window.dispatchEvent(
-                new MessageEvent('message', navatticDemoEvent),
-              );
-
-              expect(mockedTrackActivity.track).not.toHaveBeenCalled();
-            });
-          });
-
-          describe('VIEW_STEP event types', () => {
-            beforeEach(() => {
-              navatticDemoEvent = getMockNavatticViewStepEvent();
-            });
-
-            it('tracks Navattic demo steps when enabled', () => {
-              mockReset(mockedTrackActivity.track);
-              agent = new UnifyIntentAgent(mockContext);
-
-              window.dispatchEvent(
-                new MessageEvent('message', navatticDemoEvent),
-              );
-
-              expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
-            });
-
-            it('does not track Navattic demo steps when not enabled', () => {
-              mockReset(mockedTrackActivity.track);
-              agent = new UnifyIntentAgent({
-                ...mockContext,
-                clientConfig: {
-                  ...mockContext.clientConfig,
-                  autoTrackOptions: {
-                    ...mockContext.clientConfig.autoTrackOptions,
-                    navatticProductDemo: { viewStep: false },
-                  },
-                },
-              });
-
-              window.dispatchEvent(
-                new MessageEvent('message', navatticDemoEvent),
-              );
-
-              expect(mockedTrackActivity.track).not.toHaveBeenCalled();
-            });
-          });
-
-          describe('COMPLETE_FLOW event types', () => {
-            beforeEach(() => {
-              navatticDemoEvent = getMockNavatticCompleteFlowEvent();
-            });
-
-            it('tracks Navattic demos started when enabled', () => {
-              mockReset(mockedTrackActivity.track);
-              agent = new UnifyIntentAgent(mockContext);
-
-              window.dispatchEvent(
-                new MessageEvent('message', navatticDemoEvent),
-              );
-
-              expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
-            });
-
-            it('does not track Navattic demos started when not enabled', () => {
-              mockReset(mockedTrackActivity.track);
-              agent = new UnifyIntentAgent({
-                ...mockContext,
-                clientConfig: {
-                  ...mockContext.clientConfig,
-                  autoTrackOptions: {
-                    ...mockContext.clientConfig.autoTrackOptions,
-                    navatticProductDemo: { completeFlow: false },
-                  },
-                },
-              });
-
-              window.dispatchEvent(
-                new MessageEvent('message', navatticDemoEvent),
-              );
-
-              expect(mockedTrackActivity.track).not.toHaveBeenCalled();
-            });
-          });
-        });
-      });
-    });
   });
 
   describe('startAutoTrack', () => {
@@ -777,6 +557,407 @@ describe('UnifyIntentAgent', () => {
             );
 
             expect(mockedTrackActivity.track).toHaveBeenCalledTimes(0);
+          });
+        });
+      });
+    });
+  });
+
+  describe('third-party integration handlers', () => {
+    describe('Default form messages', () => {
+      let defaultFormEvent: MessageEventInit =
+        getMockDefaultFormPageSubmittedEvent();
+
+      it('does not log an identify event without email from the event data', () => {
+        agent = new UnifyIntentAgent(mockContext);
+        agent.startAutoIdentify();
+
+        defaultFormEvent.data.payload.email = null;
+        window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+        expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
+        expect(agent.__getSubmittedEmails().size).toEqual(0);
+      });
+
+      it('logs an identify event when email included in data', () => {
+        agent = new UnifyIntentAgent(mockContext);
+        agent.startAutoIdentify();
+
+        defaultFormEvent.data.payload.email = 'solomon@unifygtm.com';
+        window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+        expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+        expect(agent.__getSubmittedEmails().size).toEqual(1);
+      });
+
+      describe('Form page submitted event types', () => {
+        beforeEach(() => {
+          defaultFormEvent = getMockDefaultFormPageSubmittedEvent();
+        });
+
+        it('tracks Default form pages submitted when enabled', () => {
+          mockReset(mockedTrackActivity.track);
+          agent = new UnifyIntentAgent(mockContext);
+
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not track Default form pages submitted when not enabled', () => {
+          mockReset(mockedTrackActivity.track);
+          agent = new UnifyIntentAgent({
+            ...mockContext,
+            clientConfig: {
+              ...mockContext.clientConfig,
+              autoTrackOptions: {
+                ...mockContext.clientConfig.autoTrackOptions,
+                defaultForms: {
+                  [DefaultTrackEvent.DEFAULT_FORM_PAGE_SUBMITTED]: false,
+                },
+              },
+            },
+          });
+
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('Form completed event types', () => {
+        beforeEach(() => {
+          defaultFormEvent = getMockDefaultFormCompletedEvent();
+        });
+
+        it('tracks Default form completed when enabled', () => {
+          mockReset(mockedTrackActivity.track);
+          agent = new UnifyIntentAgent(mockContext);
+
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not track Default form completed when not enabled', () => {
+          mockReset(mockedTrackActivity.track);
+          agent = new UnifyIntentAgent({
+            ...mockContext,
+            clientConfig: {
+              ...mockContext.clientConfig,
+              autoTrackOptions: {
+                ...mockContext.clientConfig.autoTrackOptions,
+                defaultForms: {
+                  [DefaultTrackEvent.DEFAULT_FORM_COMPLETED]: false,
+                },
+              },
+            },
+          });
+
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('Meeting booked event types', () => {
+        beforeEach(() => {
+          defaultFormEvent = getMockDefaultFormMeetingBookedEvent();
+        });
+
+        it('tracks Default meetings booked when enabled', () => {
+          mockReset(mockedTrackActivity.track);
+          agent = new UnifyIntentAgent(mockContext);
+
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not track Default meetings booked when not enabled', () => {
+          mockReset(mockedTrackActivity.track);
+          agent = new UnifyIntentAgent({
+            ...mockContext,
+            clientConfig: {
+              ...mockContext.clientConfig,
+              autoTrackOptions: {
+                ...mockContext.clientConfig.autoTrackOptions,
+                defaultForms: {
+                  [DefaultTrackEvent.DEFAULT_MEETING_BOOKED]: false,
+                },
+              },
+            },
+          });
+
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('Scheduler closed event types', () => {
+        beforeEach(() => {
+          defaultFormEvent = getMockDefaultFormSchedulerClosedEvent();
+        });
+
+        it('tracks Default scheduler closed when enabled', () => {
+          mockReset(mockedTrackActivity.track);
+          agent = new UnifyIntentAgent(mockContext);
+
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not track Default scheduler closed when not enabled', () => {
+          mockReset(mockedTrackActivity.track);
+          agent = new UnifyIntentAgent({
+            ...mockContext,
+            clientConfig: {
+              ...mockContext.clientConfig,
+              autoTrackOptions: {
+                ...mockContext.clientConfig.autoTrackOptions,
+                defaultForms: {
+                  [DefaultTrackEvent.DEFAULT_SCHEDULER_CLOSED]: false,
+                },
+              },
+            },
+          });
+
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+        });
+      });
+
+      describe('Scheduler displayed event types', () => {
+        beforeEach(() => {
+          defaultFormEvent = getMockDefaultFormSchedulerDisplayedEvent();
+        });
+
+        it('tracks Default scheduler displayed when enabled', () => {
+          mockReset(mockedTrackActivity.track);
+          agent = new UnifyIntentAgent(mockContext);
+
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not track Default scheduler displayed when not enabled', () => {
+          mockReset(mockedTrackActivity.track);
+          agent = new UnifyIntentAgent({
+            ...mockContext,
+            clientConfig: {
+              ...mockContext.clientConfig,
+              autoTrackOptions: {
+                ...mockContext.clientConfig.autoTrackOptions,
+                defaultForms: {
+                  [DefaultTrackEvent.DEFAULT_SCHEDULER_DISPLAYED]: false,
+                },
+              },
+            },
+          });
+
+          window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
+
+          expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('Navattic demo messages', () => {
+      let navatticDemoEvent: MessageEventInit;
+
+      beforeEach(() => {
+        navatticDemoEvent = {
+          origin: NAVATTIC_IFRAME_ORIGIN,
+          data: {
+            type: NavatticEventType.IDENTIFY_USER,
+            properties: [
+              {
+                name: NavatticDefaultCustomPropertyName.Email,
+                object: NavatticObject.END_USER,
+                value: 'solomon@unifygtm.com',
+              },
+            ],
+          },
+        };
+      });
+
+      it('does not log an identify event without email from the event data', () => {
+        agent = new UnifyIntentAgent(mockContext);
+        agent.startAutoIdentify();
+
+        navatticDemoEvent.data.properties = [];
+        window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
+
+        expect(mockedIdentifyActivity.track).not.toHaveBeenCalled();
+        expect(agent.__getSubmittedEmails().size).toEqual(0);
+      });
+
+      it('logs an identify event when email included in data', () => {
+        agent = new UnifyIntentAgent(mockContext);
+        agent.startAutoIdentify();
+
+        window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
+
+        expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+        expect(agent.__getSubmittedEmails().size).toEqual(1);
+      });
+
+      describe('other event types', () => {
+        beforeEach(() => {
+          navatticDemoEvent = getMockNavatticViewStepEvent();
+        });
+
+        it('logs an identify event when email in properties', () => {
+          agent = new UnifyIntentAgent(mockContext);
+          agent.startAutoIdentify();
+
+          navatticDemoEvent.data.properties = [
+            {
+              captureMethod: NavatticCaptureMethod.DEMO,
+              object: NavatticObject.END_USER,
+              source: NavatticAttributeSource.REDUCER,
+              name: NavatticDefaultCustomPropertyName.Email,
+              value: 'solomon@unifygtm.com',
+            },
+          ];
+          window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
+
+          expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(1);
+          expect(agent.__getSubmittedEmails().size).toEqual(1);
+          expect(
+            agent.__getSubmittedEmails().entries().next().value?.[0],
+          ).toEqual('solomon@unifygtm.com');
+        });
+
+        it('does not log an identify event when email not in properties', () => {
+          agent = new UnifyIntentAgent(mockContext);
+          agent.startAutoIdentify();
+
+          navatticDemoEvent.data.properties = [];
+          window.dispatchEvent(new MessageEvent('message', navatticDemoEvent));
+
+          expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(0);
+          expect(agent.__getSubmittedEmails().size).toEqual(0);
+        });
+
+        describe('START_FLOW event types', () => {
+          beforeEach(() => {
+            navatticDemoEvent = getMockNavatticStartFlowEvent();
+          });
+
+          it('tracks Navattic demos started when enabled', () => {
+            mockReset(mockedTrackActivity.track);
+            agent = new UnifyIntentAgent(mockContext);
+
+            window.dispatchEvent(
+              new MessageEvent('message', navatticDemoEvent),
+            );
+
+            expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+          });
+
+          it('does not track Navattic demos started when not enabled', () => {
+            mockReset(mockedTrackActivity.track);
+            agent = new UnifyIntentAgent({
+              ...mockContext,
+              clientConfig: {
+                ...mockContext.clientConfig,
+                autoTrackOptions: {
+                  ...mockContext.clientConfig.autoTrackOptions,
+                  navatticProductDemos: {
+                    [NavatticTrackEvent.NAVATTIC_DEMO_STARTED]: false,
+                  },
+                },
+              },
+            });
+
+            window.dispatchEvent(
+              new MessageEvent('message', navatticDemoEvent),
+            );
+
+            expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+          });
+        });
+
+        describe('VIEW_STEP event types', () => {
+          beforeEach(() => {
+            navatticDemoEvent = getMockNavatticViewStepEvent();
+          });
+
+          it('tracks Navattic demo steps when enabled', () => {
+            mockReset(mockedTrackActivity.track);
+            agent = new UnifyIntentAgent(mockContext);
+
+            window.dispatchEvent(
+              new MessageEvent('message', navatticDemoEvent),
+            );
+
+            expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+          });
+
+          it('does not track Navattic demo steps when not enabled', () => {
+            mockReset(mockedTrackActivity.track);
+            agent = new UnifyIntentAgent({
+              ...mockContext,
+              clientConfig: {
+                ...mockContext.clientConfig,
+                autoTrackOptions: {
+                  ...mockContext.clientConfig.autoTrackOptions,
+                  navatticProductDemos: {
+                    [NavatticTrackEvent.NAVATTIC_DEMO_STEP_VIEWED]: false,
+                  },
+                },
+              },
+            });
+
+            window.dispatchEvent(
+              new MessageEvent('message', navatticDemoEvent),
+            );
+
+            expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+          });
+        });
+
+        describe('COMPLETE_FLOW event types', () => {
+          beforeEach(() => {
+            navatticDemoEvent = getMockNavatticCompleteFlowEvent();
+          });
+
+          it('tracks Navattic demos started when enabled', () => {
+            mockReset(mockedTrackActivity.track);
+            agent = new UnifyIntentAgent(mockContext);
+
+            window.dispatchEvent(
+              new MessageEvent('message', navatticDemoEvent),
+            );
+
+            expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+          });
+
+          it('does not track Navattic demos started when not enabled', () => {
+            mockReset(mockedTrackActivity.track);
+            agent = new UnifyIntentAgent({
+              ...mockContext,
+              clientConfig: {
+                ...mockContext.clientConfig,
+                autoTrackOptions: {
+                  ...mockContext.clientConfig.autoTrackOptions,
+                  navatticProductDemos: {
+                    [NavatticTrackEvent.NAVATTIC_DEMO_COMPLETED]: false,
+                  },
+                },
+              },
+            });
+
+            window.dispatchEvent(
+              new MessageEvent('message', navatticDemoEvent),
+            );
+
+            expect(mockedTrackActivity.track).not.toHaveBeenCalled();
           });
         });
       });

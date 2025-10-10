@@ -6,8 +6,12 @@ import {
   PageProperties,
   UserAgentDataType,
 } from '../../types';
-import { NAVATTIC_IFRAME_ORIGIN } from '../../client/agent/constants';
+import {
+  DEFAULT_FORMS_IFRAME_ORIGIN,
+  NAVATTIC_IFRAME_ORIGIN,
+} from '../../client/agent/constants';
 import { NavatticEventType } from '../../client/agent/types/navattic';
+import { DefaultEventType } from '../../client/agent/types/default';
 
 export const TEST_WRITE_KEY = '1234';
 export const TEST_VISITOR_ID = '5678';
@@ -67,6 +71,57 @@ export const MockPageProperties: PageProperties = {
   title: '',
   url: testEnvironmentOptions.url,
 };
+
+export const getMockDefaultFormPageSubmittedEvent = () => ({
+  origin: DEFAULT_FORMS_IFRAME_ORIGIN,
+  data: {
+    event: DefaultEventType.FORM_PAGE_SUBMITTED,
+    payload: {
+      email: 'test@test.com',
+      formName: 'Form Name',
+      formId: 1234,
+      pageNumber: 1,
+    },
+  },
+});
+
+export const getMockDefaultFormCompletedEvent = () => ({
+  origin: DEFAULT_FORMS_IFRAME_ORIGIN,
+  data: {
+    event: DefaultEventType.FORM_COMPLETED,
+    payload: {
+      formName: 'Form Name',
+      formId: 1234,
+    },
+  },
+});
+
+export const getMockDefaultFormMeetingBookedEvent = () => ({
+  origin: DEFAULT_FORMS_IFRAME_ORIGIN,
+  data: {
+    event: DefaultEventType.MEETING_BOOKED,
+    payload: {},
+  },
+});
+
+export const getMockDefaultFormSchedulerClosedEvent = () => ({
+  origin: DEFAULT_FORMS_IFRAME_ORIGIN,
+  data: {
+    event: DefaultEventType.SCHEDULER_CLOSED,
+    payload: {},
+  },
+});
+
+export const getMockDefaultFormSchedulerDisplayedEvent = () => ({
+  origin: DEFAULT_FORMS_IFRAME_ORIGIN,
+  data: {
+    event: DefaultEventType.SCHEDULER_DISPLAYED,
+    payload: {
+      email: 'test@test.com',
+      formId: 1234,
+    },
+  },
+});
 
 export const getMockNavatticViewStepEvent = () => ({
   origin: NAVATTIC_IFRAME_ORIGIN,
