@@ -1,4 +1,4 @@
-import { mock, mockReset, objectContainsValue } from 'jest-mock-extended';
+import { mock, mockReset } from 'jest-mock-extended';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -7,7 +7,7 @@ import {
   TrackActivity,
 } from '../../../client/activities';
 import { UnifyIntentAgent } from '../../../client/agent';
-import { UnifyIntentContext, UnifyStandardTrackEvent } from '../../../types';
+import { UnifyIntentContext } from '../../../types';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
@@ -27,7 +27,6 @@ import {
   getElementLabel,
   isActionableElement,
 } from '../../../client/agent/utils';
-import { DEFAULT_AUTO_TRACK_OPTIONS } from '../../../client/constants';
 import {
   getMockNavatticCompleteFlowEvent,
   getMockNavatticStartFlowEvent,
