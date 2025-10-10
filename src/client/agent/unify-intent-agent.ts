@@ -495,7 +495,6 @@ export class UnifyIntentAgent {
     event: MessageEvent<NavatticEventData>,
   ) => {
     try {
-      console.log(event.origin, event.data);
       // Optionally auto-identify user from Navattic demo
       if (this._autoIdentify) {
         const eventDataProperties = event.data?.properties ?? [];
@@ -523,7 +522,6 @@ export class UnifyIntentAgent {
 
         // User has just started a product demo
         if (startFlow && event.data.type === NavatticEventType.START_FLOW) {
-          console.log('one');
           const startedDemoActivity = new TrackActivity(this._intentContext, {
             name: UnifyStandardTrackEvent.PRODUCT_DEMO_STARTED,
             properties: {
