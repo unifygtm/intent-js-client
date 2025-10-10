@@ -11,6 +11,8 @@ JavaScript client for interacting with the Unify Intent API in the browser.
   - [Identify Events](#identify-events)
   - [Track Events](#track-events)
 - [Third-Party Tools](#third-party-tools)
+  - [Default](#default)
+  - [Navattic](#navattic)
 - [Configuration](#configuration)
 
 ## Installation
