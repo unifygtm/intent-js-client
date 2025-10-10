@@ -361,23 +361,23 @@ The intent client ships with out-of-the-box event tracking for some popular thir
 
 [Default](https://www.default.com/) is a popular tool for automating inbound form submission workflows. If you use a Default form wherever the intent client is running, the client will automatically fire track events for corresponding Default form events. The following Default form events are supported:
 
-| Default event                 | Unify track event name        | Description                                                         | Unify track event properties                                      |
-| ----------------------------- | ----------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `default.form_completed`      | `Default Form Completed`      | When a user completes all steps in a form.                          | `form`, `formId`                                                  |
-| `default.form_page_submitted` | `Default Form Page Submitted` | When a user completes a single step of a mult-step form.            | `form`, `formId`, `pageNumber`                                    |
-| `default.meeting_booked`      | `Default Meeting Booked`      | When a user successfully books a meeting via the Default scheduler. | `memberName`, `memberEmail`, `durationInMinutes`, `startDateTime` |
-| `default.scheduler_closed`    | `Default Scheduler Closed`    | When a user closes the Default scheduler UI.                        |                                                                   |
-| `default.scheduler_displayed` | `Default Scheduler Displayed` | When the Default scheduler UI is displayed to the user.             | `formId`                                                          |
+| Default event                 | Unify track event name        | Unify track event properties                                      | Description                                                         |
+| ----------------------------- | ----------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
+| `default.form_completed`      | `Default Form Completed`      | `form`, `formId`                                                  | When a user completes all steps in a form.                          |
+| `default.form_page_submitted` | `Default Form Page Submitted` | `form`, `formId`, `pageNumber`                                    | When a user completes a single step of a mult-step form.            |
+| `default.meeting_booked`      | `Default Meeting Booked`      | `memberName`, `memberEmail`, `durationInMinutes`, `startDateTime` | When a user successfully books a meeting via the Default scheduler. |
+| `default.scheduler_closed`    | `Default Scheduler Closed`    |                                                                   | When a user closes the Default scheduler UI.                        |
+| `default.scheduler_displayed` | `Default Scheduler Displayed` | `formId`                                                          | When the Default scheduler UI is displayed to the user.             |
 
 ### Navattic
 
 [Navattic](https://www.navattic.com/) is a popular tool for automating interactive product demos. If you use a Navattic demo wherever the intent client is running, the client will automatically fire track events for corresponding Navattic demo events. The following Navattic demo events are supported:
 
-| Navattic event  | Unify track event name      | Description                                         |
-| --------------- | --------------------------- | --------------------------------------------------- |
-| `START_FLOW`    | `Navattic Demo Started`     | When a user starts a Navattic demo.                 |
-| `VIEW_STEP`     | `Navattic Demo Step Viewed` | When a user views a new step of the demo.           |
-| `COMPLETE_FLOW` | `Navattic Demo Completed`   | When a user successfully completes the entire demo. |
+| Navattic event  | Unify track event name      | Unify track event properties | Description                                         |
+| --------------- | --------------------------- | ---------------------------- | --------------------------------------------------- |
+| `START_FLOW`    | `Navattic Demo Started`     | `demo`                       | When a user starts a Navattic demo.                 |
+| `VIEW_STEP`     | `Navattic Demo Step Viewed` | `demo`, `step`               | When a user views a new step of the demo.           |
+| `COMPLETE_FLOW` | `Navattic Demo Completed`   | `demo`                       | When a user successfully completes the entire demo. |
 
 ## Configuration
 
