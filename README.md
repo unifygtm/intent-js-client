@@ -10,6 +10,7 @@ JavaScript client for interacting with the Unify Intent API in the browser.
   - [Page Events](#page-view-events)
   - [Identify Events](#identify-events)
   - [Track Events](#track-events)
+- [Third-Party Tools](#third-party-tools)
 - [Configuration](#configuration)
 
 ## Installation
@@ -352,6 +353,32 @@ unify.startAutoTrack();
 unify.startAutoTrack({ clickTrackingSelectors: ['.custom-button'] });
 ```
 
+## Third-Party Tools
+
+The intent client ships with out-of-the-box event tracking for some popular third-party tools such as [Default](https://www.default.com/) and [Navattic](https://www.navattic.com/). If these tools are embedded into a page where the intent client is running, the client will track relevant events automatically. This behavior can be disabled with the `UnifyIntentClientConfig`. See (configuration)[#configuration] for more details.
+
+### Default
+
+[Default](https://www.default.com/) is a popular tool for automating inbound form submission workflows. If you use a Default form wherever the intent client is running, the client will automatically fire track events for corresponding Default form events. The following Default form events are supported:
+
+| Default event               | Unify event                 | Description                                                         |
+| --------------------------- | --------------------------- | ------------------------------------------------------------------- |
+| default.form_completed      | Default Form Completed      | When a user completes all steps in a form.                          |
+| default.form_page_submitted | Default Form Page Submitted | When a user completes a single step of a mult-step form.            |
+| default.meeting_booked      | Default Meeting Booked      | When a user successfully books a meeting via the Default scheduler. |
+| default.scheduler_closed    | Default Scheduler Closed    | When a user closes the Default scheduler UI.                        |
+| default.scheduler_displayed | Default Scheduler Displayed | When the Default scheduler UI is displayed to the user.             |
+
+### Navattic
+
+[Navattic](https://www.navattic.com/) is a popular tool for automating interactive product demos. If you use a Navattic demo wherever the intent client is running, the client will automatically fire track events for corresponding Navattic demo events. The following Navattic demo events are supported:
+
+| Navattic event | Unify event               | Description                                         |
+| -------------- | ------------------------- | --------------------------------------------------- |
+| START_FLOW     | Navattic Demo Started     | When a user starts a Navattic demo.                 |
+| VIEW_STEP      | Navattic Demo Step Viewed | When a user views a new step of the demo.           |
+| COMPLETE_FLOW  | Navattic Demo Completed   | When a user successfully completes the entire demo. |
+
 ## Configuration
 
 The following configuration options can be passed when initializing the client:
@@ -362,5 +389,7 @@ The following configuration options can be passed when initializing the client:
   - **Default**: `true` if the client is installed via the Unify JavaScript tag, `false` if installed via a package manager
 - `autoTrackOptions` - Options to customize the auto-tracking of user actions such as click events:
   - `clickTrackingSelectors` - Optional list of CSS selectors to customize which elements the client will automatically fire a `track` event for when clicked. Can be a list of string selectors, in which case the default track event name `Element Clicked` will be used as the event name. Can also be a list of objects containing a `selector` key and `eventName` key, in which case the value of `eventName` will be used as the event name.
+  - `defaultForms` - By default, the intent client will fire track events for [Default](https://www.default.com/) form events. This option can be used to customize which Default form events will result in Unify track events being fired or disable this behavior entirely.
+  - `navatticProductDemos`: By default, the intent client will fire track events for [Navattic](https://www.navattic.com/) product demos. This option can be used to customize which Navattic demo events will result in Unify track events being fired or disable this behavior entirely.
 - `sessionDurationMinutes` - Length in minutes that user sessions will persist when no activities are tracked. Activities include `page`, `identify,` and `track` activities.
   - **Default**: `30`

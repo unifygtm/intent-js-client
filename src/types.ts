@@ -81,15 +81,27 @@ export interface AutoTrackOptions {
    * Options to auto-track eligible Navattic product demo events:
    *
    * https://docs.navattic.com/tracking/navattic-js/subscribe-to-events#navattic-events
+   *
+   * If set to `true`, all eligible events will be auto-tracked. If `undefined` or set to `false`,
+   * no events will be auto-tracked.
+   *
+   * Can also be set to a map from `NavatticTrackEvent` to `boolean` to customize which
+   * events are auto-tracked.
    */
-  navatticProductDemos?: Partial<Record<NavatticTrackEvent, boolean>>;
+  navatticProductDemos?: boolean | Partial<Record<NavatticTrackEvent, boolean>>;
 
   /**
    * Options to auto-track eligible Default form events:
    *
    * https://docs.default.com/article/google-tag-manager#event-triggers
+   *
+   * If set to `true`, all eligible events will be auto-tracked. If `undefined` or set to `false`,
+   * no events will be auto-tracked.
+   *
+   * Can also be set to a map from `DefaultTrackEvent` to `boolean` to customize which
+   * events are auto-tracked.
    */
-  defaultForms?: Partial<Record<DefaultTrackEvent, boolean>>;
+  defaultForms?: boolean | Partial<Record<DefaultTrackEvent, boolean>>;
 }
 
 /**

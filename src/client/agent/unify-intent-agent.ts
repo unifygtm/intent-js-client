@@ -488,7 +488,15 @@ export class UnifyIntentAgent {
           [DefaultTrackEvent.DEFAULT_MEETING_BOOKED]: meetingBooked,
           [DefaultTrackEvent.DEFAULT_SCHEDULER_CLOSED]: schedulerClosed,
           [DefaultTrackEvent.DEFAULT_SCHEDULER_DISPLAYED]: schedulerDisplayed,
-        } = this._autoTrackOptions.defaultForms;
+        } = this._autoTrackOptions.defaultForms === true
+          ? {
+              [DefaultTrackEvent.DEFAULT_FORM_COMPLETED]: true,
+              [DefaultTrackEvent.DEFAULT_FORM_PAGE_SUBMITTED]: true,
+              [DefaultTrackEvent.DEFAULT_MEETING_BOOKED]: true,
+              [DefaultTrackEvent.DEFAULT_SCHEDULER_CLOSED]: true,
+              [DefaultTrackEvent.DEFAULT_SCHEDULER_DISPLAYED]: true,
+            }
+          : this._autoTrackOptions.defaultForms;
 
         if (
           formCompleted &&
@@ -603,7 +611,13 @@ export class UnifyIntentAgent {
           [NavatticTrackEvent.NAVATTIC_DEMO_STARTED]: startFlow,
           [NavatticTrackEvent.NAVATTIC_DEMO_STEP_VIEWED]: viewStep,
           [NavatticTrackEvent.NAVATTIC_DEMO_COMPLETED]: completeFlow,
-        } = this._autoTrackOptions.navatticProductDemos;
+        } = this._autoTrackOptions.navatticProductDemos === true
+          ? {
+              [NavatticTrackEvent.NAVATTIC_DEMO_STARTED]: true,
+              [NavatticTrackEvent.NAVATTIC_DEMO_STEP_VIEWED]: true,
+              [NavatticTrackEvent.NAVATTIC_DEMO_COMPLETED]: true,
+            }
+          : this._autoTrackOptions.navatticProductDemos;
 
         // User has just started a product demo
         if (startFlow && event.data.type === NavatticEventType.START_FLOW) {
