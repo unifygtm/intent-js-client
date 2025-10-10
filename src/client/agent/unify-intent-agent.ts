@@ -533,9 +533,16 @@ export class UnifyIntentAgent {
           meetingBooked &&
           event.data.event === DefaultEventType.MEETING_BOOKED
         ) {
+          const { memberName, memberEmail, durationInMinutes, startDateTime } =
+            event.data.payload;
+
           const meetingBookedActivity = new TrackActivity(this._intentContext, {
             name: DefaultTrackEvent.DEFAULT_MEETING_BOOKED,
             properties: {
+              memberName,
+              memberEmail,
+              durationInMinutes: durationInMinutes.toString(),
+              startDateTime,
               wasAutoTracked: true,
             },
           });
