@@ -72,3 +72,5 @@ export const DEFAULT_FORM_EVENT_TYPES: DefaultEventType[] = [
   DefaultEventType.FORM_PAGE_SUBMITTED,
   DefaultEventType.FORM_PAGE_SUBMITTED_V2,
 ];
+
+export const PRODUCT_DEMO_NAVATTIC_PROVIDER_NAME = 'Navattic';

@@ -1,4 +1,4 @@
-import { mock, mockReset } from 'jest-mock-extended';
+import { mock, mockReset, objectContainsValue } from 'jest-mock-extended';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
@@ -7,7 +7,7 @@ import {
   TrackActivity,
 } from '../../../client/activities';
 import { UnifyIntentAgent } from '../../../client/agent';
-import { UnifyIntentContext } from '../../../types';
+import { UnifyIntentContext, UnifyStandardTrackEvent } from '../../../types';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
@@ -27,6 +27,12 @@ import {
   getElementLabel,
   isActionableElement,
 } from '../../../client/agent/utils';
+import { DEFAULT_AUTO_TRACK_OPTIONS } from '../../../client/constants';
+import {
+  getMockNavatticCompleteFlowEvent,
+  getMockNavatticStartFlowEvent,
+  getMockNavatticViewStepEvent,
+} from '../../mocks/data';
 
 const mockedPageActivity = mock(PageActivity.prototype);
 const mockedIdentifyActivity = mock(IdentifyActivity.prototype);
@@ -131,6 +137,7 @@ describe('UnifyIntentAgent', () => {
     agent?.stopAutoIdentify();
     agent?.stopAutoPage();
     agent?.stopAutoTrack();
+    agent?.unmount();
   });
 
   beforeEach(() => {
@@ -455,13 +462,7 @@ describe('UnifyIntentAgent', () => {
 
         describe('other event types', () => {
           beforeEach(() => {
-            navatticDemoEvent = {
-              origin: NAVATTIC_IFRAME_ORIGIN,
-              data: {
-                type: NavatticEventType.VIEW_STEP,
-                properties: [],
-              },
-            };
+            navatticDemoEvent = getMockNavatticViewStepEvent();
           });
 
           it('logs an identify event when email in properties', () => {
@@ -499,6 +500,117 @@ describe('UnifyIntentAgent', () => {
 
             expect(mockedIdentifyActivity.track).toHaveBeenCalledTimes(0);
             expect(agent.__getSubmittedEmails().size).toEqual(0);
+          });
+
+          describe('START_FLOW event types', () => {
+            beforeEach(() => {
+              navatticDemoEvent = getMockNavatticStartFlowEvent();
+            });
+
+            it('tracks Navattic demos started when enabled', () => {
+              mockReset(mockedTrackActivity.track);
+              agent = new UnifyIntentAgent(mockContext);
+
+              window.dispatchEvent(
+                new MessageEvent('message', navatticDemoEvent),
+              );
+
+              expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+            });
+
+            it('does not track Navattic demos started when not enabled', () => {
+              mockReset(mockedTrackActivity.track);
+              agent = new UnifyIntentAgent({
+                ...mockContext,
+                clientConfig: {
+                  ...mockContext.clientConfig,
+                  autoTrackOptions: {
+                    ...mockContext.clientConfig.autoTrackOptions,
+                    navatticProductDemo: { startFlow: false },
+                  },
+                },
+              });
+
+              window.dispatchEvent(
+                new MessageEvent('message', navatticDemoEvent),
+              );
+
+              expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+            });
+          });
+
+          describe('VIEW_STEP event types', () => {
+            beforeEach(() => {
+              navatticDemoEvent = getMockNavatticViewStepEvent();
+            });
+
+            it('tracks Navattic demo steps when enabled', () => {
+              mockReset(mockedTrackActivity.track);
+              agent = new UnifyIntentAgent(mockContext);
+
+              window.dispatchEvent(
+                new MessageEvent('message', navatticDemoEvent),
+              );
+
+              expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+            });
+
+            it('does not track Navattic demo steps when not enabled', () => {
+              mockReset(mockedTrackActivity.track);
+              agent = new UnifyIntentAgent({
+                ...mockContext,
+                clientConfig: {
+                  ...mockContext.clientConfig,
+                  autoTrackOptions: {
+                    ...mockContext.clientConfig.autoTrackOptions,
+                    navatticProductDemo: { viewStep: false },
+                  },
+                },
+              });
+
+              window.dispatchEvent(
+                new MessageEvent('message', navatticDemoEvent),
+              );
+
+              expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+            });
+          });
+
+          describe('COMPLETE_FLOW event types', () => {
+            beforeEach(() => {
+              navatticDemoEvent = getMockNavatticCompleteFlowEvent();
+            });
+
+            it('tracks Navattic demos started when enabled', () => {
+              mockReset(mockedTrackActivity.track);
+              agent = new UnifyIntentAgent(mockContext);
+
+              window.dispatchEvent(
+                new MessageEvent('message', navatticDemoEvent),
+              );
+
+              expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+            });
+
+            it('does not track Navattic demos started when not enabled', () => {
+              mockReset(mockedTrackActivity.track);
+              agent = new UnifyIntentAgent({
+                ...mockContext,
+                clientConfig: {
+                  ...mockContext.clientConfig,
+                  autoTrackOptions: {
+                    ...mockContext.clientConfig.autoTrackOptions,
+                    navatticProductDemo: { completeFlow: false },
+                  },
+                },
+              });
+
+              window.dispatchEvent(
+                new MessageEvent('message', navatticDemoEvent),
+              );
+
+              expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+            });
           });
         });
       });

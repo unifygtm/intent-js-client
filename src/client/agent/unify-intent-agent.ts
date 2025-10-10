@@ -14,12 +14,14 @@ import {
   UNIFY_CLICK_EVENT_NAME_DATA_ATTR,
   UNIFY_CLICK_EVENT_NAME_DATA_ATTR_SELECTOR_NAME,
   UNIFY_TRACK_CLICK_DATA_ATTR,
+  PRODUCT_DEMO_NAVATTIC_PROVIDER_NAME,
   UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from './constants';
 import { DefaultEventData } from './types/default';
 import {
   NavatticDefaultCustomPropertyName,
   NavatticEventData,
+  NavatticEventType,
   NavatticObject,
 } from './types/navattic';
 import {
@@ -51,6 +53,7 @@ export class UnifyIntentAgent {
   private _lastLocation?: Location;
 
   private _isTrackingClicks: boolean = false;
+  private _isSubscribedToThirdPartyMessages: boolean = false;
 
   constructor(intentContext: UnifyIntentContext) {
     this._intentContext = intentContext;
@@ -71,7 +74,18 @@ export class UnifyIntentAgent {
     }
 
     this.startAutoTrack();
+    this.subscribeToThirdPartyMessages();
   }
+
+  /**
+   * Stops all monitoring done by the Unify Intent Agent.
+   */
+  public unmount = () => {
+    this.stopAutoIdentify();
+    this.stopAutoPage();
+    this.stopAutoTrack();
+    this.unsubscribeFromThirdPartyMessages();
+  };
 
   /**
    * Tells the Unify Intent Agent to trigger page events when the
@@ -109,8 +123,6 @@ export class UnifyIntentAgent {
 
     this.refreshMonitoredInputs();
     setInterval(this.refreshMonitoredInputs, 2000);
-
-    this.subscribeToThirdPartyMessages();
   };
 
   /**
@@ -125,8 +137,6 @@ export class UnifyIntentAgent {
       }
     });
     this._monitoredInputs.clear();
-
-    this.unsubscribeFromThirdPartyMessages();
 
     this._autoIdentify = false;
   };
@@ -396,14 +406,22 @@ export class UnifyIntentAgent {
    * up event handlers for each supported integration.
    */
   private subscribeToThirdPartyMessages = () => {
-    window.addEventListener('message', this.handleThirdPartyMessage);
+    if (!this._isSubscribedToThirdPartyMessages) {
+      window.addEventListener('message', this.handleThirdPartyMessage);
+    }
+
+    this._isSubscribedToThirdPartyMessages = true;
   };
 
   /**
    * Removes event listeners setup in `subscribeToThirdPartyMessages`.
    */
   private unsubscribeFromThirdPartyMessages = () => {
-    window.removeEventListener('message', this.handleThirdPartyMessage);
+    if (this._isSubscribedToThirdPartyMessages) {
+      window.removeEventListener('message', this.handleThirdPartyMessage);
+    }
+
+    this._isSubscribedToThirdPartyMessages = false;
   };
 
   /**
@@ -413,8 +431,6 @@ export class UnifyIntentAgent {
    * @param event - the event from `window.postMessage`
    */
   private handleThirdPartyMessage = (event: MessageEvent) => {
-    if (!this._autoIdentify) return;
-
     let thirdParty: string | undefined;
     try {
       switch (event.origin) {
@@ -434,7 +450,10 @@ export class UnifyIntentAgent {
         }
       }
     } catch (error: unknown) {
-      this.logError('Error occurred in handleThirdPartyMessage', error);
+      this.logError(
+        `Error occurred in handleThirdPartyMessage for third-party ${thirdParty}`,
+        error,
+      );
     }
   };
 
@@ -475,24 +494,74 @@ export class UnifyIntentAgent {
   private handleNavatticDemoMessage = (
     event: MessageEvent<NavatticEventData>,
   ) => {
-    if (!this._autoIdentify) return;
-
     try {
-      const eventDataProperties = event.data?.properties ?? [];
-      const email = eventDataProperties.find(
-        ({ object, name }) =>
-          object === NavatticObject.END_USER &&
-          name === NavatticDefaultCustomPropertyName.Email,
-      );
-
-      if (email) {
-        this.maybeIdentifyInputEmail(
-          email.value,
-          getUAttributesForNavatticEventData(
-            event.data,
-            this._intentContext.apiClient,
-          ),
+      console.log(event.origin, event.data);
+      // Optionally auto-identify user from Navattic demo
+      if (this._autoIdentify) {
+        const eventDataProperties = event.data?.properties ?? [];
+        const email = eventDataProperties.find(
+          ({ object, name }) =>
+            object === NavatticObject.END_USER &&
+            name === NavatticDefaultCustomPropertyName.Email,
         );
+
+        if (email) {
+          this.maybeIdentifyInputEmail(
+            email.value,
+            getUAttributesForNavatticEventData(
+              event.data,
+              this._intentContext.apiClient,
+            ),
+          );
+        }
+      }
+
+      // Optionally auto-track eligible events from Navattic demo
+      if (this._autoTrackOptions.navatticProductDemo) {
+        const { startFlow, viewStep, completeFlow } =
+          this._autoTrackOptions.navatticProductDemo;
+
+        // User has just started a product demo
+        if (startFlow && event.data.type === NavatticEventType.START_FLOW) {
+          console.log('one');
+          const startedDemoActivity = new TrackActivity(this._intentContext, {
+            name: UnifyStandardTrackEvent.PRODUCT_DEMO_STARTED,
+            properties: {
+              provider: PRODUCT_DEMO_NAVATTIC_PROVIDER_NAME,
+              demo: event.data.flow.name,
+              wasAutoTracked: true,
+            },
+          });
+          startedDemoActivity.track();
+        }
+        // User viewed a step of a product demo
+        else if (viewStep && event.data.type === NavatticEventType.VIEW_STEP) {
+          const viewedStepActivity = new TrackActivity(this._intentContext, {
+            name: UnifyStandardTrackEvent.PRODUCT_DEMO_STEP_VIEWED,
+            properties: {
+              provider: PRODUCT_DEMO_NAVATTIC_PROVIDER_NAME,
+              demo: event.data.flow.name,
+              step: event.data.step.name,
+              wasAutoTracked: true,
+            },
+          });
+          viewedStepActivity.track();
+        }
+        // User has completed a product demo
+        else if (
+          completeFlow &&
+          event.data.type === NavatticEventType.COMPLETE_FLOW
+        ) {
+          const completedDemoActivity = new TrackActivity(this._intentContext, {
+            name: UnifyStandardTrackEvent.PRODUCT_DEMO_COMPLETED,
+            properties: {
+              provider: PRODUCT_DEMO_NAVATTIC_PROVIDER_NAME,
+              demo: event.data.flow.name,
+              wasAutoTracked: true,
+            },
+          });
+          completedDemoActivity.track();
+        }
       }
     } catch (error: unknown) {
       this.logError('Error occurred in handleNavatticDemoMessage', error);

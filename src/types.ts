@@ -76,6 +76,28 @@ export interface AutoTrackOptions {
    * of the selectors.
    */
   clickTrackingSelectors?: (string | TrackingSelectorOptions)[];
+
+  /**
+   * Options to auto-track eligible Navattic product demo events:
+   *
+   * https://docs.navattic.com/tracking/navattic-js/subscribe-to-events#navattic-events
+   */
+  navatticProductDemo?: {
+    /**
+     * Should the `START_FLOW` event be tracked?
+     */
+    startFlow?: boolean;
+
+    /**
+     * Should the `VIEW_STEP` event be tracked?
+     */
+    viewStep?: boolean;
+
+    /**
+     * Should the `COMPLETE_FLOW` event be tracked?
+     */
+    completeFlow?: boolean;
+  };
 }
 
 /**
@@ -85,6 +107,9 @@ export interface AutoTrackOptions {
  */
 export enum UnifyStandardTrackEvent {
   ELEMENT_CLICKED = 'Element Clicked',
+  PRODUCT_DEMO_COMPLETED = 'Product Demo Completed',
+  PRODUCT_DEMO_STARTED = 'Product Demo Started',
+  PRODUCT_DEMO_STEP_VIEWED = 'Product Demo Step Viewed',
 }
 
 /**

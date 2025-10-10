@@ -1,4 +1,5 @@
 import { UnifyIntentClient } from '../client';
+import { DEFAULT_AUTO_TRACK_OPTIONS } from '../client/constants';
 import { isIntentClient } from '../client/utils/helpers';
 import { logUnifyError } from '../client/utils/logging';
 
@@ -31,9 +32,7 @@ export const initBrowser = function () {
   new UnifyIntentClient(writeKey, {
     autoPage: true,
     autoIdentify: true,
-    autoTrackOptions: {
-      clickTrackingSelectors: [],
-    },
+    autoTrackOptions: DEFAULT_AUTO_TRACK_OPTIONS,
   }).mount();
 };
 

@@ -6,6 +6,8 @@ import {
   PageProperties,
   UserAgentDataType,
 } from '../../types';
+import { NAVATTIC_IFRAME_ORIGIN } from '../../client/agent/constants';
+import { NavatticEventType } from '../../client/agent/types/navattic';
 
 export const TEST_WRITE_KEY = '1234';
 export const TEST_VISITOR_ID = '5678';
@@ -65,3 +67,39 @@ export const MockPageProperties: PageProperties = {
   title: '',
   url: testEnvironmentOptions.url,
 };
+
+export const getMockNavatticViewStepEvent = () => ({
+  origin: NAVATTIC_IFRAME_ORIGIN,
+  data: {
+    type: NavatticEventType.VIEW_STEP,
+    flow: {
+      name: 'Product Demo',
+    },
+    step: {
+      name: 'Step 1',
+    },
+    properties: [],
+  },
+});
+
+export const getMockNavatticStartFlowEvent = () => ({
+  origin: NAVATTIC_IFRAME_ORIGIN,
+  data: {
+    type: NavatticEventType.START_FLOW,
+    flow: {
+      name: 'Product Demo',
+    },
+    properties: [],
+  },
+});
+
+export const getMockNavatticCompleteFlowEvent = () => ({
+  origin: NAVATTIC_IFRAME_ORIGIN,
+  data: {
+    type: NavatticEventType.COMPLETE_FLOW,
+    flow: {
+      name: 'Product Demo',
+    },
+    properties: [],
+  },
+});
