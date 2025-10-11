@@ -11,7 +11,9 @@ import { IdentifyActivity, PageActivity, TrackActivity } from '../activities';
 import { validateEmail } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
 import {
+  DEFAULT_EVENT_TYPE_TO_ORIGIN_MAP,
   DEFAULT_FORMS_IFRAME_ORIGIN,
+  DEFAULT_SCHEDULER_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
   UNIFY_CLICK_EVENT_NAME_DATA_ATTR,
   UNIFY_CLICK_EVENT_NAME_DATA_ATTR_SELECTOR_NAME,
@@ -30,11 +32,17 @@ import {
   extractUnifyCapturePropertiesFromElement,
   getElementDataAttr,
   getElementLabel,
-  getUAttributesForDefaultEventData,
-  getUAttributesForNavatticEventData,
   isActionableElement,
-  isDefaultFormEventData,
-} from './utils';
+} from './utils/helpers';
+import {
+  getUAttributesForNavatticEventData,
+  maybeTrackNavatticEvent,
+} from './utils/navattic';
+import {
+  getUAttributesForDefaultEventData,
+  maybeTrackDefaultEvent,
+} from './utils/default';
+import { isDefaultFormEventData } from './utils/default';
 
 /**
  * This class acts as an agent to automatically monitor user
@@ -435,7 +443,8 @@ export class UnifyIntentAgent {
     let thirdParty: string | undefined;
     try {
       switch (event.origin) {
-        case DEFAULT_FORMS_IFRAME_ORIGIN: {
+        case DEFAULT_FORMS_IFRAME_ORIGIN:
+        case DEFAULT_SCHEDULER_IFRAME_ORIGIN: {
           thirdParty = 'Default';
           this.handleDefaultFormMessage(
             event as MessageEvent<DefaultEventData>,
@@ -467,6 +476,15 @@ export class UnifyIntentAgent {
     event: MessageEvent<DefaultEventData>,
   ) => {
     try {
+      // Default will emit some events with JSON string data, we can safely ignore these.
+      if (typeof event.data === 'string') return;
+
+      // Some events are emitted by both the Default form AND scheduler iframes.
+      // We add this check so that they are not processed more than once.
+      if (event.origin !== DEFAULT_EVENT_TYPE_TO_ORIGIN_MAP[event.data.event]) {
+        return;
+      }
+
       if (this._autoIdentify && isDefaultFormEventData(event.data)) {
         const email = event.data.payload.email;
 
@@ -481,102 +499,13 @@ export class UnifyIntentAgent {
         }
       }
 
+      // Optionally auto-track eligible events from Default form/scheduler
       if (this._autoTrackOptions.defaultForms) {
-        const {
-          [DefaultTrackEvent.DEFAULT_FORM_COMPLETED]: formCompleted,
-          [DefaultTrackEvent.DEFAULT_FORM_PAGE_SUBMITTED]: formPageSubmitted,
-          [DefaultTrackEvent.DEFAULT_MEETING_BOOKED]: meetingBooked,
-          [DefaultTrackEvent.DEFAULT_SCHEDULER_CLOSED]: schedulerClosed,
-          [DefaultTrackEvent.DEFAULT_SCHEDULER_DISPLAYED]: schedulerDisplayed,
-        } = this._autoTrackOptions.defaultForms === true
-          ? {
-              [DefaultTrackEvent.DEFAULT_FORM_COMPLETED]: true,
-              [DefaultTrackEvent.DEFAULT_FORM_PAGE_SUBMITTED]: true,
-              [DefaultTrackEvent.DEFAULT_MEETING_BOOKED]: true,
-              [DefaultTrackEvent.DEFAULT_SCHEDULER_CLOSED]: true,
-              [DefaultTrackEvent.DEFAULT_SCHEDULER_DISPLAYED]: true,
-            }
-          : this._autoTrackOptions.defaultForms;
-
-        if (
-          formCompleted &&
-          event.data.event === DefaultEventType.FORM_COMPLETED
-        ) {
-          const formCompletedActivity = new TrackActivity(this._intentContext, {
-            name: DefaultTrackEvent.DEFAULT_FORM_COMPLETED,
-            properties: {
-              form: event.data.payload.formName,
-              formId: event.data.payload.formId.toString(),
-              wasAutoTracked: true,
-            },
-          });
-          formCompletedActivity.track();
-        } else if (
-          (formPageSubmitted &&
-            event.data.event === DefaultEventType.FORM_PAGE_SUBMITTED) ||
-          event.data.event === DefaultEventType.FORM_PAGE_SUBMITTED_V2
-        ) {
-          const formPageSubmittedActivity = new TrackActivity(
-            this._intentContext,
-            {
-              name: DefaultTrackEvent.DEFAULT_FORM_PAGE_SUBMITTED,
-              properties: {
-                form: event.data.payload.formName,
-                formId: event.data.payload.formId.toString(),
-                pageNumber: event.data.payload.pageNumber.toString(),
-                wasAutoTracked: true,
-              },
-            },
-          );
-          formPageSubmittedActivity.track();
-        } else if (
-          meetingBooked &&
-          event.data.event === DefaultEventType.MEETING_BOOKED
-        ) {
-          const { memberName, memberEmail, durationInMinutes, startDateTime } =
-            event.data.payload;
-
-          const meetingBookedActivity = new TrackActivity(this._intentContext, {
-            name: DefaultTrackEvent.DEFAULT_MEETING_BOOKED,
-            properties: {
-              memberName,
-              memberEmail,
-              durationInMinutes: durationInMinutes.toString(),
-              startDateTime,
-              wasAutoTracked: true,
-            },
-          });
-          meetingBookedActivity.track();
-        } else if (
-          schedulerClosed &&
-          event.data.event === DefaultEventType.SCHEDULER_CLOSED
-        ) {
-          const schedulerClosedActivity = new TrackActivity(
-            this._intentContext,
-            {
-              name: DefaultTrackEvent.DEFAULT_SCHEDULER_CLOSED,
-              properties: {
-                wasAutoTracked: true,
-              },
-            },
-          );
-          schedulerClosedActivity.track();
-        } else if (
-          schedulerDisplayed &&
-          event.data.event === DefaultEventType.SCHEDULER_DISPLAYED
-        ) {
-          const schedulerDisplayedActivity = new TrackActivity(
-            this._intentContext,
-            {
-              name: DefaultTrackEvent.DEFAULT_SCHEDULER_DISPLAYED,
-              properties: {
-                formId: event.data.payload.formId.toString(),
-                wasAutoTracked: true,
-              },
-            },
-          );
-          schedulerDisplayedActivity.track();
-        }
+        maybeTrackDefaultEvent({
+          data: event.data,
+          autoTrackOptions: this._autoTrackOptions,
+          intentContext: this._intentContext,
+        });
       }
     } catch (error: unknown) {
       this.logError('Error occurred in handleDefaultFormMessage', error);
@@ -601,7 +530,7 @@ export class UnifyIntentAgent {
             name === NavatticDefaultCustomPropertyName.Email,
         );
 
-        if (email) {
+        if (email?.value) {
           this.maybeIdentifyInputEmail(
             email.value,
             getUAttributesForNavatticEventData(
@@ -614,55 +543,11 @@ export class UnifyIntentAgent {
 
       // Optionally auto-track eligible events from Navattic demo
       if (this._autoTrackOptions.navatticProductDemos) {
-        const {
-          [NavatticTrackEvent.NAVATTIC_DEMO_STARTED]: startFlow,
-          [NavatticTrackEvent.NAVATTIC_DEMO_STEP_VIEWED]: viewStep,
-          [NavatticTrackEvent.NAVATTIC_DEMO_COMPLETED]: completeFlow,
-        } = this._autoTrackOptions.navatticProductDemos === true
-          ? {
-              [NavatticTrackEvent.NAVATTIC_DEMO_STARTED]: true,
-              [NavatticTrackEvent.NAVATTIC_DEMO_STEP_VIEWED]: true,
-              [NavatticTrackEvent.NAVATTIC_DEMO_COMPLETED]: true,
-            }
-          : this._autoTrackOptions.navatticProductDemos;
-
-        // User has just started a product demo
-        if (startFlow && event.data.type === NavatticEventType.START_FLOW) {
-          const startedDemoActivity = new TrackActivity(this._intentContext, {
-            name: NavatticTrackEvent.NAVATTIC_DEMO_STARTED,
-            properties: {
-              demo: event.data.flow.name,
-              wasAutoTracked: true,
-            },
-          });
-          startedDemoActivity.track();
-        }
-        // User viewed a step of a product demo
-        else if (viewStep && event.data.type === NavatticEventType.VIEW_STEP) {
-          const viewedStepActivity = new TrackActivity(this._intentContext, {
-            name: NavatticTrackEvent.NAVATTIC_DEMO_STEP_VIEWED,
-            properties: {
-              demo: event.data.flow.name,
-              step: event.data.step.name,
-              wasAutoTracked: true,
-            },
-          });
-          viewedStepActivity.track();
-        }
-        // User has completed a product demo
-        else if (
-          completeFlow &&
-          event.data.type === NavatticEventType.COMPLETE_FLOW
-        ) {
-          const completedDemoActivity = new TrackActivity(this._intentContext, {
-            name: NavatticTrackEvent.NAVATTIC_DEMO_COMPLETED,
-            properties: {
-              demo: event.data.flow.name,
-              wasAutoTracked: true,
-            },
-          });
-          completedDemoActivity.track();
-        }
+        maybeTrackNavatticEvent({
+          data: event.data,
+          autoTrackOptions: this._autoTrackOptions,
+          intentContext: this._intentContext,
+        });
       }
     } catch (error: unknown) {
       this.logError('Error occurred in handleNavatticDemoMessage', error);

@@ -14,12 +14,10 @@ import {
 } from '../../../types';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 import {
-  DEFAULT_FORMS_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
   UNIFY_CLICK_EVENT_NAME_DATA_ATTR_SELECTOR_NAME,
   UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from '../../../client/agent/constants';
-import { DefaultEventType } from '../../../client/agent/types/default';
 import {
   NavatticAttributeSource,
   NavatticCaptureMethod,
@@ -30,7 +28,7 @@ import {
 import {
   getElementLabel,
   isActionableElement,
-} from '../../../client/agent/utils';
+} from '../../../client/agent/utils/helpers';
 import {
   getMockDefaultFormCompletedEvent,
   getMockDefaultFormMeetingBookedEvent,
@@ -52,8 +50,8 @@ jest.mock('../../../client/activities', () => ({
   TrackActivity: jest.fn().mockImplementation(() => mockedTrackActivity),
 }));
 
-jest.mock('../../../client/agent/utils', () => ({
-  ...jest.requireActual('../../../client/agent/utils'),
+jest.mock('../../../client/agent/utils/helpers', () => ({
+  ...jest.requireActual('../../../client/agent/utils/helpers'),
   isActionableElement: jest.fn(),
   getElementLabel: jest.fn(),
   extractUnifyCapturePropertiesFromElement: jest.fn(),
@@ -596,7 +594,6 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('tracks Default form pages submitted when enabled', () => {
-          mockReset(mockedTrackActivity.track);
           agent = new UnifyIntentAgent(mockContext);
 
           window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
@@ -605,7 +602,6 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('does not track Default form pages submitted when not enabled', () => {
-          mockReset(mockedTrackActivity.track);
           agent = new UnifyIntentAgent({
             ...mockContext,
             clientConfig: {
@@ -631,7 +627,6 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('tracks Default form completed when enabled', () => {
-          mockReset(mockedTrackActivity.track);
           agent = new UnifyIntentAgent(mockContext);
 
           window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
@@ -640,7 +635,6 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('does not track Default form completed when not enabled', () => {
-          mockReset(mockedTrackActivity.track);
           agent = new UnifyIntentAgent({
             ...mockContext,
             clientConfig: {
@@ -666,7 +660,6 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('tracks Default meetings booked when enabled', () => {
-          mockReset(mockedTrackActivity.track);
           agent = new UnifyIntentAgent(mockContext);
 
           window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
@@ -675,7 +668,6 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('does not track Default meetings booked when not enabled', () => {
-          mockReset(mockedTrackActivity.track);
           agent = new UnifyIntentAgent({
             ...mockContext,
             clientConfig: {
@@ -701,7 +693,6 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('tracks Default scheduler closed when enabled', () => {
-          mockReset(mockedTrackActivity.track);
           agent = new UnifyIntentAgent(mockContext);
 
           window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
@@ -710,7 +701,6 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('does not track Default scheduler closed when not enabled', () => {
-          mockReset(mockedTrackActivity.track);
           agent = new UnifyIntentAgent({
             ...mockContext,
             clientConfig: {
@@ -736,7 +726,6 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('tracks Default scheduler displayed when enabled', () => {
-          mockReset(mockedTrackActivity.track);
           agent = new UnifyIntentAgent(mockContext);
 
           window.dispatchEvent(new MessageEvent('message', defaultFormEvent));
@@ -745,7 +734,6 @@ describe('UnifyIntentAgent', () => {
         });
 
         it('does not track Default scheduler displayed when not enabled', () => {
-          mockReset(mockedTrackActivity.track);
           agent = new UnifyIntentAgent({
             ...mockContext,
             clientConfig: {
@@ -850,7 +838,6 @@ describe('UnifyIntentAgent', () => {
           });
 
           it('tracks Navattic demos started when enabled', () => {
-            mockReset(mockedTrackActivity.track);
             agent = new UnifyIntentAgent(mockContext);
 
             window.dispatchEvent(
@@ -861,7 +848,6 @@ describe('UnifyIntentAgent', () => {
           });
 
           it('does not track Navattic demos started when not enabled', () => {
-            mockReset(mockedTrackActivity.track);
             agent = new UnifyIntentAgent({
               ...mockContext,
               clientConfig: {
@@ -889,7 +875,6 @@ describe('UnifyIntentAgent', () => {
           });
 
           it('tracks Navattic demo steps when enabled', () => {
-            mockReset(mockedTrackActivity.track);
             agent = new UnifyIntentAgent(mockContext);
 
             window.dispatchEvent(
@@ -900,7 +885,6 @@ describe('UnifyIntentAgent', () => {
           });
 
           it('does not track Navattic demo steps when not enabled', () => {
-            mockReset(mockedTrackActivity.track);
             agent = new UnifyIntentAgent({
               ...mockContext,
               clientConfig: {
@@ -928,7 +912,6 @@ describe('UnifyIntentAgent', () => {
           });
 
           it('tracks Navattic demos started when enabled', () => {
-            mockReset(mockedTrackActivity.track);
             agent = new UnifyIntentAgent(mockContext);
 
             window.dispatchEvent(
@@ -939,7 +922,6 @@ describe('UnifyIntentAgent', () => {
           });
 
           it('does not track Navattic demos started when not enabled', () => {
-            mockReset(mockedTrackActivity.track);
             agent = new UnifyIntentAgent({
               ...mockContext,
               clientConfig: {

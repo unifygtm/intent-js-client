@@ -8,6 +8,7 @@ import {
 } from '../../types';
 import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
+  DEFAULT_SCHEDULER_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
 } from '../../client/agent/constants';
 import { NavatticEventType } from '../../client/agent/types/navattic';
@@ -97,10 +98,15 @@ export const getMockDefaultFormCompletedEvent = () => ({
 });
 
 export const getMockDefaultFormMeetingBookedEvent = () => ({
-  origin: DEFAULT_FORMS_IFRAME_ORIGIN,
+  origin: DEFAULT_SCHEDULER_IFRAME_ORIGIN,
   data: {
     event: DefaultEventType.MEETING_BOOKED,
-    payload: {},
+    payload: {
+      memberName: 'Shravya Rao',
+      memberEmail: 'shravya@unifygtm.com',
+      durationInMinutes: 30,
+      startDateTime: new Date().toISOString(),
+    },
   },
 });
 
@@ -113,7 +119,7 @@ export const getMockDefaultFormSchedulerClosedEvent = () => ({
 });
 
 export const getMockDefaultFormSchedulerDisplayedEvent = () => ({
-  origin: DEFAULT_FORMS_IFRAME_ORIGIN,
+  origin: DEFAULT_SCHEDULER_IFRAME_ORIGIN,
   data: {
     event: DefaultEventType.SCHEDULER_DISPLAYED,
     payload: {
