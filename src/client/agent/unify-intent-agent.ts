@@ -64,6 +64,13 @@ export class UnifyIntentAgent {
   private _isTrackingClicks: boolean = false;
   private _isSubscribedToThirdPartyMessages: boolean = false;
 
+  /**
+   * There is a bug in the Default scheduler which causes some events to
+   * fire twice. We use this instance variable to track when an event
+   * was _just_ tracked to prevent double-tracking it.
+   */
+  private _justTrackedDefaultEventType: DefaultEventType | null = null;
+
   constructor(intentContext: UnifyIntentContext) {
     this._intentContext = intentContext;
 
@@ -501,11 +508,23 @@ export class UnifyIntentAgent {
 
       // Optionally auto-track eligible events from Default form/scheduler
       if (this._autoTrackOptions.defaultForms) {
-        maybeTrackDefaultEvent({
+        // Prevent double-tracking
+        if (event.data.event === this._justTrackedDefaultEventType) {
+          return;
+        }
+
+        const trackedEvent = maybeTrackDefaultEvent({
           data: event.data,
           autoTrackOptions: this._autoTrackOptions,
           intentContext: this._intentContext,
         });
+
+        if (trackedEvent) {
+          this._justTrackedDefaultEventType = event.data.event;
+          setTimeout(() => {
+            this._justTrackedDefaultEventType = null;
+          }, 500);
+        }
       }
     } catch (error: unknown) {
       this.logError('Error occurred in handleDefaultFormMessage', error);

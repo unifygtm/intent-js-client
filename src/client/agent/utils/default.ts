@@ -91,8 +91,8 @@ export function maybeTrackDefaultEvent({
   data: DefaultEventData;
   autoTrackOptions: AutoTrackOptions;
   intentContext: UnifyIntentContext;
-}) {
-  if (!autoTrackOptions.defaultForms || typeof data === 'string') return;
+}): DefaultTrackEvent | null {
+  if (!autoTrackOptions.defaultForms || typeof data === 'string') return null;
 
   const {
     [DefaultTrackEvent.DEFAULT_FORM_COMPLETED]: shouldTrackFormCompleted,
@@ -114,7 +114,7 @@ export function maybeTrackDefaultEvent({
 
   switch (data.event) {
     case DefaultEventType.FORM_COMPLETED: {
-      if (!shouldTrackFormCompleted) return;
+      if (!shouldTrackFormCompleted) return null;
 
       const formCompletedActivity = new TrackActivity(intentContext, {
         name: DefaultTrackEvent.DEFAULT_FORM_COMPLETED,
@@ -125,11 +125,11 @@ export function maybeTrackDefaultEvent({
         },
       });
       formCompletedActivity.track();
-      return;
+      return DefaultTrackEvent.DEFAULT_FORM_COMPLETED;
     }
     case DefaultEventType.FORM_PAGE_SUBMITTED:
     case DefaultEventType.FORM_PAGE_SUBMITTED_V2: {
-      if (!shouldTrackFormPageSubmitted) return;
+      if (!shouldTrackFormPageSubmitted) return null;
 
       const formPageSubmittedActivity = new TrackActivity(intentContext, {
         name: DefaultTrackEvent.DEFAULT_FORM_PAGE_SUBMITTED,
@@ -141,10 +141,10 @@ export function maybeTrackDefaultEvent({
         },
       });
       formPageSubmittedActivity.track();
-      return;
+      return DefaultTrackEvent.DEFAULT_FORM_PAGE_SUBMITTED;
     }
     case DefaultEventType.MEETING_BOOKED: {
-      if (!shouldTrackMeetingBooked) return;
+      if (!shouldTrackMeetingBooked) return null;
 
       const { memberName, memberEmail, durationInMinutes, startDateTime } =
         data.payload;
@@ -160,10 +160,10 @@ export function maybeTrackDefaultEvent({
         },
       });
       meetingBookedActivity.track();
-      return;
+      return DefaultTrackEvent.DEFAULT_MEETING_BOOKED;
     }
     case DefaultEventType.SCHEDULER_CLOSED: {
-      if (!shouldTrackSchedulerClosed) return;
+      if (!shouldTrackSchedulerClosed) return null;
 
       const schedulerClosedActivity = new TrackActivity(intentContext, {
         name: DefaultTrackEvent.DEFAULT_SCHEDULER_CLOSED,
@@ -172,10 +172,10 @@ export function maybeTrackDefaultEvent({
         },
       });
       schedulerClosedActivity.track();
-      return;
+      return DefaultTrackEvent.DEFAULT_SCHEDULER_CLOSED;
     }
     case DefaultEventType.SCHEDULER_DISPLAYED: {
-      if (!shouldTrackSchedulerDisplayed) return;
+      if (!shouldTrackSchedulerDisplayed) return null;
 
       const schedulerDisplayedActivity = new TrackActivity(intentContext, {
         name: DefaultTrackEvent.DEFAULT_SCHEDULER_DISPLAYED,
@@ -185,7 +185,9 @@ export function maybeTrackDefaultEvent({
         },
       });
       schedulerDisplayedActivity.track();
-      return;
+      return DefaultTrackEvent.DEFAULT_SCHEDULER_DISPLAYED;
     }
   }
+
+  return null;
 }
