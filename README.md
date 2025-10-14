@@ -253,19 +253,21 @@ The `track` method accepts two arguments:
 You can leverage various data attributes in the HTML of your site or application to automatically track click events for elements you care about:
 
 `data-unify-click-event-name`
+
 The presence of this attribute on an element indicates that the intent client should automatically fire a track event when the element is clicked. The _value_ of this attribute defines the **name** of the event which will be fired. For example, clicking the `button` in the following HTML will result in a track event with the name `See More Button Clicked` to be fired:
 
 ```html
 <button data-unify-click-event-name="See More Button Clicked">See more</button>
 ```
 
-By default, the intent client will make a best effort at identifying a _label_ for the clicked element to include in the **properties** of the event which is fired. It will do so using the text content of the element. This can be used to easily differentiate between track events with the _same name_ fired for _different elements_. If the client is not able to determine a human-readable label, the `label` property will simply be omitted from the event properties. For example, clicking the `div` in the following HTML will result in a track event with the name `Download Button Clicked` to be fired with the value `Free sample`:
+By default, the intent client will make a best effort at identifying a _label_ for the clicked element to include in the **properties** of the event which is fired. It will do so using the text content and ARIA attributes of the element. This can be used to easily differentiate between track events with the _same name_ fired for _different elements_. If the client is not able to determine a human-readable label, the `label` property will simply be omitted from the event properties. For example, clicking the `div` in the following HTML will result in a track event with the name `Download Button Clicked` to be fired with the value `Free sample`:
 
 ```html
 <div data-unify-click-event-name="Download Button Clicked">Free sample</div>
 ```
 
 `data-unify-label`
+
 This attribute can be used to override the label (or provide a label which is otherwise missing) for an element that is tracked by the client. For example, even though clicking the `button` in the following HTML would normally result in a track event with the label `See more` to be fired, the presence of the `data-unify-label` attribute results in the event being fired with a `label` property of `Custom label`:
 
 ```html
@@ -278,6 +280,7 @@ This attribute can be used to override the label (or provide a label which is ot
 ```
 
 `data-unify-event-prop-*`
+
 By default, only the label of an element is included in the `properties` of auto-tracked events. You can specify additional properties to include using the prefix `data-unify-event-prop-`. For example, clicking the `button` in the following HTML will result a track event to be fired with `properties` including a property of `customValue` set to `100`:
 
 ```html
