@@ -592,7 +592,7 @@ export class UnifyIntentAgent {
           ...customProperties,
           label: elementLabel,
 
-          // TODO: deprecate `elementName` - we include it
+          // TODO: deprecate `elementName` when no longer needed
           ...(isLegacy && { elementName: elementLabel }),
 
           wasAutoTracked: true,
