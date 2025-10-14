@@ -260,7 +260,7 @@ The presence of this attribute on an element indicates that the intent client sh
 <button data-unify-click-event-name="See More Button Clicked">See more</button>
 ```
 
-By default, the intent client will make a best effort at identifying a _label_ for the clicked element to include in the **properties** of the event which is fired. It will do so using the text content and ARIA attributes of the element. This can be used to easily differentiate between track events with the _same name_ fired for _different elements_. If the client is not able to determine a human-readable label, the `label` property will simply be omitted from the event properties. For example, clicking the `div` in the following HTML will result in a track event with the name `Download Button Clicked` to be fired with the value `Free sample`:
+By default, the intent client will make a best effort at identifying a **label** for the clicked element to include in the **properties** of the event which is fired. It will do so using the text content and ARIA attributes of the element. This can be used to easily differentiate between track events with the _same name_ fired for _different elements_. If the client is not able to determine a human-readable label, the `label` property will simply be omitted from the event properties. For example, clicking the `div` in the following HTML will result in a track event with the name `Download Button Clicked` to be fired with `properties` containing a `label` with the value `Free sample`:
 
 ```html
 <div data-unify-click-event-name="Download Button Clicked">Free sample</div>
@@ -294,7 +294,37 @@ By default, only the label of an element is included in the `properties` of auto
 
 #### Automatic tracking
 
-The Unify intent client is capable of automatically monitoring elements that match a list of CSS selectors specified by you in the `UnifyIntentClientConfig`'s `autoTrackOptions.clickTrackingSelectors`. When an element matching one of these selectors is clicked by the user, the client will automatically fire a `track` event for it. `clickTrackingSelectors` can be a list of simple CSS string selectors, in which case the default track event name `Element Clicked` will be used. Alternatively, you can customize the event name by passing a list of objects for `clickTrackingSelectors`, where each object contains a `selector` string and optional `eventName` which will be used as the name of the auto-tracked event.
+The Unify intent client is capable of automatically monitoring elements that match a list of CSS selectors specified by you in the `UnifyIntentClientConfig`'s `autoTrackOptions.clickTrackingSelectors`. When an element matching one of these selectors is clicked by the user, the client will automatically fire a `track` event for it.
+
+`clickTrackingSelectors` can be a list of simple CSS string selectors, in which case the default track event name `Element Clicked` will be used:
+
+```typescript
+const options: AutoTrackOptions = {
+  clickTrackingSelectors: ['.button', '.another-custom-selector'],
+};
+
+const unify = new UnifyIntentClient('YOUR_PUBLIC_WRITE_KEY', {
+  autoTrackOptions: options,
+});
+```
+
+Alternatively, you can customize the event name fired for each selector by passing a list of objects for `clickTrackingSelectors`, where each object contains a `selector` string and optional `eventName` which will be used as the name of the auto-tracked event:
+
+```typescript
+const options: AutoTrackOptions = {
+  clickTrackingSelectors: [
+    { selector: '.button', eventName: 'Button Clicked' },
+    {
+      selector: '.another-custom-selector',
+      eventName: 'Custom Element Clicked',
+    },
+  ],
+};
+
+const unify = new UnifyIntentClient('YOUR_PUBLIC_WRITE_KEY', {
+  autoTrackOptions: options,
+});
+```
 
 You can use the `data-unify-label` to customize the element `label` in the event `properties` and the `data-unify-event-prop-` prefix to add custom `properties`. See [HTML data attributes](#html-data-attributes) for more info.
 
