@@ -303,6 +303,7 @@ const options: AutoTrackOptions = {
   clickTrackingSelectors: ['.button', '.another-custom-selector'],
 };
 
+// Will fire `Element Clicked` events for clicked elements matching CSS selectors
 const unify = new UnifyIntentClient('YOUR_PUBLIC_WRITE_KEY', {
   autoTrackOptions: options,
 });
@@ -321,6 +322,7 @@ const options: AutoTrackOptions = {
   ],
 };
 
+// Will fire events with specified custom names for clicked elements matching CSS selectors
 const unify = new UnifyIntentClient('YOUR_PUBLIC_WRITE_KEY', {
   autoTrackOptions: options,
 });
