@@ -12,6 +12,7 @@ import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
+  UNIFY_CLICK_EVENT_NAME_DATA_ATTR_SELECTOR_NAME,
   UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from '../../../client/agent/constants';
 import { DefaultEventType } from '../../../client/agent/types/default';
@@ -23,8 +24,7 @@ import {
   NavatticObject,
 } from '../../../client/agent/types/navattic';
 import {
-  extractUnifyCapturePropertiesFromElement,
-  getElementName,
+  getElementLabel,
   isActionableElement,
 } from '../../../client/agent/utils';
 
@@ -41,15 +41,12 @@ jest.mock('../../../client/activities', () => ({
 jest.mock('../../../client/agent/utils', () => ({
   ...jest.requireActual('../../../client/agent/utils'),
   isActionableElement: jest.fn(),
-  getElementName: jest.fn(),
+  getElementLabel: jest.fn(),
   extractUnifyCapturePropertiesFromElement: jest.fn(),
 }));
 
 const mockedIsActionableElement = jest.mocked(isActionableElement);
-const mockedGetElementName = jest.mocked(getElementName);
-const mockedExtractUnifyCapturePropertiesFromElement = jest.mocked(
-  extractUnifyCapturePropertiesFromElement,
-);
+const mockedGetElementLabel = jest.mocked(getElementLabel);
 
 interface InputElementData {
   id: string;
@@ -60,6 +57,7 @@ interface InputElementData {
 interface ButtomElementData {
   label: string;
   alwaysTrack?: boolean;
+  alwaysTrackLegacy?: boolean;
 }
 
 function mockDocumentWithInputs(inputs: InputElementData[]) {
@@ -80,8 +78,14 @@ function mockDocumentWithButton(button?: ButtomElementData) {
   document.body.innerHTML = `
         <div>
           <button id="test-button" ${
-            button?.alwaysTrack ? UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME : ''
-          }>${button?.label ?? MOCK_BUTTON_NAME}</button>
+            button?.alwaysTrackLegacy
+              ? UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME
+              : ''
+          } ${
+    button?.alwaysTrack
+      ? `${UNIFY_CLICK_EVENT_NAME_DATA_ATTR_SELECTOR_NAME}="Custom Event"`
+      : ''
+  }>${button?.label ?? MOCK_BUTTON_NAME}</button>
         </div>
     `;
 }
@@ -506,7 +510,7 @@ describe('UnifyIntentAgent', () => {
       beforeEach(() => {
         mockDocumentWithButton();
         mockedIsActionableElement.mockReturnValue(false);
-        mockedGetElementName.mockReturnValue(null);
+        mockedGetElementLabel.mockReturnValue(null);
       });
 
       describe('when element is actionable', () => {
@@ -516,7 +520,7 @@ describe('UnifyIntentAgent', () => {
 
         describe('when element has valid name', () => {
           beforeEach(() => {
-            mockedGetElementName.mockReturnValue(MOCK_BUTTON_NAME);
+            mockedGetElementLabel.mockReturnValue(MOCK_BUTTON_NAME);
           });
 
           describe('when element matches selectors', () => {
@@ -524,6 +528,27 @@ describe('UnifyIntentAgent', () => {
               agent = new UnifyIntentAgent(
                 MockUnifyIntentContext({
                   autoTrackOptions: { clickTrackingSelectors: ['button'] },
+                }),
+              );
+              agent.startAutoTrack();
+
+              getTestButton()?.dispatchEvent(
+                new MouseEvent('click', { bubbles: true }),
+              );
+
+              expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+            });
+          });
+
+          describe('when element matches selectors with custom event names', () => {
+            it('tracks element clicks', () => {
+              agent = new UnifyIntentAgent(
+                MockUnifyIntentContext({
+                  autoTrackOptions: {
+                    clickTrackingSelectors: [
+                      { selector: 'button', eventName: 'Custom Event' },
+                    ],
+                  },
                 }),
               );
               agent.startAutoTrack();
@@ -552,8 +577,32 @@ describe('UnifyIntentAgent', () => {
               expect(mockedTrackActivity.track).toHaveBeenCalledTimes(0);
             });
 
+            it('tracks element clicks if element has legacy click tracking attribute', () => {
+              mockDocumentWithButton({
+                label: 'Test',
+                alwaysTrackLegacy: true,
+              });
+
+              agent = new UnifyIntentAgent(
+                MockUnifyIntentContext({
+                  autoTrackOptions: { clickTrackingSelectors: [] },
+                }),
+              );
+              agent.startAutoTrack();
+              expect(mockedTrackActivity.track).not.toHaveBeenCalled();
+
+              getTestButton()?.dispatchEvent(
+                new MouseEvent('click', { bubbles: true }),
+              );
+
+              expect(mockedTrackActivity.track).toHaveBeenCalledTimes(1);
+            });
+
             it('tracks element clicks if element has click tracking attribute', () => {
-              mockDocumentWithButton({ label: 'Test', alwaysTrack: true });
+              mockDocumentWithButton({
+                label: 'Test',
+                alwaysTrack: true,
+              });
 
               agent = new UnifyIntentAgent(
                 MockUnifyIntentContext({
@@ -572,9 +621,9 @@ describe('UnifyIntentAgent', () => {
           });
         });
 
-        describe('when element does not have valid name', () => {
+        describe('when element does not have valid label', () => {
           beforeEach(() => {
-            mockedGetElementName.mockReturnValue(null);
+            mockedGetElementLabel.mockReturnValue(null);
           });
 
           it('does not track element clicks', () => {
@@ -601,7 +650,7 @@ describe('UnifyIntentAgent', () => {
 
         describe('when element has valid name', () => {
           beforeEach(() => {
-            mockedGetElementName.mockReturnValue(MOCK_BUTTON_NAME);
+            mockedGetElementLabel.mockReturnValue(MOCK_BUTTON_NAME);
           });
 
           it('does not track element clicks', () => {

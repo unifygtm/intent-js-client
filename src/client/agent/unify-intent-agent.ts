@@ -11,6 +11,9 @@ import { logUnifyError } from '../utils/logging';
 import {
   DEFAULT_FORMS_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
+  UNIFY_CLICK_EVENT_NAME_DATA_ATTR,
+  UNIFY_CLICK_EVENT_NAME_DATA_ATTR_SELECTOR_NAME,
+  UNIFY_TRACK_CLICK_DATA_ATTR,
   UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from './constants';
 import { DefaultEventData } from './types/default';
@@ -20,8 +23,10 @@ import {
   NavatticObject,
 } from './types/navattic';
 import {
+  elementHasDataAttr,
   extractUnifyCapturePropertiesFromElement,
-  getElementName,
+  getElementDataAttr,
+  getElementLabel,
   getUAttributesForDefaultEventData,
   getUAttributesForNavatticEventData,
   isActionableElement,
@@ -244,15 +249,110 @@ export class UnifyIntentAgent {
       const target = event.target as Element | null;
       if (!target) return;
 
+      // TODO: deprecate this old selector
+      const legacyDefaultSelector = `[${UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME}]`;
+
+      // Default selector for tracking a custom event
+      const defaultSelector = `[${UNIFY_CLICK_EVENT_NAME_DATA_ATTR_SELECTOR_NAME}]`;
+
+      // Optional custom CSS selectors
+      const customCssSelectors =
+        this._autoTrackOptions.clickTrackingSelectors ?? [];
+
+      // Combine all selectors
       const selectors = [
-        `[${UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME}]`,
-        ...(this._autoTrackOptions.clickTrackingSelectors ?? []),
+        legacyDefaultSelector,
+        defaultSelector,
+        ...customCssSelectors.map((selectorOrOptions) => {
+          if (typeof selectorOrOptions === 'string') {
+            return selectorOrOptions;
+          }
+
+          return selectorOrOptions.selector;
+        }),
       ];
 
+      // Find the closest ancestor which matches any selector
       const element = target.closest(selectors.join(', '));
-      if (!element || !(element instanceof HTMLElement)) return;
+      if (
+        !element ||
+        !(element instanceof HTMLElement) ||
+        !isActionableElement(element)
+      )
+        return;
 
-      this.maybeTrackClick(element);
+      // The event name for the legacy default selector is always `Element Clicked`
+      const legacyDefaultMatchEventName = elementHasDataAttr(
+        element,
+        UNIFY_TRACK_CLICK_DATA_ATTR,
+      )
+        ? UnifyStandardTrackEvent.ELEMENT_CLICKED
+        : null;
+
+      // The new default selector will have a custom event name
+      const defaultMatchEventName = getElementDataAttr(
+        element,
+        UNIFY_CLICK_EVENT_NAME_DATA_ATTR,
+      );
+
+      // Get event names for each custom CSS selector which the element matches
+      const customMatchEventNames = customCssSelectors.map(
+        (selectorOrOptions) => {
+          // If the selector is a simple CSS string
+          if (typeof selectorOrOptions === 'string') {
+            // Do not double-track an element matched by default selector(s) and
+            // custom CSS selector without a custom event name.
+            if (legacyDefaultMatchEventName || defaultMatchEventName)
+              return null;
+
+            // Never a custom event name in this case, use the default
+            if (element.matches(selectorOrOptions)) {
+              return UnifyStandardTrackEvent.ELEMENT_CLICKED;
+            }
+
+            // No match, so no event name to track
+            return null;
+          }
+
+          // If the selector is an object containing an optional custom event name
+          if (element.matches(selectorOrOptions.selector)) {
+            // Do not double-track an element matched by default selector(s) and
+            // custom CSS selector without a custom event name.
+            if (legacyDefaultMatchEventName || defaultMatchEventName) {
+              if (!selectorOrOptions.eventName) return null;
+            }
+
+            // Use the custom event name if provided, else fall back to the default
+            return (
+              selectorOrOptions.eventName ??
+              UnifyStandardTrackEvent.ELEMENT_CLICKED
+            );
+          }
+
+          // No match, so no event name to track
+          return null;
+        },
+      );
+
+      // Filter to all eligible event names to track
+      const eventNamesToTrack = [
+        defaultMatchEventName,
+        ...customMatchEventNames,
+      ].filter((eventName): eventName is string => !!eventName);
+
+      // Track an event for each eligible name
+      eventNamesToTrack.forEach((eventName) => {
+        this.maybeTrackClick({ element, eventName });
+      });
+
+      // TODO: deprecate legacy tracking
+      if (legacyDefaultMatchEventName) {
+        this.maybeTrackClick({
+          element,
+          eventName: legacyDefaultMatchEventName,
+          isLegacy: true,
+        });
+      }
     } catch (error: unknown) {
       this.logError('Error occurred in handleDocumentClick', error);
     }
@@ -470,19 +570,33 @@ export class UnifyIntentAgent {
     }
   };
 
-  private maybeTrackClick = (element: HTMLElement) => {
+  private maybeTrackClick = ({
+    element,
+    eventName,
+    isLegacy = false,
+  }: {
+    element: HTMLElement;
+    eventName: string;
+    isLegacy?: boolean;
+  }) => {
     try {
-      if (!isActionableElement(element)) return;
-
-      const elementName = getElementName(element);
-      if (!elementName) return;
+      const elementLabel = getElementLabel(element);
+      if (!elementLabel) return;
 
       const customProperties =
         extractUnifyCapturePropertiesFromElement(element);
 
       const trackActivity = new TrackActivity(this._intentContext, {
-        name: UnifyStandardTrackEvent.ELEMENT_CLICKED,
-        properties: { ...customProperties, elementName, wasAutoTracked: true },
+        name: eventName,
+        properties: {
+          ...customProperties,
+          label: elementLabel,
+
+          // TODO: deprecate `elementName` - we include it
+          ...(isLegacy && { elementName: elementLabel }),
+
+          wasAutoTracked: true,
+        },
       });
       trackActivity.track();
     } catch (error: unknown) {

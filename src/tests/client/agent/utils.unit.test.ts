@@ -1,11 +1,10 @@
 import {
-  UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX,
   UNIFY_ELEMENT_EXCLUSION_DATA_ATTR,
   UNIFY_ELEMENT_LABEL_DATA_ATTR,
 } from '../../../client/agent/constants';
 import {
   extractUnifyCapturePropertiesFromElement,
-  getElementName,
+  getElementLabel,
   isActionableElement,
 } from '../../../client/agent/utils';
 
@@ -56,7 +55,7 @@ describe('Unify Intent Agent utils', () => {
     });
   });
 
-  describe('getElementName', () => {
+  describe('getElementLabel', () => {
     let button: HTMLButtonElement;
     let label: HTMLLabelElement;
 
@@ -81,25 +80,25 @@ describe('Unify Intent Agent utils', () => {
     });
 
     it('uses Unify data label first', () => {
-      expect(getElementName(button)).toEqual('Unify label');
+      expect(getElementLabel(button)).toEqual('Unify label');
     });
 
     it('uses inner text next', () => {
       button.dataset[UNIFY_ELEMENT_LABEL_DATA_ATTR] = '';
-      expect(getElementName(button)).toEqual('Inner text');
+      expect(getElementLabel(button)).toEqual('Inner text');
     });
 
     it('uses text content next', () => {
       button.dataset[UNIFY_ELEMENT_LABEL_DATA_ATTR] = '';
       button.innerText = '';
-      expect(getElementName(button)).toEqual('Text content');
+      expect(getElementLabel(button)).toEqual('Text content');
     });
 
     it('uses aria label next', () => {
       button.dataset[UNIFY_ELEMENT_LABEL_DATA_ATTR] = '';
       button.innerText = '';
       button.textContent = '';
-      expect(getElementName(button)).toEqual('Aria label');
+      expect(getElementLabel(button)).toEqual('Aria label');
     });
 
     it('uses aria labelled by next', () => {
@@ -107,7 +106,7 @@ describe('Unify Intent Agent utils', () => {
       button.innerText = '';
       button.textContent = '';
       button.setAttribute('aria-label', '');
-      expect(getElementName(button)).toEqual('Label');
+      expect(getElementLabel(button)).toEqual('Label');
     });
 
     it('uses nested image alt next', () => {
@@ -121,7 +120,7 @@ describe('Unify Intent Agent utils', () => {
       image.alt = 'Image alt';
       button.append(image);
 
-      expect(getElementName(button)).toEqual('Image alt');
+      expect(getElementLabel(button)).toEqual('Image alt');
     });
   });
 
@@ -140,9 +139,18 @@ describe('Unify Intent Agent utils', () => {
       expect(extractUnifyCapturePropertiesFromElement(button)).toEqual({});
     });
 
-    it('returns extra attributes when there are any', () => {
+    it('returns extra legacy attributes when there are any', () => {
       button.dataset['unifyAttrCustomProperty'] = 'custom';
       button.dataset['unifyAttrAnotherProperty'] = 'another';
+      expect(extractUnifyCapturePropertiesFromElement(button)).toEqual({
+        customProperty: 'custom',
+        anotherProperty: 'another',
+      });
+    });
+
+    it('returns extra attributes when there are any', () => {
+      button.dataset['unifyEventPropCustomProperty'] = 'custom';
+      button.dataset['unifyEventPropAnotherProperty'] = 'another';
       expect(extractUnifyCapturePropertiesFromElement(button)).toEqual({
         customProperty: 'custom',
         anotherProperty: 'another',

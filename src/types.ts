@@ -52,6 +52,19 @@ export interface UnifyIntentContext {
   identityManager: IdentityManager;
 }
 
+export type TrackingSelectorOptions = {
+  /**
+   * CSS selector used to identify the element to be tracked.
+   */
+  selector: string;
+
+  /**
+   * Optional - the name of the track event to fire when the user interaction
+   * with the element is auto-tracked.
+   */
+  eventName?: string;
+};
+
 /**
  * Options which can be used to automatically track common user actions,
  * e.g. button clicks.
@@ -62,7 +75,7 @@ export interface AutoTrackOptions {
    * track click events for elements on the page which match one or more
    * of the selectors.
    */
-  clickTrackingSelectors?: string[];
+  clickTrackingSelectors?: (string | TrackingSelectorOptions)[];
 }
 
 /**

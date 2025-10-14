@@ -1,14 +1,22 @@
 import { DefaultEventType } from './types/default';
 
 /**
- * This is the name of the data attribute which can be
- * specified on an element on the page to designate that clicking the
- * element should automatically fire a track event. By default, the content
- * of the element will be used for the name in the event properties, but
- * `data-unify-label` can be used to override that name.
+ * @deprecated use `UNIFY_CLICK_EVENT_NAME_DATA_ATTR_SELECTOR_NAME` instead
  */
 export const UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME =
   'data-unify-track-clicks';
+export const UNIFY_TRACK_CLICK_DATA_ATTR = 'unifyTrackClicks';
+
+/**
+ * This is the name of the data attribute which can be
+ * specified on an element on the page to designate that clicking the
+ * element should automatically fire a track event. By default, the content
+ * of the element will be used for the `label` in the event properties, but
+ * `data-unify-label` can be used to override that name.
+ */
+export const UNIFY_CLICK_EVENT_NAME_DATA_ATTR_SELECTOR_NAME =
+  'data-unify-click-event-name';
+export const UNIFY_CLICK_EVENT_NAME_DATA_ATTR = 'unifyClickEventName';
 
 /**
  * This is the camel case name of the data attribute which can be
@@ -22,18 +30,28 @@ export const UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME =
 export const UNIFY_ELEMENT_LABEL_DATA_ATTR = 'unifyLabel';
 
 /**
+ * @deprecated use `UNIFY_EVENT_PROPERTY_DATA_ATTR_PREFIX` instead
+ */
+export const UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX = 'unifyAttr';
+
+/**
  * This is the prefix for data attributes which can be specified on
  * auto-tracked elements (e.g. `<button>` elements) in order to include
  * custom properties in the track event properties.
  *
  * For example, when a `<button>` has the attributes:
- * - `data-unify-attr-custom-property="1"`
- * - `data-unify-attr-another-property="100"`
+ * - `data-unify-event-prop-custom-property="1"`
+ * - `data-unify-event-prop-another-property="100"`
  *
  * The auto-track event will contain `properties`:
  * `{ "customProperty": "1", "anotherProperty": "100" }`
  */
-export const UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX = 'unifyAttr';
+export const UNIFY_EVENT_PROPERTY_DATA_ATTR_PREFIX = 'unifyEventProp';
+
+export const UNIFY_CUSTOM_PROPERTY_DATA_ATTR_PREFIXES = [
+  UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX,
+  UNIFY_EVENT_PROPERTY_DATA_ATTR_PREFIX,
+];
 
 /**
  * This is the camel case name of the data attribute which can be
