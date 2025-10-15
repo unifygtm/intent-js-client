@@ -46,13 +46,30 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root">
       <div style="display: flex; align-items: center; gap: 16px">
-        <button data-unify-track-clicks>Simple track</button>
+        <!-- Legacy track data attrs -->
+        <button data-unify-track-clicks>Legacy track</button>
         <button data-unify-track-clicks data-unify-attr-custom="test">
-          Track custom attrs
+          Legacy track custom attrs
         </button>
         <button data-unify-track-clicks data-unify-label="Custom Button Name">
+          Legacy track custom label
+        </button>
+
+        <!-- Current track data attrs -->
+        <button data-unify-click-event-name="Test Button Clicked">Track</button>
+        <button
+          data-unify-click-event-name="Test Button Clicked"
+          data-unify-event-prop-custom="test"
+        >
+          Track custom attrs
+        </button>
+        <button
+          data-unify-click-event-name="Test Button Clicked"
+          data-unify-label="Custom Button Name"
+        >
           Track custom label
         </button>
+
         <button>Should not track</button>
       </div>
     </div>

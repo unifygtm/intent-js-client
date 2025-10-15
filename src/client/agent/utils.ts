@@ -4,7 +4,7 @@ import { getDomainForEmail, getDomainForUrl } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
 import {
   DEFAULT_FORM_EVENT_TYPES,
-  UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX,
+  UNIFY_CUSTOM_PROPERTY_DATA_ATTR_PREFIXES,
   UNIFY_ELEMENT_EXCLUSION_DATA_ATTR,
   UNIFY_ELEMENT_LABEL_DATA_ATTR,
 } from './constants';
@@ -48,7 +48,7 @@ export function isActionableElement(element: Element): boolean {
   return true;
 }
 
-export function getElementName(element: Element): string | null {
+export function getElementLabel(element: Element): string | null {
   const unifyDataLabel = getElementDataAttr(
     element,
     UNIFY_ELEMENT_LABEL_DATA_ATTR,
@@ -77,14 +77,16 @@ export function extractUnifyCapturePropertiesFromElement(
 
   const result: Record<string, string> = {};
   Object.entries(element.dataset).forEach(([key, value]) => {
-    if (key.startsWith(UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX) && value) {
-      const effectiveKey = key.slice(UNIFY_ATTRIBUTES_DATA_ATTR_PREFIX.length);
-      if (effectiveKey) {
-        result[
-          `${effectiveKey.charAt(0).toLowerCase()}${effectiveKey.slice(1)}`
-        ] = value;
+    UNIFY_CUSTOM_PROPERTY_DATA_ATTR_PREFIXES.forEach((prefix) => {
+      if (key.startsWith(prefix) && value) {
+        const effectiveKey = key.slice(prefix.length);
+        if (effectiveKey) {
+          result[
+            `${effectiveKey.charAt(0).toLowerCase()}${effectiveKey.slice(1)}`
+          ] = value;
+        }
       }
-    }
+    });
   });
 
   return result;
@@ -330,18 +332,21 @@ function getElementImageAlt(element: Element): string | null {
   return img?.alt || null;
 }
 
-function elementHasDataAttr(element: Element, attr: string): boolean {
+export function elementHasDataAttr(element: Element, attr: string): boolean {
   if (!(element instanceof HTMLElement)) return false;
 
   const { dataset } = element;
-  return !!dataset[attr];
+  return dataset[attr] !== undefined;
 }
 
-function getElementDataAttr(element: Element, attr: string): string | null {
+export function getElementDataAttr(
+  element: Element,
+  attr: string,
+): string | null {
   if (!(element instanceof HTMLElement)) return null;
 
   const { dataset } = element;
-  if (dataset[attr]) {
+  if (dataset[attr] !== undefined) {
     return String(dataset[attr]);
   }
 
