@@ -1,7 +1,5 @@
 import {
   AutoTrackOptions,
-  DefaultTrackEvent,
-  NavatticTrackEvent,
   UCompany,
   UnifyIntentContext,
   UnifyStandardTrackEvent,
@@ -24,7 +22,6 @@ import { DefaultEventData, DefaultEventType } from './types/default';
 import {
   NavatticDefaultCustomPropertyName,
   NavatticEventData,
-  NavatticEventType,
   NavatticObject,
 } from './types/navattic';
 import {
