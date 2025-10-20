@@ -247,7 +247,7 @@ export class UnifyIntentAgent {
   private handleDocumentClick = (event: MouseEvent) => {
     try {
       const target = event.target as Element | null;
-      if (!target) return;
+      if (!target || typeof target.closest !== 'function') return;
 
       // TODO: deprecate this old selector
       const legacyDefaultSelector = `[${UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME}]`;
