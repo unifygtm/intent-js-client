@@ -47,60 +47,60 @@ export interface NavatticProject {
   /**
    * ID of the project.
    */
-  id: string;
+  id?: string;
 
   /**
    * Name of the project.
    */
-  name: string;
+  name?: string;
 }
 
 export interface NavatticFlow {
   /**
    * ID of the flow.
    */
-  id: string;
+  id?: string;
 
   /**
    * Name of the flow.
    */
-  name: string;
+  name?: string;
 }
 
 export interface NavatticStep {
   /**
    * Name of the step.
    */
-  name: string;
+  name?: string;
 
   /**
    * Zero-based index of the step in the flow.
    */
-  indx: number;
+  indx?: number;
 }
 
 export interface NavatticChecklist {
   /**
    * ID of the checklist.
    */
-  id: string;
+  id?: string;
 
   /**
    * Name of the checklist.
    */
-  name: string;
+  name?: string;
 }
 
 export interface NavatticTask {
   /**
    * ID of the task.
    */
-  id: string;
+  id?: string;
 
   /**
    * Title of the task.
    */
-  title: string;
+  title?: string;
 }
 
 export enum NavatticDefaultCustomPropertyName {
@@ -164,27 +164,27 @@ export enum NavatticDefaultCustomPropertyName {
 }
 
 export interface NavatticEventDataProperty {
-  captureMethod: NavatticCaptureMethod;
-  object: NavatticObject;
-  source: NavatticAttributeSource;
-  name: string;
-  value: string;
+  captureMethod?: NavatticCaptureMethod;
+  object?: NavatticObject;
+  source?: NavatticAttributeSource;
+  name?: string;
+  value?: string;
 }
 
 export interface NavatticClientSideMetadata {
-  browser: string;
-  browser_version: string;
-  current_url: string;
-  device: string;
+  browser?: string;
+  browser_version?: string;
+  current_url?: string;
+  device?: string;
   gclid?: string;
-  host: string;
-  os: string;
-  pathname: string;
-  query_strings: object;
-  referrer: string;
-  referring_domain: string;
-  screen_height: number;
-  screen_width: number;
+  host?: string;
+  os?: string;
+  pathname?: string;
+  query_strings?: object;
+  referrer?: string;
+  referring_domain?: string;
+  screen_height?: number;
+  screen_width?: number;
 }
 
 export type NavatticEventData =
@@ -199,22 +199,22 @@ export interface BaseNavatticEventData {
   /**
    * The type of the event.
    */
-  type: NavatticEventType;
+  type?: NavatticEventType;
 
   /**
    * Project associated with the Navattic demo.
    */
-  project: NavatticProject;
+  project?: NavatticProject;
 
   /**
    * Flow that the user is currently in.
    */
-  flow: NavatticFlow;
+  flow?: NavatticFlow;
 
   /**
    * Current step of the flow the user is currently in.
    */
-  step: NavatticStep;
+  step?: NavatticStep;
 
   /**
    * If there is a checklist in the current project, the
@@ -231,29 +231,29 @@ export interface BaseNavatticEventData {
   /**
    * IDs of tasks already completed by the user at this point.
    */
-  completions: string[];
+  completions?: string[];
 
   /**
    * ID of the customer accessing the demo. Shows up at the URL:
    * https://app.navattic.com/your-workspace/customers/{customerId}
    */
-  customerId: string;
+  customerId?: string;
 
   /**
    * ID of the user's current Navattic session.
    */
-  sessionId: string;
+  sessionId?: string;
 
   /**
    * Metadata about the user's device, browser, etc.
    */
-  clientSideMetadata: NavatticClientSideMetadata;
+  clientSideMetadata?: NavatticClientSideMetadata;
 
   /**
    * Attributes that have been identified for the user, grouped
    * by the source they come from, e.g. a form-fill.
    */
-  eventAttributes: Record<NavatticAttributeSource, { [key: string]: any }>;
+  eventAttributes?: Record<NavatticAttributeSource, { [key: string]: any }>;
 
   /**
    * Data properties for the current end user, company account, etc.
@@ -267,5 +267,5 @@ export type NavatticNavigateEventData = BaseNavatticEventData & {
   /**
    * URL of the link that the visitor navigated to.
    */
-  url: string;
+  url?: string;
 };

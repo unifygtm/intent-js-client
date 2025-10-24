@@ -9,14 +9,16 @@ import { IdentifyActivity, PageActivity, TrackActivity } from '../activities';
 import { validateEmail } from '../utils/helpers';
 import { logUnifyError } from '../utils/logging';
 import {
+  DEFAULT_EVENT_TYPE_TO_ORIGIN_MAP,
   DEFAULT_FORMS_IFRAME_ORIGIN,
+  DEFAULT_SCHEDULER_IFRAME_ORIGIN,
   NAVATTIC_IFRAME_ORIGIN,
   UNIFY_CLICK_EVENT_NAME_DATA_ATTR,
   UNIFY_CLICK_EVENT_NAME_DATA_ATTR_SELECTOR_NAME,
   UNIFY_TRACK_CLICK_DATA_ATTR,
   UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from './constants';
-import { DefaultEventData } from './types/default';
+import { DefaultEventData, DefaultEventType } from './types/default';
 import {
   NavatticDefaultCustomPropertyName,
   NavatticEventData,
@@ -27,11 +29,17 @@ import {
   extractUnifyCapturePropertiesFromElement,
   getElementDataAttr,
   getElementLabel,
-  getUAttributesForDefaultEventData,
-  getUAttributesForNavatticEventData,
   isActionableElement,
-  isDefaultFormEventData,
-} from './utils';
+} from './utils/helpers';
+import {
+  getUAttributesForNavatticEventData,
+  maybeTrackNavatticEvent,
+} from './utils/navattic';
+import {
+  getUAttributesForDefaultEventData,
+  maybeTrackDefaultEvent,
+} from './utils/default';
+import { isDefaultFormEventData } from './utils/default';
 
 /**
  * This class acts as an agent to automatically monitor user
@@ -51,6 +59,14 @@ export class UnifyIntentAgent {
   private _lastLocation?: Location;
 
   private _isTrackingClicks: boolean = false;
+  private _isSubscribedToThirdPartyMessages: boolean = false;
+
+  /**
+   * There is a bug in the Default scheduler which causes some events to
+   * fire twice. We use this instance variable to track when an event
+   * was _just_ tracked to prevent double-tracking it.
+   */
+  private _justTrackedDefaultEventType: DefaultEventType | null = null;
 
   constructor(intentContext: UnifyIntentContext) {
     this._intentContext = intentContext;
@@ -71,7 +87,18 @@ export class UnifyIntentAgent {
     }
 
     this.startAutoTrack();
+    this.subscribeToThirdPartyMessages();
   }
+
+  /**
+   * Stops all monitoring done by the Unify Intent Agent.
+   */
+  public unmount = () => {
+    this.stopAutoIdentify();
+    this.stopAutoPage();
+    this.stopAutoTrack();
+    this.unsubscribeFromThirdPartyMessages();
+  };
 
   /**
    * Tells the Unify Intent Agent to trigger page events when the
@@ -109,8 +136,6 @@ export class UnifyIntentAgent {
 
     this.refreshMonitoredInputs();
     setInterval(this.refreshMonitoredInputs, 2000);
-
-    this.subscribeToThirdPartyMessages();
   };
 
   /**
@@ -125,8 +150,6 @@ export class UnifyIntentAgent {
       }
     });
     this._monitoredInputs.clear();
-
-    this.unsubscribeFromThirdPartyMessages();
 
     this._autoIdentify = false;
   };
@@ -396,14 +419,22 @@ export class UnifyIntentAgent {
    * up event handlers for each supported integration.
    */
   private subscribeToThirdPartyMessages = () => {
-    window.addEventListener('message', this.handleThirdPartyMessage);
+    if (!this._isSubscribedToThirdPartyMessages) {
+      window.addEventListener('message', this.handleThirdPartyMessage);
+    }
+
+    this._isSubscribedToThirdPartyMessages = true;
   };
 
   /**
    * Removes event listeners setup in `subscribeToThirdPartyMessages`.
    */
   private unsubscribeFromThirdPartyMessages = () => {
-    window.removeEventListener('message', this.handleThirdPartyMessage);
+    if (this._isSubscribedToThirdPartyMessages) {
+      window.removeEventListener('message', this.handleThirdPartyMessage);
+    }
+
+    this._isSubscribedToThirdPartyMessages = false;
   };
 
   /**
@@ -413,12 +444,11 @@ export class UnifyIntentAgent {
    * @param event - the event from `window.postMessage`
    */
   private handleThirdPartyMessage = (event: MessageEvent) => {
-    if (!this._autoIdentify) return;
-
     let thirdParty: string | undefined;
     try {
       switch (event.origin) {
-        case DEFAULT_FORMS_IFRAME_ORIGIN: {
+        case DEFAULT_FORMS_IFRAME_ORIGIN:
+        case DEFAULT_SCHEDULER_IFRAME_ORIGIN: {
           thirdParty = 'Default';
           this.handleDefaultFormMessage(
             event as MessageEvent<DefaultEventData>,
@@ -434,7 +464,10 @@ export class UnifyIntentAgent {
         }
       }
     } catch (error: unknown) {
-      this.logError('Error occurred in handleThirdPartyMessage', error);
+      this.logError(
+        `Error occurred in handleThirdPartyMessage for third-party ${thirdParty}`,
+        error,
+      );
     }
   };
 
@@ -446,10 +479,17 @@ export class UnifyIntentAgent {
   private handleDefaultFormMessage = (
     event: MessageEvent<DefaultEventData>,
   ) => {
-    if (!this._autoIdentify) return;
-
     try {
-      if (isDefaultFormEventData(event.data)) {
+      // Default will emit some events with JSON string data, we can safely ignore these.
+      if (typeof event.data === 'string') return;
+
+      // Some events are emitted by both the Default form AND scheduler iframes.
+      // We add this check so that they are not processed more than once.
+      if (event.origin !== DEFAULT_EVENT_TYPE_TO_ORIGIN_MAP[event.data.event]) {
+        return;
+      }
+
+      if (this._autoIdentify && isDefaultFormEventData(event.data)) {
         const email = event.data.payload.email;
 
         if (email) {
@@ -460,6 +500,27 @@ export class UnifyIntentAgent {
               this._intentContext.apiClient,
             ),
           );
+        }
+      }
+
+      // Optionally auto-track eligible events from Default form/scheduler
+      if (this._autoTrackOptions.defaultForms) {
+        // Prevent double-tracking
+        if (event.data.event === this._justTrackedDefaultEventType) {
+          return;
+        }
+
+        const trackedEvent = maybeTrackDefaultEvent({
+          data: event.data,
+          autoTrackOptions: this._autoTrackOptions,
+          intentContext: this._intentContext,
+        });
+
+        if (trackedEvent) {
+          this._justTrackedDefaultEventType = event.data.event;
+          setTimeout(() => {
+            this._justTrackedDefaultEventType = null;
+          }, 500);
         }
       }
     } catch (error: unknown) {
@@ -475,24 +536,34 @@ export class UnifyIntentAgent {
   private handleNavatticDemoMessage = (
     event: MessageEvent<NavatticEventData>,
   ) => {
-    if (!this._autoIdentify) return;
-
     try {
-      const eventDataProperties = event.data?.properties ?? [];
-      const email = eventDataProperties.find(
-        ({ object, name }) =>
-          object === NavatticObject.END_USER &&
-          name === NavatticDefaultCustomPropertyName.Email,
-      );
-
-      if (email) {
-        this.maybeIdentifyInputEmail(
-          email.value,
-          getUAttributesForNavatticEventData(
-            event.data,
-            this._intentContext.apiClient,
-          ),
+      // Optionally auto-identify user from Navattic demo
+      if (this._autoIdentify) {
+        const eventDataProperties = event.data?.properties ?? [];
+        const email = eventDataProperties.find(
+          ({ object, name }) =>
+            object === NavatticObject.END_USER &&
+            name === NavatticDefaultCustomPropertyName.Email,
         );
+
+        if (email?.value) {
+          this.maybeIdentifyInputEmail(
+            email.value,
+            getUAttributesForNavatticEventData(
+              event.data,
+              this._intentContext.apiClient,
+            ),
+          );
+        }
+      }
+
+      // Optionally auto-track eligible events from Navattic demo
+      if (this._autoTrackOptions.navatticProductDemos) {
+        maybeTrackNavatticEvent({
+          data: event.data,
+          autoTrackOptions: this._autoTrackOptions,
+          intentContext: this._intentContext,
+        });
       }
     } catch (error: unknown) {
       this.logError('Error occurred in handleNavatticDemoMessage', error);

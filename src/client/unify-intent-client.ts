@@ -15,7 +15,10 @@ import UnifyApiClient from './unify-api-client';
 import { UnifyIntentAgent } from './agent';
 import { isIntentClient, validateEmail } from './utils/helpers';
 import { logUnifyError } from './utils/logging';
-import { DEFAULT_SESSION_MINUTES_TO_EXPIRE } from './constants';
+import {
+  DEFAULT_AUTO_TRACK_OPTIONS,
+  DEFAULT_SESSION_MINUTES_TO_EXPIRE,
+} from './constants';
 
 declare global {
   interface Window {
@@ -28,6 +31,7 @@ export const DEFAULT_UNIFY_INTENT_CLIENT_CONFIG: UnifyIntentClientConfig = {
   autoPage: false,
   autoIdentify: false,
   sessionDurationMinutes: DEFAULT_SESSION_MINUTES_TO_EXPIRE,
+  autoTrackOptions: DEFAULT_AUTO_TRACK_OPTIONS,
 };
 
 type EventBuffers = {
@@ -163,6 +167,7 @@ export default class UnifyIntentClient {
       }
 
       this.stopAutoTrack();
+      this._intentAgent?.unmount();
 
       this._mounted = false;
       window.unify = undefined;

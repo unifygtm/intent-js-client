@@ -7,17 +7,20 @@ export enum DefaultEventType {
   FORM_PAGE_SUBMITTED_V2 = 'default.form_page_submitted',
   MEETING_BOOKED = 'default.meeting_booked',
   SCHEDULER_DISPLAYED = 'default.scheduler_displayed',
+  SCHEDULER_CLOSED = 'default.scheduler_closed',
 }
 
 /**
  * Union of all events which can be emitted by Default.
  */
 export type DefaultEventData =
+  | string
   | DefaultFormCompletedEventData
   | DefaultFormPageSubmittedEventData
   | DefaultFormPageSubmittedV2EventData
   | DefaultMeetingBookedEventData
-  | DefaultSchedulerDisplayedEventData;
+  | DefaultSchedulerDisplayedEventData
+  | DefaultSchedulerClosedEventData;
 
 /**
  * Event emitted when a form is completed.
@@ -55,36 +58,44 @@ export interface DefaultSchedulerDisplayedEventData {
   payload: DefaultSchedulerDisplayedEventPayload;
 }
 
+/**
+ * Event emitted when the meeting scheduler is closed by a user.
+ */
+export interface DefaultSchedulerClosedEventData {
+  event: DefaultEventType.SCHEDULER_CLOSED;
+  payload: DefaultSchedulerClosedEventPayload;
+}
+
 export interface DefaultFormEventPayload {
   /**
    * The email of the user who submitted the form.
    */
-  email: string;
+  email?: string;
 
   /**
    * The ID of the form.
    */
-  formId: string;
+  formId?: string;
 
   /**
    * The name of the form.
    */
-  formName: string;
+  formName?: string;
 
   /**
    * The number of the page which the form was submitted on.
    */
-  pageNumber: number;
+  pageNumber?: number;
 
   /**
    * The date and time that the form was submitted.
    */
-  submittedAt: string;
+  submittedAt?: string;
 
   /**
    * List of user responses from the form.
    */
-  responses: string[];
+  responses?: string[];
 
   /**
    * Lead attribute data from the user responses.
@@ -96,59 +107,66 @@ export interface DefaultSchedulerDisplayedEventPayload {
   /**
    * The email of the user to whom the scheduler was displayed.
    */
-  email: string;
+  email?: string;
 
   /**
    * The ID of the form.
    */
-  formId: string;
+  formId?: string;
 
   /**
    * The date and time that the scheduler was displayed at.
    */
-  displayedAt: string;
+  displayedAt?: string;
+}
+
+export interface DefaultSchedulerClosedEventPayload {
+  /**
+   * The URL that the user was redirected to after closing.
+   */
+  redirectUrl?: string;
 }
 
 export interface DefaultMeetingBookedEventPayload {
   /**
    * The ID of the meeting which was booked.
    */
-  id: string;
+  id?: string;
 
   /**
    * The full name of the team member who the meeting was booked with.
    */
-  memberName: string;
+  memberName?: string;
 
   /**
    * The email of the team member who the meeting was booked with.
    */
-  memberEmail: string;
+  memberEmail?: string;
 
   /**
    * The email of the person who booked the meeting.
    */
-  leadEmail: string;
+  leadEmail?: string;
 
   /**
    * The duration of the booked meeting in minutes.
    */
-  durationInMinutes: number;
+  durationInMinutes?: number;
 
   /**
    * The start date and time of the booked meeting.
    */
-  startDateTime: string;
+  startDateTime?: string;
 
   /**
    * The title of the booked meeting.
    */
-  title: string;
+  title?: string;
 
   /**
    * The date and time that the meeting was booked at.
    */
-  bookedAt: string;
+  bookedAt?: string;
 }
 
 /**

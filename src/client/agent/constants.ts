@@ -65,6 +65,25 @@ export const UNIFY_CUSTOM_PROPERTY_DATA_ATTR_PREFIXES = [
 export const UNIFY_ELEMENT_EXCLUSION_DATA_ATTR = 'unifyExclude';
 
 export const DEFAULT_FORMS_IFRAME_ORIGIN = 'https://forms.default.com';
+export const DEFAULT_SCHEDULER_IFRAME_ORIGIN = 'https://scheduler.default.com';
+
+/**
+ * Some events are only emitted by one of the two Default iframe origins. Others
+ * are emitted by both. We don't want to double-process events emitted by
+ * both iframes, so this maps from event type to expected origin to use.
+ */
+export const DEFAULT_EVENT_TYPE_TO_ORIGIN_MAP: Record<
+  DefaultEventType,
+  typeof DEFAULT_FORMS_IFRAME_ORIGIN | typeof DEFAULT_SCHEDULER_IFRAME_ORIGIN
+> = {
+  [DefaultEventType.FORM_COMPLETED]: DEFAULT_FORMS_IFRAME_ORIGIN,
+  [DefaultEventType.FORM_PAGE_SUBMITTED]: DEFAULT_FORMS_IFRAME_ORIGIN,
+  [DefaultEventType.FORM_PAGE_SUBMITTED_V2]: DEFAULT_FORMS_IFRAME_ORIGIN,
+  [DefaultEventType.MEETING_BOOKED]: DEFAULT_SCHEDULER_IFRAME_ORIGIN,
+  [DefaultEventType.SCHEDULER_CLOSED]: DEFAULT_FORMS_IFRAME_ORIGIN,
+  [DefaultEventType.SCHEDULER_DISPLAYED]: DEFAULT_SCHEDULER_IFRAME_ORIGIN,
+};
+
 export const NAVATTIC_IFRAME_ORIGIN = 'https://capture.navattic.com';
 
 export const DEFAULT_FORM_EVENT_TYPES: DefaultEventType[] = [

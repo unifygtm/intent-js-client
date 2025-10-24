@@ -1,12 +1,12 @@
 import {
   UNIFY_ELEMENT_EXCLUSION_DATA_ATTR,
   UNIFY_ELEMENT_LABEL_DATA_ATTR,
-} from '../../../client/agent/constants';
+} from '../../../../client/agent/constants';
 import {
   extractUnifyCapturePropertiesFromElement,
   getElementLabel,
   isActionableElement,
-} from '../../../client/agent/utils';
+} from '../../../../client/agent/utils/helpers';
 
 describe('Unify Intent Agent utils', () => {
   describe('isActionableButton', () => {
