@@ -1,9 +1,9 @@
 import {
-  AutoTrackOptions,
-  UCompany,
-  UnifyIntentContext,
+  type AutoTrackOptions,
+  type UCompany,
+  type UnifyIntentContext,
   UnifyStandardTrackEvent,
-  UPerson,
+  type UPerson,
 } from '../../types';
 import { IdentifyActivity, PageActivity, TrackActivity } from '../activities';
 import { validateEmail } from '../utils/helpers';
@@ -18,10 +18,10 @@ import {
   UNIFY_TRACK_CLICK_DATA_ATTR,
   UNIFY_TRACK_CLICK_DATA_ATTR_SELECTOR_NAME,
 } from './constants';
-import { DefaultEventData, DefaultEventType } from './types/default';
+import { type DefaultEventData, DefaultEventType } from './types/default';
 import {
   NavatticDefaultCustomPropertyName,
-  NavatticEventData,
+  type NavatticEventData,
   NavatticObject,
 } from './types/navattic';
 import {

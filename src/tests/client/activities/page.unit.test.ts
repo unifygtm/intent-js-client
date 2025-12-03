@@ -1,10 +1,10 @@
-import { anyObject, mockReset, objectContainsValue } from 'jest-mock-extended';
+import { anyObject, mockReset } from 'jest-mock-extended';
 
 import {
   PageActivity,
   UNIFY_INTENT_PAGE_URL,
 } from '../../../client/activities';
-import { PageEventData } from '../../../types';
+import type { PageEventData } from '../../../types';
 import { MockClientSession, TEST_VISITOR_ID } from '../../mocks/data';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 

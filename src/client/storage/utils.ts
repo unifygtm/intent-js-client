@@ -53,7 +53,7 @@ export function isLocalStorageAvailable() {
     localStorage.setItem(TEST_STORAGE_VALUE, TEST_STORAGE_VALUE);
     localStorage.removeItem(TEST_STORAGE_VALUE);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

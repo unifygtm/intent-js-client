@@ -1,6 +1,6 @@
 import { anyObject, mockReset } from 'jest-mock-extended';
 
-import { TrackEventData } from '../../../types';
+import type { TrackEventData } from '../../../types';
 import { MockClientSession, TEST_VISITOR_ID } from '../../mocks/data';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 import {

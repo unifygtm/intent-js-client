@@ -10,7 +10,7 @@ import {
   CookieStorageService,
   LocalStorageService,
 } from '../../../client/storage';
-import { ClientSession } from '../../../types';
+import type { ClientSession } from '../../../types';
 import { MockClientSession, TEST_WRITE_KEY } from '../../mocks/data';
 
 const localStorageMock = mock(LocalStorageService.prototype);

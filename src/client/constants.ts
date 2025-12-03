@@ -1,5 +1,5 @@
 import {
-  AutoTrackOptions,
+  type AutoTrackOptions,
   DefaultTrackEvent,
   NavatticTrackEvent,
 } from '../types';
