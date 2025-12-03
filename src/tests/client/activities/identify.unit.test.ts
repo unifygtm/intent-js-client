@@ -4,7 +4,7 @@ import {
   IdentifyActivity,
   UNIFY_INTENT_IDENTIFY_URL,
 } from '../../../client/activities';
-import { IdentifyEventData } from '../../../types';
+import type { IdentifyEventData } from '../../../types';
 import { MockClientSession, TEST_VISITOR_ID } from '../../mocks/data';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 

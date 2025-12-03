@@ -1,4 +1,4 @@
-import { DeepMockProxy, mockDeep, mockReset } from 'jest-mock-extended';
+import { type DeepMockProxy, mockDeep, mockReset } from 'jest-mock-extended';
 import Cookies from 'js-cookie';
 
 import { CookieStorageService } from '../../../client/storage';

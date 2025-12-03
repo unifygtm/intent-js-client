@@ -1,4 +1,4 @@
-import { PageProperties, UserAgentDataType } from '../../types';
+import type { PageProperties, UserAgentDataType } from '../../types';
 
 const EMAIL_REGEX = /^[A-Za-z0-9._+%-]+@[A-Za-z0-9.-]+[.][A-Za-z]+$/;
 

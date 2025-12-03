@@ -10,7 +10,7 @@ import { UnifyIntentAgent } from '../../../client/agent';
 import {
   DefaultTrackEvent,
   NavatticTrackEvent,
-  UnifyIntentContext,
+  type UnifyIntentContext,
 } from '../../../types';
 import { MockUnifyIntentContext } from '../../mocks/intent-context-mock';
 import {

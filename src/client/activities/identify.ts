@@ -1,4 +1,4 @@
-import {
+import type {
   AnalyticsEventType,
   IdentifyEventData,
   UCompany,

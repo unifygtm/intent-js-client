@@ -2,7 +2,7 @@
 
 import { IdentityManager, SessionManager } from './client/managers';
 import UnifyApiClient from './client/unify-api-client';
-import { components } from './spec';
+import { type components } from './spec';
 
 /**
  * Configuration options for the Unify Intent Client.

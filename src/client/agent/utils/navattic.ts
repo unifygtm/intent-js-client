@@ -1,8 +1,8 @@
 import {
-  UPerson,
-  UCompany,
-  AutoTrackOptions,
-  UnifyIntentContext,
+  type UPerson,
+  type UCompany,
+  type AutoTrackOptions,
+  type UnifyIntentContext,
   NavatticTrackEvent,
 } from '../../../types';
 import { TrackActivity } from '../../activities';
@@ -10,10 +10,10 @@ import UnifyApiClient from '../../unify-api-client';
 import { getDomainForUrl, getDomainForEmail } from '../../utils/helpers';
 import { logUnifyError } from '../../utils/logging';
 import {
-  NavatticEventData,
+  type NavatticEventData,
   NavatticDefaultCustomPropertyName,
   NavatticObject,
-  NavatticEventDataProperty,
+  type NavatticEventDataProperty,
   NavatticEventType,
 } from '../types/navattic';
 

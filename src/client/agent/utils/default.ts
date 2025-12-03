@@ -1,9 +1,9 @@
 import {
-  UPerson,
-  UCompany,
-  AutoTrackOptions,
+  type UPerson,
+  type UCompany,
+  type AutoTrackOptions,
   DefaultTrackEvent,
-  UnifyIntentContext,
+  type UnifyIntentContext,
 } from '../../../types';
 import { TrackActivity } from '../../activities';
 import UnifyApiClient from '../../unify-api-client';
@@ -11,11 +11,11 @@ import { getDomainForUrl, getDomainForEmail } from '../../utils/helpers';
 import { logUnifyError } from '../../utils/logging';
 import { DEFAULT_FORM_EVENT_TYPES } from '../constants';
 import {
-  DefaultEventData,
+  type DefaultEventData,
   DefaultEventType,
-  DefaultFormCompletedEventData,
-  DefaultFormPageSubmittedEventData,
-  DefaultFormPageSubmittedV2EventData,
+  type DefaultFormCompletedEventData,
+  type DefaultFormPageSubmittedEventData,
+  type DefaultFormPageSubmittedV2EventData,
 } from '../types/default';
 
 export function isDefaultFormEventData(
