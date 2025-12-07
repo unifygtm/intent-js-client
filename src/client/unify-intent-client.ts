@@ -479,7 +479,7 @@ export default class UnifyIntentClient {
  * @param unify - the `UnifyIntentClient` to apply method calls to
  */
 function flushUnifyQueue(unify: UnifyIntentClient, apiClient: UnifyApiClient) {
-  const queue: [string, unknown[]][] = Array.isArray(window.unify)
+  const queue = Array.isArray(window.unify)
     ? [...window.unify]
     : Array.isArray(window.unifyBrowser)
     ? [...window.unifyBrowser]
