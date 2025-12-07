@@ -8,7 +8,7 @@ const TEST_STORAGE_VALUE = 'test';
  * @param value the value to parse
  * @returns the safely parsed value
  */
-export function safeParse<T = unknown>(value: string): T | string {
+export function safeParse<T = string>(value: string): T | string {
   try {
     return JSON.parse(value);
   } catch {
