@@ -383,7 +383,10 @@ const unify = useUnifyIntent();
 useEffect(() => {
   if (currentUser.email) {
     const payload = unify.getIdentifyPayload(currentUser.email);
+
+    // If the email is valid
     if (payload) {
+      // Send event to server
       apiClient.post('/identify', payload);
     }
   }
@@ -394,9 +397,11 @@ useEffect(() => {
 
 ```TypeScript
 const unifyClient = axios.create({
+  // The Unify Intent API URL
   baseURL: 'https://api.unifyintent.com/analytics/v1',
   headers: {
     'Content-type': 'application/json; charset=UTF-8',
+    // Your public write key which can be found at https://app.unifygtm.com/dashboard/settings/integrations/unify-intent-client
     'X-Write-Key': 'wk_5fTtsDLJ_7vx9DsjPcr79yk4FweES727w59pxS8EJ',
   },
 });
@@ -404,6 +409,7 @@ const unifyClient = axios.create({
 router.post(
   '/identify',
   async (req: Request, res: Response) => {
+    // Forward the event to the Unify Intent API
     const response = await unifyClient.post('/identify', req.body);
 
     return res.status(200).json({
