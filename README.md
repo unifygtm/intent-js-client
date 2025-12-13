@@ -10,6 +10,7 @@ JavaScript client for interacting with the Unify Intent API in the browser.
   - [Page Events](#page-view-events)
   - [Identify Events](#identify-events)
   - [Track Events](#track-events)
+- [Server Side](#server-side)
 - [Third-Party Tools](#third-party-tools)
   - [Default](#default)
   - [Navattic](#navattic)
@@ -353,6 +354,69 @@ unify.startAutoTrack();
 
 // OR tell the client to start monitoring something else
 unify.startAutoTrack({ clickTrackingSelectors: ['.custom-button'] });
+```
+
+## Server Side
+
+It is possible to send requests to the Unify Intent API directly. You might do this on a web server, for example, to circumvent ad blockers. The Unify client exposes a method for each of its event types (`page`, `identify`, and `track` events) which can be used to generate the request payload for each event. This payload can then be sent to your web server which functions as a proxy to forward the request directly to the Unify Intent API.
+
+The three methods on the client for generating event payloads are the following:
+
+- `getPagePayload`
+- `getIdentifyPayload`
+- `getTrackPayload`
+
+Below is an example of using the `getIdentifyPayload` method in a React app to generate the payload for an `identify` event, send it to a proxy web server, and forward it to the Unify intent client.
+
+**client.tsx**
+
+```tsx
+// However you make requests to your web server
+const apiClient = useApiClient();
+
+// However you get your current user object
+const currentUser = useCurrentUser();
+
+// Get the Unify client
+const unify = useUnifyIntent();
+
+useEffect(() => {
+  if (currentUser.email) {
+    const payload = unify.getIdentifyPayload(currentUser.email);
+
+    // If the email is valid
+    if (payload) {
+      // Send event to server
+      apiClient.post('/identify', payload);
+    }
+  }
+}, [currentUser, unify, apiClient]);
+```
+
+**server.ts**
+
+```TypeScript
+const unifyClient = axios.create({
+  // The Unify Intent API URL
+  baseURL: 'https://api.unifyintent.com/analytics/v1',
+  headers: {
+    'Content-type': 'application/json; charset=UTF-8',
+    // Your public write key which can be found at https://app.unifygtm.com/dashboard/settings/integrations/unify-intent-client
+    'X-Write-Key': 'wk_5fTtsDLJ_7vx9DsjPcr79yk4FweES727w59pxS8EJ',
+  },
+});
+
+router.post(
+  '/identify',
+  async (req: Request, res: Response) => {
+    // Forward the event to the Unify Intent API
+    const response = await unifyClient.post('/identify', req.body);
+
+    return res.status(200).json({
+      success: response.status === 200,
+    });
+  }
+);
 ```
 
 ## Third-Party Tools

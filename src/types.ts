@@ -194,7 +194,7 @@ export type TrackEventData = Omit<
   components['schemas']['TrackEvent'],
   keyof Omit<AnalyticsEventBase, 'type'>
 >;
-export type TrackEventProperties = Pick<TrackEventData, 'properties'>;
+export type TrackEventProperties = TrackEventData['properties'];
 
 export type UCompany =
   components['schemas']['CreateOrUpdateUCompanyAttributes'];
