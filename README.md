@@ -366,7 +366,7 @@ The three methods on the client for generating event payloads are the following:
 - `getIdentifyPayload`
 - `getTrackPayload`
 
-Below is an example of using the `getIdentifyPayload` method in a React app to generate the payload for an `identify` event, send it to a proxy web server, and forward it to the Unify intent client.
+Below is an example of using the `getIdentifyPayload` method in a React app to generate the payload for an `identify` event, send it to a proxy web server, and forward it to the Unify Intent API.
 
 **client.tsx**
 
