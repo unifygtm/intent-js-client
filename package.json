@@ -71,7 +71,7 @@
     "js-base64": "^3.7.5",
     "js-cookie": "^3.0.5",
     "user-agent-data-types": "^0.4.2",
-    "uuid": "^9.0.0"
+    "uuid": "^14.0.0"
   },
   "pnpm": {
     "overrides": {
